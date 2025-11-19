@@ -4,8 +4,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite build --mode development --watch",
-    "serve": "vite",
-    "build": "vite build"
+    "build:vi-components": "vite build --config vite.vi-components.config.js",
+    "watch:vi-components": "vite build --config vite.vi-components.config.js --watch",
+    "serve": "npm run build:vi-components && vite",
+    "build": "npm run build:vi-components && vite build"
   },
   "dependencies": {
     "lit": "^3.3.1"

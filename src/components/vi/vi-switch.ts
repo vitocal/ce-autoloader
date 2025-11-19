@@ -1,6 +1,9 @@
 import { LitElement, html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
+/* created by andrew-demchenk0
+ * https://uiverse.io/andrew-demchenk0/honest-stingray-90
+ */
 @customElement('vi-switch')
 export class ViSwitch extends LitElement {
   static styles = css`

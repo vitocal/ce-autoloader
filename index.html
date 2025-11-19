@@ -1,28 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atlas Test</title>
-</head>
-<body>
-    <h1>Atlas Test</h1>
-    <p>Check the console for output.</p>
-    <script type="module">
-        import Atlas from './src/index.ts';
+    <style>
+        :root {
+            --color-primary: #e31;
+            --color-secondary: rgba(111, 241, 241, 0.83);
+            --color-accent: #333;
+            --color-bg-dark: #ddd;
+            --color-bg: #eee;
+            --color-bg-light: #fff;
+            --color-fg: #333;
+        }
 
-        console.log('Atlas imported:', Atlas);
+        .echo {
+            display: block;
+            margin: 1em;
+            background-color: aqua;
+        }
+
+        :not(:defined) {
+            display: block;
+            background-color: var(--color-secondary);
+            color: var(--color-fg);
+            opacity: 0.8;
+            width: auto;
+            min-height: 1em;
+            padding: 0 0.5em;
+            border-radius: 1em;
+        }
+
+        body>*+* {
+            margin-top: 1em;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>WebComponent Atlas</h1>
+
+    <ul>
+        <li>Automatically Load any web-component on demand, if and when they're used.</li>
+        <li>Group components in a atlas (also called a `CustomElementRegistry`)</li>
+        <li>No dependencies, framework-independent</li>
+        <li> 10kb gzip, performant! </li>
+        <li>Interactive islands with client directives, `on:visible` , `on:load`, `on:click`</li>
+        <li>Simple and ergonomic </li>
+    </ul>
+
+    <vi-switch></vi-switch>
+    <unknown-element>unknown element</unknown-element>
+
+    <script class="echo reflect" type="module" contenteditable="true">
+        import Atlas from './src';
+        import ViComponents from './src/components/vi';
 
         const components = {
             "sl-": "https://cdn.jsdelivr.net/npm/shoelace@2.20.1/",
+            ...ViComponents,
         };
 
-        // Handle Class export
-        const atlas = new Atlas();
-        atlas.start({
+        const atlas = new Atlas({
             library: components,
-            observe: document.body
+            root: document.body
         });
     </script>
 </body>
+
 </html>
