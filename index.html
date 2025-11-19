@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlas Test</title>
+</head>
+<body>
+    <h1>Atlas Test</h1>
+    <p>Check the console for output.</p>
+    <script type="module">
+        import Atlas from './src/index.ts';
+
+        console.log('Atlas imported:', Atlas);
+
+        const components = {
+            "sl-": "https://cdn.jsdelivr.net/npm/shoelace@2.20.1/",
+        };
+
+        // Handle Class export
+        const atlas = new Atlas();
+        atlas.start({
+            library: components,
+            observe: document.body
+        });
+    </script>
+</body>
+</html>
