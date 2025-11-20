@@ -8,24 +8,29 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@300;400;600&family=Righteous&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Passion+One:wght@700;900&family=Fredoka:wght@300;400;600&family=Kaushan+Script&display=swap"
         rel="stylesheet">
     <style>
         :root {
             --color-bg: #FFFEF0;
             /* Warm off-white */
-            --color-text: #1a1a1a;
-            --color-primary: #FF005C;
-            /* Hot Pink */
-            --color-secondary: #00E0C6;
-            /* Teal */
-            --color-accent: #FFD600;
-            /* Bright Yellow */
-            --color-purple: #9D00FF;
+            --color-text: #2c3e50;
+            /* Softer dark blue-grey */
 
-            --font-display: 'Righteous', cursive;
+            /* Brazilian Truck Art Palette - Accents */
+            --color-primary: #FF0000;
+            --color-secondary: #0099FF;
+            --color-accent: #FFD700;
+            --color-purple: #4B0082;
+            --color-shadow: rgba(0, 0, 0, 0.15);
+            /* Soft shadow */
+
+            --font-display: 'Passion One', cursive;
             --font-body: 'Fredoka', sans-serif;
-            --font-loud: 'Bangers', cursive;
+            --font-script: 'Kaushan Script', cursive;
+
+            --border-radius-paper: 255px 15px 225px 15px / 15px 225px 15px 255px;
+            /* Hand-drawn feel */
         }
 
         body {
@@ -62,23 +67,38 @@
         h3 {
             font-family: var(--font-display);
             text-transform: uppercase;
-            line-height: 1.1;
+            line-height: 0.9;
+            letter-spacing: -1px;
         }
 
         h1 {
-            font-size: 4rem;
-            color: var(--color-primary);
-            text-shadow: 4px 4px 0px var(--color-accent);
+            font-size: 6rem;
+            color: #fff;
+            -webkit-text-stroke: 2px #000;
+            text-shadow:
+                4px 4px 0px #000,
+                8px 8px 0px var(--color-primary),
+                12px 12px 0px #000;
             margin-bottom: 1rem;
-            transform: rotate(-2deg);
         }
 
         h2 {
-            font-size: 2.5rem;
-            color: var(--color-purple);
+            font-size: 3.5rem;
+            color: var(--color-secondary);
+            -webkit-text-stroke: 1.5px #000;
+            text-shadow:
+                3px 3px 0px #000,
+                6px 6px 0px var(--color-accent);
             margin-top: 3rem;
-            border-bottom: 5px solid var(--color-secondary);
+            border-bottom: none;
             display: inline-block;
+        }
+
+        h3 {
+            font-size: 2.5rem;
+            color: var(--color-primary);
+            -webkit-text-stroke: 1px #000;
+            text-shadow: 2px 2px 0px #000;
         }
 
         p {
@@ -88,10 +108,12 @@
         }
 
         .loud {
-            font-family: var(--font-loud);
-            font-size: 1.5em;
+            font-family: var(--font-script);
+            font-size: 1.8em;
             color: var(--color-primary);
-            letter-spacing: 1px;
+            text-shadow: 2px 2px 0px var(--color-accent);
+            transform: rotate(-5deg);
+            display: inline-block;
         }
 
         /* Hero Section */
@@ -102,57 +124,177 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            background: radial-gradient(circle at 50% 50%, var(--color-accent) 0%, transparent 70%);
+            background-color: var(--color-bg);
+            background-image:
+                linear-gradient(#e1e1e1 1px, transparent 1px),
+                linear-gradient(90deg, #e1e1e1 1px, transparent 1px);
+            background-size: 40px 40px;
+            /* Notebook grid */
             padding: 4rem 1rem;
+            border-bottom: 2px dashed var(--color-text);
+            position: relative;
+            overflow: hidden;
         }
 
-        .hero p {
-            font-size: 1.5rem;
-            max-width: 600px;
-            background: #fff;
-            padding: 1rem;
-            border: 3px solid #000;
-            box-shadow: 8px 8px 0px #000;
-            transform: rotate(1deg);
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: 8rem;
+            color: #008000;
+            /* Green */
+            -webkit-text-stroke: 2px #fff;
+            text-shadow:
+                4px 4px 0px #FF0000,
+                /* Red 3D shadow */
+                8px 8px 0px #000;
+            margin-bottom: 0.5rem;
+            /* transform: rotate(-5deg) skewX(-5deg); */
+            z-index: 2;
+            filter: url(#paintbrush);
+            /* Apply paintbrush effect */
+        }
+
+        .hero h2 {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            color: #FF0000;
+            /* Red */
+            -webkit-text-stroke: 1.5px #fff;
+            text-shadow:
+                3px 3px 0px #0099FF,
+                /* Blue shadow */
+                6px 6px 0px #000;
+            margin-top: 1rem;
+            /* transform: skewY(-3deg); */
+            z-index: 2;
+            filter: url(#paintbrush);
+            /* Apply paintbrush effect */
+        }
+
+        .hero ul {
+            color: var(--color-bg);
+        }
+
+        .marker {
+            color: #FFD700;
+            text-shadow: 2px 2px 0px #000;
+            font-size: 0.6em;
+            vertical-align: middle;
+        }
+
+        .marker-arrow {
+            display: inline-flex;
+            align-items: center;
+            color: #0099FF;
+            /* filter: drop-shadow(2px 2px 0px #000); */
+            margin: 0 0.5rem;
+            vertical-align: middle;
+        }
+
+        .marker-arrow svg {
+            filter: url(#paintbrush);
+        }
+
+        .decoration {
+            position: absolute;
+            font-size: 4rem;
+            filter: drop-shadow(5px 5px 0px rgba(0, 0, 0, 0.3));
+            z-index: 1;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .kite {
+            top: 10%;
+            left: 10%;
+            font-size: 6rem;
+            transform: rotate(15deg);
+            animation-delay: 0s;
+        }
+
+        .corn {
+            bottom: 15%;
+            right: 15%;
+            font-size: 5rem;
+            transform: rotate(-20deg);
+            animation-delay: 1s;
+        }
+
+        .rooster {
+            bottom: 10%;
+            left: 15%;
+            font-size: 5rem;
+            transform: scaleX(-1) rotate(10deg);
+            /* Flip rooster */
+            animation-delay: 2s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(var(--rotation, 0deg));
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(var(--rotation, 0deg));
+            }
         }
 
         /* Sections */
         .rant-section {
-            background-color: var(--color-secondary);
-            color: #000;
+            background-color: transparent;
             padding: 4rem 1rem;
-            transform: skewY(-2deg);
             margin: 4rem 0;
         }
 
         .rant-content {
-            transform: skewY(2deg);
-            /* Counter-skew */
+            background: #fff;
+            padding: 3rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid var(--color-secondary);
+            transform: rotate(-1deg);
+            /* Pinned note effect */
         }
 
         .card {
             background: #fff;
-            border: 3px solid #000;
+            border: 2px solid var(--color-text);
+            border-radius: var(--border-radius-paper);
             padding: 2rem;
-            box-shadow: 10px 10px 0px var(--color-primary);
-            transition: transform 0.2s;
+            box-shadow: 5px 5px 15px var(--color-shadow);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid #ccc;
+            transform: rotate(-2deg);
+            /* Tape look */
         }
 
         .card:hover {
-            transform: translate(-5px, -5px);
-            box-shadow: 15px 15px 0px var(--color-primary);
+            transform: translateY(-5px) rotate(1deg);
+            box-shadow: 8px 8px 20px var(--color-shadow);
         }
 
         /* Code Blocks */
         pre {
-            background: #1a1a1a;
+            background: #2d2d2d;
             color: #f8f8f2;
             padding: 1.5rem;
-            border-radius: 8px;
+            border-radius: 15px;
             overflow-x: auto;
             font-family: 'Courier New', Courier, monospace;
-            border: 3px solid var(--color-purple);
-            box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.2);
+            border: none;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
         }
 
         code {
@@ -195,12 +337,45 @@
 
 <body>
 
+    <!-- Paintbrush Filter -->
+    <svg style="display: none;">
+        <defs>
+            <filter id="paintbrush">
+                <feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="3" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" />
+            </filter>
+        </defs>
+    </svg>
+
     <div class="hero">
-        <h1>Atlas</h1>
-        <p>
-            Stop hydrating the ocean. <br>
-            <span class="loud">Just use HTML, amigo.</span>
-        </p>
+        <div class="decoration kite">🪁</div>
+        <h1>
+            <span class="marker marker-arrow">
+                <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M60 20 L20 50 L60 80 M80 20 L40 50 L80 80" stroke="currentColor" stroke-width="8"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </span>
+            ATLAS
+            <span class="marker-arrow">
+                <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M40 20 L80 50 L40 80 M20 20 L60 50 L20 80" stroke="currentColor" stroke-width="8"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </span>
+        </h1>
+        <div class="loud">
+            Let your browser do the heavy lifting!<br />
+        </div>
+        <div>
+            <ul>
+                <li>Lightweight</li>
+                <li>Fast</li>
+                <li>Simple</li>
+            </ul>
+        </div>
+        <div class="decoration corn">🌽</div>
+        <div class="decoration rooster">🐓</div>
     </div>
 
     <div class="container">
@@ -209,7 +384,7 @@
                 <h2>The Problem</h2>
                 <p>
                     You install 500MB of <code>node_modules</code> just to render a button?
-                    <strong>Ay caramba!</strong>
+                    <strong>Égua!</strong>
                 </p>
                 <p>
                     Modern SPAs are like a traffic jam in São Paulo: heavy, slow, and stressful.
@@ -314,6 +489,24 @@ export default function Nightmare() {
                         <wa-button variant="warning" outline>Cuidado</wa-button>
                     </div>
                 </div>
+
+                <div class="card">
+                    <h3>3D Object</h3>
+                    <p>Three.js cube. Heavy lib, lazy loaded.</p>
+                    <three-cube></three-cube>
+                </div>
+
+                <div class="card">
+                    <h3>Interactive Map</h3>
+                    <p>Leaflet map. Complex UI widget.</p>
+                    <atlas-map></atlas-map>
+                </div>
+
+                <div class="card">
+                    <h3>QR Code</h3>
+                    <p>Generates a QR for this page.</p>
+                    <qr-code></qr-code>
+                </div>
             </div>
         </div>
     </div>
@@ -329,6 +522,9 @@ export default function Nightmare() {
             // Local Wrappers
             "confetti-wrapper": "/src/components/confetti-wrapper.ts",
             "observable-plot-wrapper": "/src/components/observable-plot-wrapper.js",
+            "three-cube": "/src/components/three-cube.js",
+            "atlas-map": "/src/components/atlas-map.js",
+            "qr-code": "/src/components/qr-code.js",
 
             // External Libs (WebAwesome)
             "wa-button": "https://esm.sh/@awesome.me/webawesome/dist/components/button/button.js",
