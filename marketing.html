@@ -126,12 +126,11 @@
             text-align: center;
             background-color: var(--color-bg);
             background-image:
-                linear-gradient(#e1e1e1 1px, transparent 1px),
-                linear-gradient(90deg, #e1e1e1 1px, transparent 1px);
-            background-size: 40px 40px;
-            /* Notebook grid */
-            padding: 4rem 1rem;
-            border-bottom: 2px dashed var(--color-text);
+                radial-gradient(var(--color-text) 0.5px, transparent 0.5px);
+            background-size: 20px 20px;
+            /* Subtle dot grid */
+            padding: 6rem 1rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             position: relative;
             overflow: hidden;
         }
@@ -145,11 +144,10 @@
             text-shadow:
                 4px 4px 0px #FF0000,
                 /* Red 3D shadow */
-                8px 8px 0px #000;
+                8px 8px 0px rgba(0, 0, 0, 0.1);
             margin-bottom: 0.5rem;
-            /* transform: rotate(-5deg) skewX(-5deg); */
             z-index: 2;
-            filter: url(#paintbrush);
+            /* filter: url(#paintbrush); */
             /* Apply paintbrush effect */
         }
 
@@ -162,11 +160,10 @@
             text-shadow:
                 3px 3px 0px #0099FF,
                 /* Blue shadow */
-                6px 6px 0px #000;
+                6px 6px 0px rgba(0, 0, 0, 0.1);
             margin-top: 1rem;
-            /* transform: skewY(-3deg); */
             z-index: 2;
-            filter: url(#paintbrush);
+            /* filter: url(#paintbrush); */
             /* Apply paintbrush effect */
         }
 
@@ -248,41 +245,27 @@
 
         .rant-content {
             background: #fff;
-            padding: 3rem;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border-left: 5px solid var(--color-secondary);
-            transform: rotate(-1deg);
-            /* Pinned note effect */
+            padding: 4rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .card {
             background: #fff;
-            border: 2px solid var(--color-text);
-            border-radius: var(--border-radius-paper);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
             padding: 2rem;
-            box-shadow: 5px 5px 15px var(--color-shadow);
-            transition: transform 0.3s ease;
-            position: relative;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 20px;
-            background: rgba(255, 255, 255, 0.5);
-            border: 1px solid #ccc;
-            transform: rotate(-2deg);
-            /* Tape look */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         .card:hover {
-            transform: translateY(-5px) rotate(1deg);
-            box-shadow: 8px 8px 20px var(--color-shadow);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
         }
 
         /* Code Blocks */
