@@ -5,11 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atlas Test</title>
-    <link rel="stylesheet" href="https://esm.sh/@awesome.me/webawesome@3.0.0/dist/styles/themes/default.css">
     <style>
         :root {
             --color-primary: #e31;
-            --color-secondary: rgba(111, 241, 241, 0.83);
+            --color-secondary: rgb(0 172 172 / 34%);
             --color-accent: #333;
             --color-bg-dark: #ddd;
             --color-bg: #eee;
@@ -38,6 +37,14 @@
             margin-top: 1em;
         }
     </style>
+    <script type="importmap">
+    {
+        "imports": {
+            "lit": "/node_modules/vite/deps/lit.js",
+            "lit-decorators": "/node_modules/vite/deps/lit-decorators.js"
+        }
+    }
+    </script>
 </head>
 
 <body>
@@ -55,16 +62,88 @@
     <vi-switch></vi-switch>
     <wa-button>wa-button</wa-button>
     <wa-button variant="neutral" appearance="accent"><wa-icon name="house" label="Home"></wa-icon></wa-button>
+
     <unknown-element>unknown element</unknown-element>
+
+    <div class="skeleton-overview">
+        <header>
+            <wa-skeleton effect="sheen"></wa-skeleton>
+            <wa-skeleton effect="sheen"></wa-skeleton>
+        </header>
+
+        <wa-skeleton effect="sheen"></wa-skeleton>
+        <wa-skeleton effect="sheen"></wa-skeleton>
+        <wa-skeleton effect="sheen"></wa-skeleton>
+    </div>
+
+    <div class="animation-overview">
+        <wa-animation name="bounce" duration="2000" play>
+            <div class="box"></div>
+        </wa-animation>
+        <wa-animation name="jello" duration="2000" play>
+            <div class="box"></div>
+        </wa-animation>
+        <wa-animation name="heartBeat" duration="2000" play>
+            <div class="box"></div>
+        </wa-animation>
+        <wa-animation name="flip" duration="2000" play>
+            <div class="box"></div>
+        </wa-animation>
+    </div>
+
+    <style>
+        .animation-overview .box {
+            display: inline-block;
+            width: 100px;
+            height: 100px;
+            background-color: var(--wa-color-brand-fill-loud);
+            margin: 1.5rem;
+        }
+    </style>
+
+    <style>
+        .skeleton-overview header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .skeleton-overview header wa-skeleton:last-child {
+            flex: 0 0 auto;
+            width: 30%;
+        }
+
+        .skeleton-overview wa-skeleton {
+            margin-bottom: 1rem;
+        }
+
+        .skeleton-overview wa-skeleton:nth-child(1) {
+            float: left;
+            width: 3rem;
+            height: 3rem;
+            margin-right: 1rem;
+            vertical-align: middle;
+        }
+
+        .skeleton-overview wa-skeleton:nth-child(3) {
+            width: 95%;
+        }
+
+        .skeleton-overview wa-skeleton:nth-child(4) {
+            width: 80%;
+        }
+    </style>
 
     <script class="echo reflect" type="module" contenteditable="true">
         import Atlas from './src';
         import ViComponents from './src/components/vi';
 
         const components = {
-            "sl-": "https://cdn.jsdelivr.net/npm/shoelace@2.20.1/",
-            "wa-button": "https://esm.sh/@awesome.me/webawesome/dist/components/button/button.js",
-            ...ViComponents,
+            "sl-": (name, fullName) => "https://cdn.jsdelivr.net/npm/shoelace@2.20.1/${name}.js",
+            "wa-button": "https://esm.sh/*@awesome.me/webawesome/dist/components/button/button.js",
+            "wa-skeleton": "https://esm.sh/*@awesome.me/webawesome/dist/components/skeleton/skeleton.js",
+            "wa-animation": "https://esm.sh/*@awesome.me/webawesome/dist/components/animation/animation.js",
+            // ...ViComponents,
         };
 
         const atlas = new Atlas({
@@ -72,6 +151,9 @@
             root: document.body
         });
     </script>
+    <link rel="stylesheet" href="https://esm.sh/@awesome.me/webawesome@3.0.0/dist/styles/themes/default.css"
+        media="none" onload="if(media!='all')media='all'">
+
 </body>
 
 </html>

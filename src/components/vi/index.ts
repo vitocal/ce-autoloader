@@ -1,3 +1,5 @@
+import "lit";
+
 const ViSwitch = () => import("./vi-switch.ts");
 // or use import.meta.glob("./*.{tsx,jsx,svelte}")
 

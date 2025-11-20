@@ -27,6 +27,7 @@ async function loadCustomElement(name: string, atlas: AtlasRegistry) {
     const loader = atlas[name]
     console.time(name)
     if(typeof loader === "string"){
+        // Should we treat relative and absolute path differently?
         await import(loader)
     } else if(typeof loader === "function"){
         await loader(name)
@@ -67,6 +68,7 @@ async function hydrateWebComponent(comps: Element[], atlas: AtlasRegistry) {
 
 export default class Atlas {
     #options: AtlasOptions;
+    #observer?: MutationObserver;
 
     constructor(options: AtlasOptions) {
         console.log("Atlas started with options:", options);
@@ -76,9 +78,41 @@ export default class Atlas {
         }
 
         this.#options = { autoload: true, observe: true, root: document.body, ...options};
+
+        if(this.#options.observe){
+            this.observe();
+        }
+
         if(this.#options.autoload){
             this.hydrate()
         }
+    }
+
+    observe() {
+        this.#observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                if (mutation.type === 'childList') {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node instanceof HTMLElement) {
+                            // Check the node itself
+                            if (isCustomElement(node)) {
+                                hydrateWebComponent([node], this.#options.library);
+                            }
+                            // Check children
+                            const children = findCustomElement(node);
+                            if (children.length > 0) {
+                                hydrateWebComponent(children, this.#options.library);
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+        this.#observer.observe(this.#options.root || document.body, {
+            childList: true,
+            subtree: true
+        });
     }
 
     hydrate(){

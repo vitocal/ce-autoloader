@@ -43,7 +43,7 @@ npm install wc-atlas
 Import wc-atlas in your primarly bundle and add your components manifest, a simple JSON
 
 ```js
-import {atlas} from "wc-atlas"
+import {Atlas} from "wc-atlas"
 
 const components = {
     // A single component
@@ -52,7 +52,7 @@ const components = {
     "sl-*": "https://cdn.jsdelivr.net/npm/@shoelace-style/"
 }
 
-atlas.start({
+new Atlas({
     library: components,
     target: document.body
 })
@@ -66,6 +66,22 @@ Now use your `shoelace` components freely in your html, anywhere.
 </body>
 
 ## Use cases
+
+## Performance and customization
+
+Since they're loaded at runtime, each module imported() by a component causes another network request.
+And if every component loads the full library, instead of sharing, it would be a lot of code to load,
+repeatedly.
+
+This happens if every component is compiled separatedly, without deduplication, as the default behavior
+of most bundlers.
+
+### De-duplicating dependencies with `?external`
+
+We can deduplicate by marking core dependencies as **external**, and loading them once.
+
+ - For URL's, theres `esm.sh?external` option
+ - Rollup or other bundlers always has an `external` config
 
 ## Browser support
 

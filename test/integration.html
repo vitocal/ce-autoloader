@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Atlas Integration Tests</title>
+    <link rel="stylesheet" href="https://unpkg.com/mocha/mocha.css" />
+    <style>
+        #fixtures {
+            display: none;
+        }
+
+        #errors:empty {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="mocha"></div>
+    <div id="fixtures"></div>
+    <div id="errors" style="color: red; background: #fee; padding: 1em; white-space: pre;"></div>
+
+    <script src="https://unpkg.com/mocha/mocha.js"></script>
+
+    <script>
+        window.onerror = function (msg, url, line, col, error) {
+            document.getElementById('errors').textContent += `Error: ${msg}\nAt: ${url}:${line}:${col}\nStack: ${error?.stack}\n\n`;
+        };
+        window.addEventListener('unhandledrejection', function (event) {
+            document.getElementById('errors').textContent += `Unhandled Rejection: ${event.reason}\n\n`;
+        });
+    </script>
+
+    <script class="mocha-init">
+        mocha.setup('bdd');
+        mocha.checkLeaks();
+    </script>
+
+    <script type="module">
+        import { expect } from "https://esm.sh/chai@5.1.2";
+        import Atlas from '../src/index.ts';
+
+        // Mock component loader
+        const library = {
+            "test-component": async () => {
+                class TestComponent extends HTMLElement {
+                    connectedCallback() {
+                        this.setAttribute('data-hydrated', 'true');
+                    }
+                }
+                customElements.define('test-component', TestComponent);
+            },
+            "dynamic-component": async () => {
+                class DynamicComponent extends HTMLElement {
+                    connectedCallback() {
+                        this.setAttribute('data-hydrated', 'true');
+                    }
+                }
+                customElements.define('dynamic-component', DynamicComponent);
+            }
+        };
+
+        describe('Atlas', () => {
+            let atlas;
+            const fixtures = document.getElementById('fixtures');
+
+            beforeEach(() => {
+                fixtures.innerHTML = '';
+                // Reset custom elements registry mock if needed, but we can't really unregister.
+                // So we use unique names or just rely on idempotency.
+            });
+
+            it('should hydrate existing components on start', async () => {
+                const el = document.createElement('test-component');
+                fixtures.appendChild(el);
+
+                atlas = new Atlas({
+                    library,
+                    root: fixtures,
+                    observe: false
+                });
+
+                // Wait for async hydration
+                await new Promise(r => setTimeout(r, 100));
+
+                expect(el.hasAttribute('data-hydrated')).to.be.true;
+            });
+
+            it('should hydrate dynamically added components (MutationObserver)', async () => {
+                atlas = new Atlas({
+                    library,
+                    root: fixtures,
+                    observe: true
+                });
+
+                const el = document.createElement('dynamic-component');
+                fixtures.appendChild(el);
+
+                // Wait for MutationObserver and async hydration
+                await new Promise(r => setTimeout(r, 200));
+
+                expect(el.hasAttribute('data-hydrated')).to.be.true;
+            });
+
+            it('should hydrate nested components', async () => {
+                atlas = new Atlas({
+                    library,
+                    root: fixtures,
+                    observe: true
+                });
+
+                const container = document.createElement('div');
+                const el = document.createElement('dynamic-component');
+                container.appendChild(el);
+                fixtures.appendChild(container);
+
+                await new Promise(r => setTimeout(r, 200));
+
+                expect(el.hasAttribute('data-hydrated')).to.be.true;
+            });
+        });
+
+        mocha.run();
+    </script>
+</body>
+
+</html>
