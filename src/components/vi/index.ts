@@ -1,4 +1,4 @@
-const ViSwitch = () => import("./vi-switch");
+const ViSwitch = () => import("./vi-switch.ts");
 // or use import.meta.glob("./*.{tsx,jsx,svelte}")
 
 const vi_components = {

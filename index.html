@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atlas Test</title>
+    <link rel="stylesheet" href="https://esm.sh/@awesome.me/webawesome@3.0.0/dist/styles/themes/default.css">
     <style>
         :root {
             --color-primary: #e31;
@@ -40,11 +41,11 @@
 </head>
 
 <body>
-    <h1>WebComponent Atlas</h1>
+    <h1>WebComponent Registry</h1>
 
     <ul>
         <li>Automatically Load any web-component on demand, if and when they're used.</li>
-        <li>Group components in a atlas (also called a `CustomElementRegistry`)</li>
+        <li>Group components together in a registry</li>
         <li>No dependencies, framework-independent</li>
         <li> 10kb gzip, performant! </li>
         <li>Interactive islands with client directives, `on:visible` , `on:load`, `on:click`</li>
@@ -52,6 +53,8 @@
     </ul>
 
     <vi-switch></vi-switch>
+    <wa-button>wa-button</wa-button>
+    <wa-button variant="neutral" appearance="accent"><wa-icon name="house" label="Home"></wa-icon></wa-button>
     <unknown-element>unknown element</unknown-element>
 
     <script class="echo reflect" type="module" contenteditable="true">
@@ -60,6 +63,7 @@
 
         const components = {
             "sl-": "https://cdn.jsdelivr.net/npm/shoelace@2.20.1/",
+            "wa-button": "https://esm.sh/@awesome.me/webawesome/dist/components/button/button.js",
             ...ViComponents,
         };
 
