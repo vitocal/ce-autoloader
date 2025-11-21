@@ -29,8 +29,8 @@
             opacity: 0.8;
             width: auto;
             min-height: 1em;
-            padding: 0 0.5em;
-            border-radius: 1em;
+            padding: 1em 0.5em;
+            border-radius: 0.33em;
         }
 
         body>*+* {
@@ -40,8 +40,7 @@
     <script type="importmap">
     {
         "imports": {
-            "lit": "/node_modules/vite/deps/lit.js",
-            "lit-decorators": "/node_modules/vite/deps/lit-decorators.js"
+            "lit": "/node_modules/vite/deps/lit.js"
         }
     }
     </script>
@@ -59,37 +58,57 @@
         <li>Simple and ergonomic </li>
     </ul>
 
-    <vi-switch></vi-switch>
+    <h2>Examples - Client Directives</h2>
+
+    <h3>Default - autoloaded </h3>
     <wa-button>wa-button</wa-button>
-    <wa-button variant="neutral" appearance="accent"><wa-icon name="house" label="Home"></wa-icon></wa-button>
 
-    <unknown-element>unknown element</unknown-element>
+    <h3>Idle</h3>
+    <vi-switch on="idle"></vi-switch>
 
-    <div class="skeleton-overview">
-        <header>
-            <wa-skeleton effect="sheen"></wa-skeleton>
-            <wa-skeleton effect="sheen"></wa-skeleton>
-        </header>
+    <h3>Interaction - Click or touch</h3>
+    <three-cube on="interaction">
+        Click for 3d cube
+    </three-cube>
 
-        <wa-skeleton effect="sheen"></wa-skeleton>
-        <wa-skeleton effect="sheen"></wa-skeleton>
-        <wa-skeleton effect="sheen"></wa-skeleton>
+    <h3>Visible - with IntersectionObserver</h3>
+
+    <div style="height: 50vh; margin: 0; border: 1px solid #333; text-align: center;">
+        <span style="font-size: 6em; position: sticky; top: 0px;">⬇️</span><br />
+        Scroll for more
     </div>
 
     <div class="animation-overview">
-        <wa-animation name="bounce" duration="2000" play>
+        <wa-animation name="bounce" on="visible" duration="2000" play>
             <div class="box"></div>
         </wa-animation>
-        <wa-animation name="jello" duration="2000" play>
+        <wa-animation name="jello" on="visible" duration="2000" play>
             <div class="box"></div>
         </wa-animation>
-        <wa-animation name="heartBeat" duration="2000" play>
+        <wa-animation name="heartBeat" on="visible" duration="2000" play>
             <div class="box"></div>
         </wa-animation>
-        <wa-animation name="flip" duration="2000" play>
+        <wa-animation name="flip" on="visible" duration="2000" play>
             <div class="box"></div>
         </wa-animation>
     </div>
+
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nulla temporibus facilis, adipisci asperiores ducimus
+        inventore delectus officiis esse earum doloribus possimus praesentium, atque impedit animi, eius dolorum
+        exercitationem fugit non.</p>
+
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nulla temporibus facilis, adipisci asperiores ducimus
+        inventore delectus officiis esse earum doloribus possimus praesentium, atque impedit animi, eius dolorum
+        exercitationem fugit non.</p>
+
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nulla temporibus facilis, adipisci asperiores ducimus
+        inventore delectus officiis esse earum doloribus possimus praesentium, atque impedit animi, eius dolorum
+        exercitationem fugit non.</p>
+
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nulla temporibus facilis, adipisci asperiores ducimus
+        inventore delectus officiis esse earum doloribus possimus praesentium, atque impedit animi, eius dolorum
+        exercitationem fugit non.</p>
+
 
     <style>
         .animation-overview .box {
@@ -101,54 +120,23 @@
         }
     </style>
 
-    <style>
-        .skeleton-overview header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .skeleton-overview header wa-skeleton:last-child {
-            flex: 0 0 auto;
-            width: 30%;
-        }
-
-        .skeleton-overview wa-skeleton {
-            margin-bottom: 1rem;
-        }
-
-        .skeleton-overview wa-skeleton:nth-child(1) {
-            float: left;
-            width: 3rem;
-            height: 3rem;
-            margin-right: 1rem;
-            vertical-align: middle;
-        }
-
-        .skeleton-overview wa-skeleton:nth-child(3) {
-            width: 95%;
-        }
-
-        .skeleton-overview wa-skeleton:nth-child(4) {
-            width: 80%;
-        }
-    </style>
-
     <script class="echo reflect" type="module" contenteditable="true">
         import Atlas from './src';
         import ViComponents from './src/components/vi';
 
         const components = {
             "sl-": (name, fullName) => "https://cdn.jsdelivr.net/npm/shoelace@2.20.1/${name}.js",
-            "wa-button": "https://esm.sh/*@awesome.me/webawesome/dist/components/button/button.js",
-            "wa-skeleton": "https://esm.sh/*@awesome.me/webawesome/dist/components/skeleton/skeleton.js",
-            "wa-animation": "https://esm.sh/*@awesome.me/webawesome/dist/components/animation/animation.js",
-            // ...ViComponents,
+            "wa-button": "https://esm.sh/@awesome.me/webawesome/dist/components/button/button.js",
+            "wa-animation": "https://esm.sh/@awesome.me/webawesome/dist/components/animation/animation.js",
+            "confetti-button": "/src/components/confetti-button.ts",
+            "three-cube": "/src/components/three-cube.js",
+            ...ViComponents,
         };
 
         const atlas = new Atlas({
             library: components,
-            root: document.body
+            root: document.body,
+            autoload: true,
         });
     </script>
     <link rel="stylesheet" href="https://esm.sh/@awesome.me/webawesome@3.0.0/dist/styles/themes/default.css"

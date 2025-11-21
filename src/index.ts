@@ -1,14 +1,17 @@
 export type AtlasModule = string | ((name?: string) => Promise<HTMLElement>)
-export type AtlasRegistry = Record<string,AtlasModule>;
+export type AtlasRegistry = Record<string, AtlasModule>;
+export type AtlasDirectives = "idle" | "visible" | "interaction" | "manual"
 export type AtlasOptions = {
-    /* The component manifest */
-    library: AtlasRegistry;
-    /* The root element to search for custom elements */
-    root?: HTMLElement;
-    /** Watch for mutations? */
-    observe?: boolean;
-    /** Autoload components on demand */
-    autoload?: boolean;
+  /* The component manifest */
+  library: AtlasRegistry;
+  /* The root element to search for custom elements */
+  root?: HTMLElement;
+  /** Watch for new custom elements in the page? */
+  live?: boolean;
+  /** Autoload components */
+  autoload?: boolean;
+  /** Directives apply special conditions to when the component is loaded*/
+  directives?: AtlasDirectives[];
 }
 
 
@@ -16,107 +19,142 @@ function isCustomElement(element: HTMLElement) {
   return element instanceof HTMLElement && element.tagName.includes("-")
 }
 
-function findCustomElement(root: HTMLElement, modifer?: string) {
-  return Array.from([
-    root,
-    ...root.querySelectorAll(":not(:defined)")
-  ])
+function findCustomElement(root: HTMLElement, modifier?: string) {
+  const selector = (modifier ? `*[on=${modifier}]` : '') + ':not(:defined)'
+  return Array.from([root, ...root.querySelectorAll(selector)])
 }
 
 async function loadCustomElement(name: string, atlas: AtlasRegistry) {
-    const loader = atlas[name]
-    console.time(name)
-    if(typeof loader === "string"){
-        // Should we treat relative and absolute path differently?
-        await import(loader)
-    } else if(typeof loader === "function"){
-        await loader(name)
-    }
-    console.timeLog(name)
+  const loader = atlas[name]
+  if (typeof loader === "string") {
+    // Should we treat relative and absolute path differently?
+
+    await import(/* @vite-ignore */ loader)
+  } else if (typeof loader === "function") {
+    await loader(name)
+  } else {
+    throw new Error(`ATLAS: Loader of ${name} is invalid! Should be a url or a function`)
+  }
 }
 
 /*
- * Detect all custom elements not yet upgraded on the `root`
- * And load their associated files
+ * Upgrade informed elements in `comps`, with their resource in atlas
  */
 async function hydrateWebComponent(comps: Element[], atlas: AtlasRegistry) {
   // Upgrade everyone in parallel
   await Promise.allSettled(
     comps.map(async (el) => {
-      try {
-        const name = el.tagName.toLowerCase()
+      // try {
+      const name = el.tagName.toLowerCase()
 
-        // Already registered, so just skip-it
-        if (customElements.get(name) || !isCustomElement(el)) {
-          return
-        }
-
-        if (name in atlas) {
-            await loadCustomElement(name, atlas);
-        } else {
-          console.warn(`Component not found: ${name}`)
-        }
-      } catch (e) {
-        console.error(
-          `Failed to load component ${el.tagName.toLowerCase()}:`,
-          e
-        )
+      // Already registered, so just skip-it
+      if (customElements.get(name) || !isCustomElement(el)) {
+        return
       }
+
+      if (name in atlas) {
+        await loadCustomElement(name, atlas);
+      } else {
+        console.warn(`Component not found: ${name}`)
+      }
+      // } catch (e) {
+      //   console.error(
+      //     `Failed to load component ${el.tagName.toLowerCase()}:`,
+      //     e
+      //   )
+      // }
     })
   )
 }
 
 export default class Atlas {
-    #options: AtlasOptions;
-    #observer?: MutationObserver;
+  #options: AtlasOptions;
+  #observer?: MutationObserver;
 
-    constructor(options: AtlasOptions) {
-        console.log("Atlas started with options:", options);
-        if(!options.library){
-            console.error("Atlas needs a library to start")
-            return
-        }
-
-        this.#options = { autoload: true, observe: true, root: document.body, ...options};
-
-        if(this.#options.observe){
-            this.observe();
-        }
-
-        if(this.#options.autoload){
-            this.hydrate()
-        }
+  constructor(options: AtlasOptions) {
+    console.log("Atlas started with options:", options);
+    if (!options.library) {
+      throw new Error("Atlas needs a library to start")
     }
 
-    observe() {
-        this.#observer = new MutationObserver((mutations) => {
-            for (const mutation of mutations) {
-                if (mutation.type === 'childList') {
-                    mutation.addedNodes.forEach((node) => {
-                        if (node instanceof HTMLElement) {
-                            // Check the node itself
-                            if (isCustomElement(node)) {
-                                hydrateWebComponent([node], this.#options.library);
-                            }
-                            // Check children
-                            const children = findCustomElement(node);
-                            if (children.length > 0) {
-                                hydrateWebComponent(children, this.#options.library);
-                            }
-                        }
-                    });
-                }
+    this.#options = {
+      autoload: true,
+      live: true,
+      root: document.body,
+      directives: ["idle", "visible", "interaction"],
+      ...options
+    };
+
+    if (this.#options.live) {
+      this.observe();
+    }
+
+    for (const directive of this.#options.directives ?? []) {
+      this.upgrade(directive)
+    }
+
+    if (this.#options.autoload) {
+      this.upgrade()
+    }
+  }
+
+  upgrade(directive?: AtlasDirectives) {
+    const elements =
+      findCustomElement(this.#options.root || document.body, directive)
+        .filter((el) => (el.getAttribute("on") == directive))
+
+    // Directives apply special conditions to when the component is loaded
+    if (directive === "idle") {
+      requestIdleCallback(() => hydrateWebComponent(elements, this.#options.library))
+    } else if (directive === "visible") {
+      elements.forEach((el) => {
+        const observer = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting) {
+            hydrateWebComponent([el], this.#options.library)
+            observer.unobserve(el)
+          }
+        })
+        observer.observe(el)
+      })
+    } else if (directive === "interaction") {
+      elements.forEach((el) => {
+        el.addEventListener("pointerdown", () => {
+          hydrateWebComponent([el], this.#options.library)
+        }, { once: true });
+      })
+    } else if (directive === "manual") {
+      // do nothing, wait for the user to call upgrade()
+    } else {
+      // Load right away
+      hydrateWebComponent(elements, this.#options.library)
+    }
+  }
+
+  observe() {
+    this.#observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (!(node instanceof HTMLElement)) {
+              return
             }
-        });
+            // Check the node itself
+            if (isCustomElement(node)) {
+              hydrateWebComponent([node], this.#options.library);
+            }
+            // Check children
+            const children = findCustomElement(node);
+            if (children.length > 0) {
+              hydrateWebComponent(children, this.#options.library);
+            }
+          });
+        }
+      }
+    });
 
-        this.#observer.observe(this.#options.root || document.body, {
-            childList: true,
-            subtree: true
-        });
-    }
-
-    hydrate(){
-        const elements = findCustomElement(this.#options.root || document.body)
-        hydrateWebComponent(elements, this.#options.library)
-    }
+    this.#observer.observe(this.#options.root || document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
 }

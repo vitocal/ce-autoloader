@@ -1,6 +1,6 @@
 import confetti from 'https://esm.sh/canvas-confetti';
 
-export default class ConfettiWrapper extends HTMLElement {
+export default class ConfettiButton extends HTMLElement {
     connectedCallback() {
         this.style.display = 'block';
         this.addEventListener('click', (e: MouseEvent) => {
@@ -19,4 +19,4 @@ export default class ConfettiWrapper extends HTMLElement {
         });
     }
 }
-customElements.define("confetti-wrapper", ConfettiWrapper);
+customElements.define("confetti-button", ConfettiButton);
