@@ -93,6 +93,22 @@
         </wa-animation>
     </div>
 
+    <h3>Manual</h3>
+
+    <p>When you want more control, you can upgrade a component manually, by using a custom directive name
+        and calling `atlas.upgrade('myDirective')`
+    </p>
+    <confetti-button on="manual">
+        <wa-button id="confetti">Confetti</wa-button>
+    </confetti-button>
+    <script type="module">
+        document.getElementById("confetti").addEventListener("click", async () => {
+            let result = await atlas.upgrade('manual')
+            console.log('result', result);
+            return result;
+        });
+    </script>
+
     <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nulla temporibus facilis, adipisci asperiores ducimus
         inventore delectus officiis esse earum doloribus possimus praesentium, atque impedit animi, eius dolorum
         exercitationem fugit non.</p>
@@ -133,7 +149,7 @@
             ...ViComponents,
         };
 
-        const atlas = new Atlas({
+        globalThis.atlas = new Atlas({
             library: components,
             root: document.body,
             autoload: true,
