@@ -21,7 +21,7 @@ function isCustomElement(element: Element) {
 
 function findCustomElement(root: HTMLElement, modifier?: string) {
   const selector = (modifier ? `*[on=${modifier}]` : '') + ':not(:defined)'
-  return Array.from([root, ...root.querySelectorAll(selector)])
+  return [...new Set([root, ...root.querySelectorAll(selector)])]
 }
 
 async function loadCustomElement(name: string, atlas: AtlasRegistry) {
@@ -30,10 +30,10 @@ async function loadCustomElement(name: string, atlas: AtlasRegistry) {
     // todo: Should we treat relative and absolute path differently?
     const module = await import(/* @vite-ignore */ loader)
     const component = module.default
-    if (component?.prototype instanceof HTMLElement && !customElements.get(name)) {
+    if (!customElements.get(name)) {
       console.warn(`ATLAS: Component ${name} was not registered in the file. Registering now...`)
       customElements.define(name, component);
-    } else {
+    } else if (!HTMLElement.isPrototypeOf(component)) {
       throw new Error(`ATLAS: Component ${name} is not a valid custom element!`)
     }
     return component;
