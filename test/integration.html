@@ -7,11 +7,25 @@
     <link rel="stylesheet" href="https://unpkg.com/mocha/mocha.css" />
     <style>
         #fixtures {
-            display: none;
+            display: grid;
+            width: auto;
+            height: 320px;
+            align-content: center;
+            gap: 8px;
+            justify-items: center;
+            justify-content: center;
+            margin: 50px;
+            border: 1px solid gray;
         }
 
         #errors:empty {
             display: none;
+        }
+
+        #fixtures {}
+
+        :not(:defined) {
+            border: 1px solid indigo;
         }
     </style>
 </head>
@@ -39,26 +53,45 @@
 
     <script type="module">
         import { expect } from "https://esm.sh/chai@5.1.2";
+        import { html, signal } from "https://esm.sh/uhtml";
         import Atlas from '../src/index.ts';
+
+        class BaseComp extends HTMLElement {
+            connectedCallback() {
+                this.setAttribute('data-hydrated', 'true');
+                this.appendChild(this.render())
+            }
+
+            render() {
+                return html`Hello World`;
+            }
+        };
 
         // Mock component loader
         const library = {
             "test-component": async () => {
-                class TestComponent extends HTMLElement {
-                    connectedCallback() {
-                        this.setAttribute('data-hydrated', 'true');
-                    }
-                }
-                customElements.define('test-component', TestComponent);
+                customElements.define('test-component', BaseComp);
+            },
+            "nested-component": async () => {
+                class NestedComponent extends BaseComp { };
+                customElements.define('nested-component', NestedComponent);
             },
             "dynamic-component": async () => {
-                class DynamicComponent extends HTMLElement {
-                    connectedCallback() {
-                        this.setAttribute('data-hydrated', 'true');
-                    }
-                }
+                class DynamicComponent extends BaseComp { };
                 customElements.define('dynamic-component', DynamicComponent);
-            }
+            },
+            "manual-component": async () => {
+                class ManualComponent extends BaseComp { };
+                customElements.define('manual-component', ManualComponent);
+            },
+            "interaction-component": async () => {
+                class InteractionComponent extends BaseComp { };
+                customElements.define('interaction-component', InteractionComponent);
+            },
+            "visible-component": async () => {
+                class VisibleComponent extends BaseComp { };
+                customElements.define('visible-component', VisibleComponent);
+            },
         };
 
         describe('Atlas', () => {
@@ -67,8 +100,11 @@
 
             beforeEach(() => {
                 fixtures.innerHTML = '';
-                // Reset custom elements registry mock if needed, but we can't really unregister.
-                // So we use unique names or just rely on idempotency.
+
+                // Reset atlas observers, but we can't really unregister the custom elements.
+                atlas?.clean();
+                atlas = undefined;
+
             });
 
             it('should hydrate existing components on start', async () => {
@@ -78,11 +114,24 @@
                 atlas = new Atlas({
                     library,
                     root: fixtures,
-                    observe: false
                 });
 
-                // Wait for async hydration
-                await new Promise(r => setTimeout(r, 100));
+                expect(el.hasAttribute('data-hydrated')).to.be.true;
+            });
+
+            it('should hydrate nested components', async () => {
+                atlas = new Atlas({
+                    library,
+                    root: fixtures,
+                    observe: true
+                });
+
+                const container = document.createElement('div');
+                const el = document.createElement('nested-component');
+                container.appendChild(el);
+                fixtures.appendChild(container);
+
+                await customElements.whenDefined("nested-component");
 
                 expect(el.hasAttribute('data-hydrated')).to.be.true;
             });
@@ -98,27 +147,182 @@
                 fixtures.appendChild(el);
 
                 // Wait for MutationObserver and async hydration
-                await new Promise(r => setTimeout(r, 200));
+                await customElements.whenDefined("dynamic-component");
 
                 expect(el.hasAttribute('data-hydrated')).to.be.true;
             });
 
-            it('should hydrate nested components', async () => {
+
+
+            describe("directives", () => {
+                it('should respect directives - manual', async () => {
+                    const el = document.createElement('manual-component')
+                    el.setAttribute('on', 'manual');
+                    fixtures.appendChild(el);
+
+                    atlas = new Atlas({
+                        library,
+                        root: fixtures,
+                        observe: false,
+                        autoload: false
+                    });
+
+                    expect(el.hasAttribute('data-hydrated')).to.be.false;
+
+                    await atlas.upgrade("manual");
+
+                    expect(el.hasAttribute('data-hydrated')).to.be.true;
+                });
+
+                it('should respect directives - interaction', async () => {
+                    const el = document.createElement('interaction-component')
+                    el.setAttribute('on', 'interaction');
+                    fixtures.appendChild(el);
+
+                    atlas = new Atlas({
+                        library,
+                        root: fixtures,
+                    });
+
+                    expect(el.hasAttribute('data-hydrated')).to.be.false;
+
+                    await el.dispatchEvent(new PointerEvent('pointerdown'));
+                    await customElements.whenDefined("interaction-component");
+
+                    expect(el.hasAttribute('data-hydrated')).to.be.true;
+                });
+
+                it('should respect directives - visible', async () => {
+                    const el = document.createElement('visible-component')
+                    el.setAttribute('on', 'visible');
+                    fixtures.appendChild(el);
+
+                    atlas = new Atlas({
+                        library,
+                        root: fixtures,
+                        observe: false,
+                        autoload: false
+                    });
+
+                    expect(el.hasAttribute('data-hydrated')).to.be.false;
+                    await customElements.whenDefined("visible-component");
+                    expect(el.hasAttribute('data-hydrated')).to.be.true;
+                });
+            });
+        });
+
+
+        describe("Atlas library", () => {
+            let atlas;
+            const fixtures = document.getElementById('fixtures');
+
+            beforeEach(() => {
+                fixtures.innerHTML = '';
+
+                // Reset atlas observers, but we can't really unregister the custom elements.
+                atlas?.clean();
+                atlas = undefined;
+            });
+
+            it("should allow atlas.library to be updated after initialization", async () => {
+                const el = document.createElement("after-component");
+                fixtures.appendChild(el);
+
                 atlas = new Atlas({
                     library,
                     root: fixtures,
-                    observe: true
+                    autoload: false
                 });
 
-                const container = document.createElement('div');
-                const el = document.createElement('dynamic-component');
-                container.appendChild(el);
-                fixtures.appendChild(container);
+                expect(atlas.library).to.be.a("Object");
+                expect(el.hasAttribute("data-hydrated")).to.be.false;
 
-                await new Promise(r => setTimeout(r, 200));
+                atlas.library["after-component"] = async () => {
+                    class AfterComponent extends BaseComp { }
+                    customElements.define("after-component", AfterComponent);
+                };
+                await atlas.upgrade()
 
-                expect(el.hasAttribute('data-hydrated')).to.be.true;
+                expect(el.hasAttribute("data-hydrated")).to.be.true;
             });
+
+            it("Loader full-name: URL", async () => {
+                const el = document.createElement("vi-hello")
+                fixtures.appendChild(el);
+
+                const library = {
+                    "vi-hello": "/src/components/vi/vi-hello.ts"
+                }
+
+                atlas = new Atlas({
+                    library,
+                    root: fixtures,
+                });
+
+                await customElements.whenDefined("vi-hello");
+                expect(customElements.get("vi-hello")).to.be.a("function");
+            });
+            it("Loader full-name: Function", async () => {
+                const el = document.createElement("function-loader")
+                fixtures.appendChild(el);
+
+                const library = {
+                    "function-loader": async (full_name) => {
+                        class FunctionLoader extends BaseComp {
+                            render() {
+                                return html`<p>Registered with name <b>${full_name}</b></p>`
+                            }
+                        };
+                        customElements.define("function-loader", FunctionLoader);
+                        return FunctionLoader
+                    }
+                }
+
+                atlas = new Atlas({
+                    library,
+                    root: fixtures,
+                });
+
+                await customElements.whenDefined("function-loader");
+                expect(el.innerHTML).to.include("Registered with name <b>function-loader</b>");
+            });
+            it("Loader namespace-*: Function", async () => {
+                const el = document.createElement("ns-anything")
+                const el2 = document.createElement("ns-whatever")
+                fixtures.appendChild(el);
+                fixtures.appendChild(el2);
+
+                /**
+                 * The interesting part, using namespaces to load
+                 * component libraries, or any other kind of component.
+                 *
+                 * Here, we render any component named ns-* as a <p> tag.
+                 */
+                const library = {
+                    "ns-*": async (full_name) => {
+                        const [namespace, name] = full_name.split('-');
+                        class NamespaceLoader extends BaseComp {
+                            render() {
+                                return html`<p>Registered with name <b>${full_name}</b></p>`
+                            }
+                        };
+                        customElements.define(`ns-${name}`, NamespaceLoader);
+                        return NamespaceLoader
+                    }
+                }
+
+                atlas = new Atlas({
+                    library,
+                    root: fixtures,
+                    autoload: false
+                });
+
+                await atlas.upgrade();
+
+                expect(el.innerHTML).to.include("Registered with name <b>ns-anything</b>");
+                expect(el2.innerHTML).to.include("Registered with name <b>ns-whatever</b>");
+            });
+
         });
 
         mocha.run();

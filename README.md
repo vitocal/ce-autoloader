@@ -1,31 +1,16 @@
 # wc-atlas
 
+A webcomponent lazy loader and component registry for the web.
+The missing piece
+
 - Automatically Load any web-component on demand, if and when they're used.
-- Group components in a atlas (also called a `CustomElementRegistry`)
-- No dependencies, framework-independent, <10kb gzip, performant!
-- Interactive islands with client directives, `on:visible` , `on:load`, `on:click`
-- Simple and ergonomic
+- Framework-independent: React, Lit, Svelte, Vue, Angular...
+- No dependencies, <10kb gzip, performant!
+- Interactive islands with client directives, `on="visible"` , `on="load"`, `on="interaction"`
+- Painless extension and customization.
+- Simple and ergonomic.
+- Perfect for CMS, Blogs, static sites and any other web application.
 
-```js
-import atlas from "wc-atlas";
-
-const components = {
-    // Shoelace
-    "sl-": "https://cdn.jsdelivr.net/npm/shoelace@2.20.1/",
-    // Material design
-    "md-": "https://esm.run/@material/web/",
-    // My own components
-    "x-counter": "./components/x-counter.js",
-}
-
-// Start the watcher
-globalThis.atlas = atlas.start({
-    library: components,
-    observe: document.body
-})
-```
-
-Now any shoelace tag `<sl-alert>` in your page will be rendered by shoelace component, lazyly loaded!
 
 ## Installation
 
@@ -40,30 +25,39 @@ npm install wc-atlas
 
 ## Usage
 
-Import wc-atlas in your primarly bundle and add your components manifest, a simple JSON
+Import wc-atlas in your primary bundle and add a components registry:
 
 ```js
-import {Atlas} from "wc-atlas"
+```js
+import atlas from "wc-atlas";
 
 const components = {
-    // A single component
-    "sl-alert": "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/sl-alert.js",
-    // You can even import everything under a prefix
-    "sl-*": "https://cdn.jsdelivr.net/npm/@shoelace-style/"
+    // Shoelace
+    "sl-*": "https://cdn.jsdelivr.net/npm/shoelace@2.20.1/",
+
+    // Material design custom loader
+    "md-*": async (full_name) => {
+        const [namespace, name] = full_name.split('-');
+        import(`https://esm.run/@material/web/${name}`);
+    },
+    // My own components
+    "x-counter": "./components/x-counter.js",
 }
 
-new Atlas({
+// Start the watcher
+globalThis.atlas = atlas.start({
     library: components,
-    target: document.body
+    observe: document.body
 })
 ```
 
-Now use your `shoelace` components freely in your html, anywhere.
+Now you can use in your HTML any component from the library, anywhere.
 
-```
+```html
 <body>
     <sl-alert variant="error">Error</sl-alert>
 </body>
+```
 
 ## Use cases
 
@@ -86,3 +80,16 @@ We can deduplicate by marking core dependencies as **external**, and loading the
 ## Browser support
 
 ## Documentation
+
+## TODO
+
+- [ ] Implement namespaced manifest: Allow generic ":prefix-" to be used as in component manifest
+- [ ] Implement component loader function: Allow functions to be registered as a component.
+
+- [ ] Tests for url loader, function loader, namespaced loader.
+
+- [X] Robust Loading: Support modules that auto-register. Check customElements.get(name) after import to see if it was registered by the module before trying to define it manually.
+- [ ] Flexible Directives: Split the on attribute by whitespace to allow multiple directives.
+- [ ] Accessibility: Expand interaction to include focus or keydown.
+- [ ] Cleanup: Move lit to devDependencies if not used in core.
+- [ ] Publish on npm
