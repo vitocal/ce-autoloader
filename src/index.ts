@@ -1,12 +1,13 @@
 /**
  * A module can be a URL or a function that returns a Promise<CustomElementConstructor>
  */
-export type AtlasModule = string | ((name?: string) => Promise<CustomElementConstructor>)
-export type AtlasRegistry = Record<string, AtlasModule>;
-export type AtlasDirectives = "idle" | "visible" | "interaction" | string
-export type AtlasOptions = {
-  /* The component manifest */
-  library: AtlasRegistry;
+export type CEAutoLoaderModule = string | ((name?: string) => Promise<CustomElementConstructor>)
+export type CEAutoLoaderCatalog = Record<string, CEAutoLoaderModule>;
+
+export type CEAutoLoaderDirectives = "idle" | "visible" | "interaction" | string
+export type CEAutoLoaderOptions = {
+  /* The component catalog */
+  catalog: CEAutoLoaderCatalog;
   /* The root element to search for custom elements */
   root?: HTMLElement;
   /** Watch for new custom elements in the page? */
@@ -14,7 +15,7 @@ export type AtlasOptions = {
   /** Load components on start? */
   autoload?: boolean;
   /** Directives are triggers to when the component should be loaded */
-  directives?: AtlasDirectives[];
+  directives?: CEAutoLoaderDirectives[];
 }
 
 
@@ -32,33 +33,33 @@ function matchCustomElement(root: Element, modifier?: string) {
 
 }
 
-export default class Atlas {
-  options: AtlasOptions;
-  _library: AtlasRegistry = {};
+export default class CEAutoLoader {
+  options: CEAutoLoaderOptions;
+  _catalog: CEAutoLoaderCatalog = {};
 
-  // Namespaced components(prefix-*) are stored separatedly from the library
-  _namespaces: Record<string, AtlasModule> = {};
+  // Namespaced components(prefix-*) are stored separatedly from the registry
+  _namespaces: Record<string, CEAutoLoaderModule> = {};
 
   // Mutation and Interaction Observers
   #observers: Array<MutationObserver | IntersectionObserver> = [];
 
-  get library() {
-    return this._library;
+  get catalog() {
+    return this._catalog;
   }
-  set library(value: AtlasRegistry) {
-    this._library = value;
+  set catalog(value: CEAutoLoaderCatalog) {
+    this._catalog = value;
     this._namespaces = Object.fromEntries(
-      Object.entries(this._library)
+      Object.entries(this._catalog)
         .filter(([key]) => key.endsWith('-*'))
         .map(([key, value]) => [key.split('-')[0], value])
     )
   }
 
 
-  constructor(options: AtlasOptions) {
-    console.log("Atlas started with options:", options);
-    if (!options.library) {
-      throw new Error("Atlas needs a library to start")
+  constructor(options: CEAutoLoaderOptions) {
+    console.log("CEAutoLoader started with options:", options);
+    if (!options.catalog) {
+      throw new Error("CEAutoLoader needs a catalog to start")
     }
 
     this.options = {
@@ -68,7 +69,7 @@ export default class Atlas {
       directives: ["idle", "visible", "interaction"],
       ...options
     };
-    this.library = options.library;
+    this.catalog = options.catalog;
 
     if (this.options.live) {
       this.#observers.push(this.watch());
@@ -88,7 +89,7 @@ export default class Atlas {
   }
 
   /**
-   * Clean up observers to dont memory leak
+   * Clean up observers to avoid memory leak
    */
   clean() {
     this.#observers?.forEach((observer) => observer.disconnect())
@@ -103,23 +104,23 @@ export default class Atlas {
    * If directive is null, will upgrade all elements in the `this.#options.root`!
    *
    * To manually upgrade elements, use the `on="manual"` attribute, but it
-   * can be any string really. Then call `atlas.upgrade("manual")` to upgrade all elements with that attribute.
+   * can be any string really. Then call `registry.upgrade("manual")` to upgrade all elements with that attribute.
    */
-  async upgrade(directive?: AtlasDirectives) {
+  async upgrade(directive?: CEAutoLoaderDirectives) {
     const elements =
       matchCustomElement(this.options.root || document.body, directive)
         .filter((el) => (el.getAttribute("on") == directive))
 
-    console.log("Upgrading", elements.length, "elements with directive", directive)
+    console.log("CEAutoLoader: Registering", elements.length, "elements with directive", directive)
     // Directives apply special conditions to when the component is loaded
     if (directive === "idle") {
-      requestIdleCallback(() => this.hydrateComponents(elements))
+      requestIdleCallback(() => this.registerComponents(elements))
       return [];
     } else if (directive === "visible") {
       return elements.map((el) => {
         const observer = new IntersectionObserver((entries) => {
           if (entries[0].isIntersecting) {
-            this.hydrateComponents([el])
+            this.registerComponents([el])
             observer.disconnect()
           }
         })
@@ -129,12 +130,12 @@ export default class Atlas {
     } else if (directive === "interaction") {
       return elements.map((el) => {
         return el.addEventListener("pointerdown", () => {
-          this.hydrateComponents([el])
+          this.registerComponents([el])
         }, { once: true });
       })
     } else {
       // Load right away everyone else (no-directive)
-      return this.hydrateComponents(elements)
+      return this.registerComponents(elements)
     }
   }
 
@@ -147,13 +148,13 @@ export default class Atlas {
 
             // Check the node itself
             if (node instanceof HTMLElement && isCustomElement(node)) {
-              this.hydrateComponents([node]);
+              this.registerComponents([node]);
             } else {
               // Check children
               const children =
                 matchCustomElement(node as Element)
               if (children.length > 0) {
-                this.hydrateComponents(children);
+                this.registerComponents(children);
               }
             }
           });
@@ -172,22 +173,22 @@ export default class Atlas {
 
 
   /*
-  * Upgrade informed elements in `comps`, with their resource in atlas
+  * Register all elements in `comps`, that are in the catalog
   */
-  hydrateComponents(comps: HTMLElement[]) {
+  async registerComponents(comps: HTMLElement[]) {
     // Upgrade everyone in parallel
-    return Promise.allSettled(
-      comps.map((el) => this.hydrateLeaf(el))
+    return await Promise.allSettled(
+      comps.map((el) => this.registerLeaf(el))
     )
   }
 
-  async hydrateLeaf(el: Element) {
+  async registerLeaf(el: Element) {
     const name = el.tagName.toLowerCase()
-    console.log("Hydrating", el)
+    // console.log("CEAutoLoader: Registering", el)
 
     // Already registered, so just skip-it
     if (customElements.get(name)) {
-      console.log(`Already registered ${name}`)
+      console.log(`CEAutoLoader: Already registered ${name}`)
       return customElements.get(name) as CustomElementConstructor;
     }
 
@@ -198,7 +199,7 @@ export default class Atlas {
    * Load the component from the library
    */
   async load(name: string) {
-    let asset = this._library[name] || this.getNamespace(name)
+    let asset = this._catalog[name] || this.getNamespace(name)
     if (!asset) {
       throw new Error(`Component not found: ${name}`)
     }
@@ -208,7 +209,7 @@ export default class Atlas {
     } else if (typeof asset === "function") {
       return await asset(name)
     } else {
-      throw new Error(`ATLAS: Loader of ${name} is invalid! Should be a url or a function`)
+      throw new Error(`ce-autoloader: Loader of ${name} is invalid! Should be a url or a function`)
     }
   }
 
@@ -219,10 +220,10 @@ export default class Atlas {
     // todo: Should we treat relative and absolute path differently?
     const module = await import(/* @vite-ignore */ asset)
     if (!customElements.get(name)) {
-      console.warn(`ATLAS: Component ${name} was not auto-registered in the file. Registering now...`)
+      console.warn(`ce-autoloader: Component ${name} was not auto-registered in the file. Registering now...`)
       customElements.define(name, module.default);
     } else if (!HTMLElement.isPrototypeOf(module.default)) {
-      throw new Error(`ATLAS: Component ${name} was not exported correctly! Expected a custom element constructor, got ${typeof module.default}`)
+      throw new Error(`ce-autoloader: Component ${name} was not exported correctly! Expected a custom element constructor, got ${typeof module.default}`)
     }
     return module.default;
   }
@@ -231,7 +232,7 @@ export default class Atlas {
   /**
    * Matches a component name to a namespace (if exists)
    */
-  getNamespace(name: string): AtlasModule | null {
+  getNamespace(name: string): CEAutoLoaderModule | null {
     const [prefix, _comp_name] = name.split('-');
     return this._namespaces[prefix];
   }

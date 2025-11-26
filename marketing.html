@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atlas: The Anti-Framework</title>
+    <title>CEAutoLoader</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -339,7 +339,7 @@
                         stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
             </span>
-            ATLAS
+            ce-autoloader
             <span class="marker-arrow">
                 <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M40 20 L80 50 L40 80 M20 20 L60 50 L20 80" stroke="currentColor" stroke-width="8"
@@ -348,7 +348,7 @@
             </span>
         </h1>
         <div class="loud">
-            Let your browser do the heavy lifting!<br />
+            The missing registry and loader for your webcomponents<br />
         </div>
         <div>
             <ul>
@@ -403,7 +403,7 @@ export default function Nightmare() {
         <div class="container rant-content">
             <h2>The Solution: Gambiarra Oriented Programming</h2>
             <p>
-                Atlas is lazy. Very lazy. It only loads what you need, when you need it.
+                CEAutoLoader is lazy. Very lazy. It only loads what you need, when you need it.
                 It's like that friend who only shows up when the pizza arrives.
             </p>
             <p>
@@ -416,17 +416,19 @@ export default function Nightmare() {
     <div class="container">
         <div class="grid">
             <div class="card">
-                <h3>The Atlas Way 🚀</h3>
+                <h3>The lazy-loaded Way 🚀</h3>
                 <pre>
 &lt;!-- Just write HTML --&gt;
 &lt;confetti-wrapper&gt;
   &lt;button&gt;Party Time!&lt;/button&gt;
 &lt;/confetti-wrapper&gt;
 
-&lt;!-- Atlas handles the rest --&gt;
+&lt;!-- CEAutoLoader handles the rest --&gt;
 &lt;script&gt;
-  atlas.register({
-    "confetti-wrapper": "./confetti.js"
+  new CERegistry({
+    catalog: {
+        "confetti-wrapper": "./confetti.js"
+    }
   });
 &lt;/script&gt;
                 </pre>
@@ -499,7 +501,7 @@ export default function Nightmare() {
     </footer>
 
     <script type="module">
-        import Atlas from './src/index.ts';
+        import Registry from './src/index.ts';
 
         const components = {
             // Local Wrappers
@@ -513,8 +515,8 @@ export default function Nightmare() {
             "wa-button": "https://esm.sh/@awesome.me/webawesome/dist/components/button/button.js",
         };
 
-        new Atlas({
-            library: components,
+        globalThis.registry = new Registry({
+            catalog: components,
             root: document.body
         });
     </script>

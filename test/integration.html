@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Atlas Integration Tests</title>
+    <title>CEAutoLoader Integration Tests</title>
     <link rel="stylesheet" href="https://unpkg.com/mocha/mocha.css" />
     <style>
         #fixtures {
@@ -54,11 +54,11 @@
     <script type="module">
         import { expect } from "https://esm.sh/chai@5.1.2";
         import { html, signal } from "https://esm.sh/uhtml";
-        import Atlas from '../src/index.ts';
+        import AutoLoader from '../src/index.ts';
 
         class BaseComp extends HTMLElement {
             connectedCallback() {
-                this.setAttribute('data-hydrated', 'true');
+                this.setAttribute('data-upgraded', 'true');
                 this.appendChild(this.render())
             }
 
@@ -67,8 +67,8 @@
             }
         };
 
-        // Mock component loader
-        const library = {
+        // Component catalog
+        const catalog = {
             "test-component": async () => {
                 customElements.define('test-component', BaseComp);
             },
@@ -94,34 +94,34 @@
             },
         };
 
-        describe('Atlas', () => {
-            let atlas;
+        describe('CEAutoLoader', () => {
+            let registry;
             const fixtures = document.getElementById('fixtures');
 
             beforeEach(() => {
                 fixtures.innerHTML = '';
 
-                // Reset atlas observers, but we can't really unregister the custom elements.
-                atlas?.clean();
-                atlas = undefined;
+                // Reset observers, but we can't really unregister the custom elements.
+                registry?.clean();
+                registry = undefined;
 
             });
 
-            it('should hydrate existing components on start', async () => {
+            it('should upgrade existing components on start', async () => {
                 const el = document.createElement('test-component');
                 fixtures.appendChild(el);
 
-                atlas = new Atlas({
-                    library,
+                registry = new AutoLoader({
+                    catalog,
                     root: fixtures,
                 });
 
-                expect(el.hasAttribute('data-hydrated')).to.be.true;
+                expect(el.hasAttribute('data-upgraded')).to.be.true;
             });
 
-            it('should hydrate nested components', async () => {
-                atlas = new Atlas({
-                    library,
+            it('should upgrade nested components', async () => {
+                registry = new AutoLoader({
+                    catalog,
                     root: fixtures,
                     observe: true
                 });
@@ -133,12 +133,12 @@
 
                 await customElements.whenDefined("nested-component");
 
-                expect(el.hasAttribute('data-hydrated')).to.be.true;
+                expect(el.hasAttribute('data-upgraded')).to.be.true;
             });
 
-            it('should hydrate dynamically added components (MutationObserver)', async () => {
-                atlas = new Atlas({
-                    library,
+            it('should upgrade dynamically added components (MutationObserver)', async () => {
+                registry = new AutoLoader({
+                    catalog,
                     root: fixtures,
                     observe: true
                 });
@@ -149,9 +149,8 @@
                 // Wait for MutationObserver and async hydration
                 await customElements.whenDefined("dynamic-component");
 
-                expect(el.hasAttribute('data-hydrated')).to.be.true;
+                expect(el.hasAttribute('data-upgraded')).to.be.true;
             });
-
 
 
             describe("directives", () => {
@@ -160,18 +159,18 @@
                     el.setAttribute('on', 'manual');
                     fixtures.appendChild(el);
 
-                    atlas = new Atlas({
-                        library,
+                    registry = new AutoLoader({
+                        catalog,
                         root: fixtures,
                         observe: false,
                         autoload: false
                     });
 
-                    expect(el.hasAttribute('data-hydrated')).to.be.false;
+                    expect(el.hasAttribute('data-upgraded')).to.be.false;
 
-                    await atlas.upgrade("manual");
+                    await registry.upgrade("manual");
 
-                    expect(el.hasAttribute('data-hydrated')).to.be.true;
+                    expect(el.hasAttribute('data-upgraded')).to.be.true;
                 });
 
                 it('should respect directives - interaction', async () => {
@@ -179,17 +178,17 @@
                     el.setAttribute('on', 'interaction');
                     fixtures.appendChild(el);
 
-                    atlas = new Atlas({
-                        library,
+                    registry = new AutoLoader({
+                        catalog,
                         root: fixtures,
                     });
 
-                    expect(el.hasAttribute('data-hydrated')).to.be.false;
+                    expect(el.hasAttribute('data-upgraded')).to.be.false;
 
                     await el.dispatchEvent(new PointerEvent('pointerdown'));
                     await customElements.whenDefined("interaction-component");
 
-                    expect(el.hasAttribute('data-hydrated')).to.be.true;
+                    expect(el.hasAttribute('data-upgraded')).to.be.true;
                 });
 
                 it('should respect directives - visible', async () => {
@@ -197,65 +196,65 @@
                     el.setAttribute('on', 'visible');
                     fixtures.appendChild(el);
 
-                    atlas = new Atlas({
-                        library,
+                    registry = new AutoLoader({
+                        catalog,
                         root: fixtures,
                         observe: false,
                         autoload: false
                     });
 
-                    expect(el.hasAttribute('data-hydrated')).to.be.false;
+                    expect(el.hasAttribute('data-upgraded')).to.be.false;
                     await customElements.whenDefined("visible-component");
-                    expect(el.hasAttribute('data-hydrated')).to.be.true;
+                    expect(el.hasAttribute('data-upgraded')).to.be.true;
                 });
             });
         });
 
 
-        describe("Atlas library", () => {
-            let atlas;
+        describe("CEAutoLoader registry", () => {
+            let registry;
             const fixtures = document.getElementById('fixtures');
 
             beforeEach(() => {
                 fixtures.innerHTML = '';
 
-                // Reset atlas observers, but we can't really unregister the custom elements.
-                atlas?.clean();
-                atlas = undefined;
+                // Reset observers, but we can't really unregister the custom elements.
+                registry?.clean();
+                registry = undefined;
             });
 
-            it("should allow atlas.library to be updated after initialization", async () => {
+            it("should allow .catalog to be updated after initialization", async () => {
                 const el = document.createElement("after-component");
                 fixtures.appendChild(el);
 
-                atlas = new Atlas({
-                    library,
+                registry = new AutoLoader({
+                    catalog,
                     root: fixtures,
                     autoload: false
                 });
 
-                expect(atlas.library).to.be.a("Object");
-                expect(el.hasAttribute("data-hydrated")).to.be.false;
+                expect(registry.catalog).to.be.a("Object");
+                expect(el.hasAttribute("data-upgraded")).to.be.false;
 
-                atlas.library["after-component"] = async () => {
+                registry.catalog["after-component"] = async () => {
                     class AfterComponent extends BaseComp { }
                     customElements.define("after-component", AfterComponent);
                 };
-                await atlas.upgrade()
+                await registry.upgrade()
 
-                expect(el.hasAttribute("data-hydrated")).to.be.true;
+                expect(el.hasAttribute("data-upgraded")).to.be.true;
             });
 
             it("Loader full-name: URL", async () => {
                 const el = document.createElement("vi-hello")
                 fixtures.appendChild(el);
 
-                const library = {
+                const catalog = {
                     "vi-hello": "/src/components/vi/vi-hello.ts"
                 }
 
-                atlas = new Atlas({
-                    library,
+                registry = new AutoLoader({
+                    catalog,
                     root: fixtures,
                 });
 
@@ -266,7 +265,7 @@
                 const el = document.createElement("function-loader")
                 fixtures.appendChild(el);
 
-                const library = {
+                const catalog = {
                     "function-loader": async (full_name) => {
                         class FunctionLoader extends BaseComp {
                             render() {
@@ -278,8 +277,8 @@
                     }
                 }
 
-                atlas = new Atlas({
-                    library,
+                registry = new AutoLoader({
+                    catalog,
                     root: fixtures,
                 });
 
@@ -298,7 +297,7 @@
                  *
                  * Here, we render any component named ns-* as a <p> tag.
                  */
-                const library = {
+                const catalog = {
                     "ns-*": async (full_name) => {
                         const [namespace, name] = full_name.split('-');
                         class NamespaceLoader extends BaseComp {
@@ -311,13 +310,13 @@
                     }
                 }
 
-                atlas = new Atlas({
-                    library,
+                registry = new AutoLoader({
+                    catalog,
                     root: fixtures,
                     autoload: false
                 });
 
-                await atlas.upgrade();
+                await registry.upgrade();
 
                 expect(el.innerHTML).to.include("Registered with name <b>ns-anything</b>");
                 expect(el2.innerHTML).to.include("Registered with name <b>ns-whatever</b>");

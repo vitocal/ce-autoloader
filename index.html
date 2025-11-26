@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atlas Test</title>
+    <title>CEAutoLoader Test</title>
     <style>
         :root {
             --color-primary: #e31;
@@ -96,35 +96,45 @@
     <h3>Manual</h3>
 
     <p>When you want more control, you can upgrade a component manually, by using a custom directive name
-        and calling `atlas.upgrade('myDirective')`
+        and calling `registry.upgrade('myDirective')`
     </p>
     <confetti-button on="manual">
         <wa-button id="confetti">Confetti</wa-button>
     </confetti-button>
     <script type="module">
         document.getElementById("confetti").addEventListener("click", async () => {
-            let result = await atlas.upgrade('manual')
+            let result = await registry.upgrade('manual')
             console.log('result', result);
             return result;
         });
     </script>
 
-    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nulla temporibus facilis, adipisci asperiores ducimus
-        inventore delectus officiis esse earum doloribus possimus praesentium, atque impedit animi, eius dolorum
-        exercitationem fugit non.</p>
+    <h2>Namespaced Components</h2>
+    <p>You can lazily import a whole library of components by using namespace `myns-*`</p>
+    <p>For example, here we register everything under `wa-*` namespace, so any component like `wa-qr-code` will
+        automatically call our loader function!</p>
 
-    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nulla temporibus facilis, adipisci asperiores ducimus
-        inventore delectus officiis esse earum doloribus possimus praesentium, atque impedit animi, eius dolorum
-        exercitationem fugit non.</p>
+    <pre>
+        <code>
+"wa-*": async (full_name) => {
+    const [, namespace, name] = full_name.match(/^([a-z]+)-(.*)/);
+    try {
+        const module = await import(
+            /* @vite-ignore */
+            `https://esm.sh/@awesome.me/webawesome/dist/components/${name}/${name}.js`
+        );
+        if (!customElements.get(full_name)) {
+            customElements.define(full_name, module.default);
+        }
+    } catch (error) {
+        console.error(`Failed to load component ${full_name}:`, error);
+    }
+},
 
-    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nulla temporibus facilis, adipisci asperiores ducimus
-        inventore delectus officiis esse earum doloribus possimus praesentium, atque impedit animi, eius dolorum
-        exercitationem fugit non.</p>
+        </code>
+    </pre>
 
-    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nulla temporibus facilis, adipisci asperiores ducimus
-        inventore delectus officiis esse earum doloribus possimus praesentium, atque impedit animi, eius dolorum
-        exercitationem fugit non.</p>
-
+    <wa-qr-code value="https://shoelace.style/" label="Scan this code to visit Web Awesome on the web!"></wa-qr-code>
 
     <style>
         .animation-overview .box {
@@ -137,20 +147,30 @@
     </style>
 
     <script class="echo reflect" type="module" contenteditable="true">
-        import Atlas from './src';
+        import CERegistry from './src';
         import ViComponents from './src/components/vi';
 
-        const components = {
-            "sl-": (name, fullName) => "https://cdn.jsdelivr.net/npm/shoelace@2.20.1/${name}.js",
+        const catalog = {
             "wa-button": "https://esm.sh/@awesome.me/webawesome/dist/components/button/button.js",
             "wa-animation": "https://esm.sh/@awesome.me/webawesome/dist/components/animation/animation.js",
+            "wa-*": async (full_name) => {
+                const [, namespace, name] = full_name.match(/^([a-z]+)-(.*)/);
+                try {
+                    const module = await import(/* @vite-ignore */ `https://esm.sh/@awesome.me/webawesome/dist/components/${name}/${name}.js`);
+                    if (!customElements.get(full_name)) {
+                        customElements.define(full_name, module.default);
+                    }
+                } catch (error) {
+                    console.error(`Failed to load component ${full_name}:`, error);
+                }
+            },
             "confetti-button": "/src/components/confetti-button.ts",
             "three-cube": "/src/components/three-cube.js",
             ...ViComponents,
         };
 
-        globalThis.atlas = new Atlas({
-            library: components,
+        globalThis.registry = new CERegistry({
+            catalog,
             root: document.body,
             autoload: true,
         });

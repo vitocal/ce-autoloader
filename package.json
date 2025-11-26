@@ -1,7 +1,20 @@
 {
-  "name": "atlas",
+  "name": "ce-autoloader",
   "version": "0.0.1",
+  "description": "A webcomponents auto loader and registry",
   "type": "module",
+  "main": "./dist/ce-autoloader.umd.cjs",
+  "module": "./dist/ce-autoloader.js",
+  "types": "./dist/ce-autoloader.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/ce-autoloader.js",
+      "require": "./dist/ce-autoloader.umd.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite build --mode development --watch",
     "build:vi-components": "vite build --config vite.vi-components.config.js",
@@ -9,6 +22,21 @@
     "serve": "npm run build:vi-components && vite",
     "build": "npm run build:vi-components && vite build"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vitocal/ce-autoloader.git"
+  },
+  "keywords": [
+    "webcomponents",
+    "lazyloader",
+    "autoloader",
+    "registry",
+    "custom-element-registry",
+    "wc-autoloader",
+    "ce-autoloader"
+  ],
+  "author": "Vitor Calejuri <vitor.cajuleri@gmail.com>",
+  "license": "GPL-3.0",
   "devDependencies": {
     "lit": "^3.3.1",
     "vite": "^7.2.2"

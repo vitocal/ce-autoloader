@@ -2,8 +2,8 @@ export default {
   build: {
     lib: {
       entry: 'src/index.ts',
-      name: 'atlas',
-      fileName: 'wc-atlas'
+      name: 'ce-autoloader',
+      fileName: 'ce-autoloader'
     },
   },
   publicDir: "dist"

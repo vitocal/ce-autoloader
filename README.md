@@ -1,4 +1,4 @@
-# wc-atlas
+# ce-autoloader
 
 A webcomponent lazy loader and component registry for the web.
 The missing piece
@@ -14,24 +14,24 @@ The missing piece
 
 ## Installation
 
-wc-atlas is available as a npm package
+ce-autoloader is available as a npm package
 
 ```
-npm install wc-atlas
+npm install ce-autoloader
 ```
 ```
-<script type="module" src="/assets/wc-atlas.js"></script>
+<script type="module" src="/assets/ce-autoloader.js"></script>
 ```
 
 ## Usage
 
-Import wc-atlas in your primary bundle and add a components registry:
+Import ce-autoloader in your primary bundle and add a components registry:
 
 ```js
 ```js
-import atlas from "wc-atlas";
+import CERegistry from "ce-autoloader";
 
-const components = {
+const catalog = {
     // Shoelace
     "sl-*": "https://cdn.jsdelivr.net/npm/shoelace@2.20.1/",
 
@@ -45,8 +45,8 @@ const components = {
 }
 
 // Start the watcher
-globalThis.atlas = atlas.start({
-    library: components,
+globalThis.registry = new CERegistry({
+    catalog,
     observe: document.body
 })
 ```
@@ -83,13 +83,11 @@ We can deduplicate by marking core dependencies as **external**, and loading the
 
 ## TODO
 
-- [ ] Implement namespaced manifest: Allow generic ":prefix-" to be used as in component manifest
-- [ ] Implement component loader function: Allow functions to be registered as a component.
-
-- [ ] Tests for url loader, function loader, namespaced loader.
-
+- [X] Implement component loader function: Allow functions to be registered as a component.
+- [X] Tests for url loader, function loader, namespaced loader.
 - [X] Robust Loading: Support modules that auto-register. Check customElements.get(name) after import to see if it was registered by the module before trying to define it manually.
+
 - [ ] Flexible Directives: Split the on attribute by whitespace to allow multiple directives.
 - [ ] Accessibility: Expand interaction to include focus or keydown.
-- [ ] Cleanup: Move lit to devDependencies if not used in core.
+- [X] Cleanup: Move lit to devDependencies if not used in core.
 - [ ] Publish on npm
