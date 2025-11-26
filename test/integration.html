@@ -115,6 +115,7 @@
                     catalog,
                     root: fixtures,
                 });
+                await registry.upgrade();
 
                 expect(el.hasAttribute('data-upgraded')).to.be.true;
             });
@@ -153,17 +154,16 @@
             });
 
 
-            describe("directives", () => {
-                it('should respect directives - manual', async () => {
+            describe("loading attribute", () => {
+                it('should allow manual', async () => {
                     const el = document.createElement('manual-component')
-                    el.setAttribute('on', 'manual');
+                    el.setAttribute('loading', 'manual');
                     fixtures.appendChild(el);
 
                     registry = new AutoLoader({
                         catalog,
                         root: fixtures,
                         observe: false,
-                        autoload: false
                     });
 
                     expect(el.hasAttribute('data-upgraded')).to.be.false;
@@ -173,9 +173,9 @@
                     expect(el.hasAttribute('data-upgraded')).to.be.true;
                 });
 
-                it('should respect directives - interaction', async () => {
+                it('should allow interaction', async () => {
                     const el = document.createElement('interaction-component')
-                    el.setAttribute('on', 'interaction');
+                    el.setAttribute('loading', 'interaction');
                     fixtures.appendChild(el);
 
                     registry = new AutoLoader({
@@ -191,16 +191,15 @@
                     expect(el.hasAttribute('data-upgraded')).to.be.true;
                 });
 
-                it('should respect directives - visible', async () => {
+                it('should allow lazy', async () => {
                     const el = document.createElement('visible-component')
-                    el.setAttribute('on', 'visible');
+                    el.setAttribute('loading', 'lazy');
                     fixtures.appendChild(el);
 
                     registry = new AutoLoader({
                         catalog,
                         root: fixtures,
                         observe: false,
-                        autoload: false
                     });
 
                     expect(el.hasAttribute('data-upgraded')).to.be.false;
@@ -228,10 +227,11 @@
                 fixtures.appendChild(el);
 
                 registry = new AutoLoader({
-                    catalog,
+                    catalog: {},
                     root: fixtures,
-                    autoload: false
+                    fallback: false
                 });
+                await registry.upgrade()
 
                 expect(registry.catalog).to.be.a("Object");
                 expect(el.hasAttribute("data-upgraded")).to.be.false;
@@ -257,6 +257,7 @@
                     catalog,
                     root: fixtures,
                 });
+                await registry.upgrade()
 
                 await customElements.whenDefined("vi-hello");
                 expect(customElements.get("vi-hello")).to.be.a("function");
@@ -281,6 +282,7 @@
                     catalog,
                     root: fixtures,
                 });
+                await registry.upgrade()
 
                 await customElements.whenDefined("function-loader");
                 expect(el.innerHTML).to.include("Registered with name <b>function-loader</b>");
@@ -313,7 +315,6 @@
                 registry = new AutoLoader({
                     catalog,
                     root: fixtures,
-                    autoload: false
                 });
 
                 await registry.upgrade();

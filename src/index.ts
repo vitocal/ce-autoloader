@@ -4,7 +4,7 @@
 export type CEAutoLoaderModule = string | ((name?: string) => Promise<CustomElementConstructor>)
 export type CEAutoLoaderCatalog = Record<string, CEAutoLoaderModule>;
 
-export type CEAutoLoaderDirectives = "idle" | "visible" | "interaction" | string
+export type CEAutoLoaderDirectives = "eager" | "idle" | "lazy" | "interaction" | string
 export type CEAutoLoaderOptions = {
   /* The component catalog */
   catalog: CEAutoLoaderCatalog;
@@ -12,8 +12,8 @@ export type CEAutoLoaderOptions = {
   root?: HTMLElement;
   /** Watch for new custom elements in the page? */
   live?: boolean;
-  /** Load components on start? */
-  autoload?: boolean;
+  /** Fallback to components with errors? */
+  fallback?: true | CustomElementConstructor;
   /** Directives are triggers to when the component should be loaded */
   directives?: CEAutoLoaderDirectives[];
 }
@@ -27,13 +27,37 @@ function isCustomElement(element: Element) {
  * CSS selector to match custom elements
  */
 function matchCustomElement(root: Element, modifier?: string) {
-  const selector = (modifier ? `*[on=${modifier}]` : '') + ':not(:defined)'
+  const selector = (modifier ? `*[loading~=${modifier}]` : '') + ':not(:defined)'
   return [...new Set([root, ...root.querySelectorAll(selector)])]
     .filter((el) => isCustomElement(el)) as HTMLElement[]
-
 }
 
-export default class CEAutoLoader {
+class DevFallback extends HTMLElement {
+  error: string = "";
+
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+    this.error = this.getAttribute("error") || "";
+  }
+
+  connectedCallback() {
+    this.shadowRoot!.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          background-color: red;
+          font-family: monospace;
+          color: white;
+          padding: 8px;
+        }
+      </style>
+      ${this.error}
+    `;
+  }
+}
+
+class CEAutoLoader {
   options: CEAutoLoaderOptions;
   _catalog: CEAutoLoaderCatalog = {};
 
@@ -63,10 +87,9 @@ export default class CEAutoLoader {
     }
 
     this.options = {
-      autoload: true,
       live: true,
       root: document.body,
-      directives: ["idle", "visible", "interaction"],
+      directives: ["idle", "lazy", "interaction"],
       ...options
     };
     this.catalog = options.catalog;
@@ -81,10 +104,6 @@ export default class CEAutoLoader {
         observers[0] instanceof IntersectionObserver) {
         this.#observers = [...this.#observers, ...observers]
       }
-    }
-
-    if (this.options.autoload) {
-      this.upgrade()
     }
   }
 
@@ -109,14 +128,14 @@ export default class CEAutoLoader {
   async upgrade(directive?: CEAutoLoaderDirectives) {
     const elements =
       matchCustomElement(this.options.root || document.body, directive)
-        .filter((el) => (el.getAttribute("on") == directive))
+        .filter((el) => (el.getAttribute("loading") == directive))
 
-    console.log("CEAutoLoader: Registering", elements.length, "elements with directive", directive)
+    console.log("CEAutoLoader: Registering", elements, "with directive", directive)
     // Directives apply special conditions to when the component is loaded
     if (directive === "idle") {
       requestIdleCallback(() => this.registerComponents(elements))
       return [];
-    } else if (directive === "visible") {
+    } else if (directive === "lazy") {
       return elements.map((el) => {
         const observer = new IntersectionObserver((entries) => {
           if (entries[0].isIntersecting) {
@@ -134,8 +153,8 @@ export default class CEAutoLoader {
         }, { once: true });
       })
     } else {
-      // Load right away everyone else (no-directive)
-      return this.registerComponents(elements)
+      // Load right away everyone else (eager)
+      return await this.registerComponents(elements)
     }
   }
 
@@ -177,7 +196,7 @@ export default class CEAutoLoader {
   */
   async registerComponents(comps: HTMLElement[]) {
     // Upgrade everyone in parallel
-    return await Promise.allSettled(
+    return Promise.allSettled(
       comps.map((el) => this.registerLeaf(el))
     )
   }
@@ -192,7 +211,19 @@ export default class CEAutoLoader {
       return customElements.get(name) as CustomElementConstructor;
     }
 
-    return await this.load(name);
+    try {
+      return await this.load(name);
+    } catch (error) {
+      console.error(`ce-autoloader: Error loading ${name}`, error)
+
+      // A fallback component is defined to show the error
+      if (this.options.fallback) {
+        el.setAttribute("error", `${error}`);
+        customElements.define(name, this.options.fallback !== true ? this.options.fallback : DevFallback);
+      }
+
+      throw error
+    }
   }
 
   /**
@@ -211,21 +242,22 @@ export default class CEAutoLoader {
     } else {
       throw new Error(`ce-autoloader: Loader of ${name} is invalid! Should be a url or a function`)
     }
+
   }
 
   /**
    * Load a js module from **asset** using "import()"
    */
   async loadModule(name: string, asset: string): Promise<CustomElementConstructor> {
+    console.log("ce-autoloader: Loading module", name, asset)
     // todo: Should we treat relative and absolute path differently?
-    const module = await import(/* @vite-ignore */ asset)
+    let module = await import(/* @vite-ignore */ asset);
+
     if (!customElements.get(name)) {
       console.warn(`ce-autoloader: Component ${name} was not auto-registered in the file. Registering now...`)
       customElements.define(name, module.default);
-    } else if (!HTMLElement.isPrototypeOf(module.default)) {
-      throw new Error(`ce-autoloader: Component ${name} was not exported correctly! Expected a custom element constructor, got ${typeof module.default}`)
     }
-    return module.default;
+    return module.default || module;
   }
 
 
@@ -238,3 +270,5 @@ export default class CEAutoLoader {
   }
 
 }
+
+export default CEAutoLoader

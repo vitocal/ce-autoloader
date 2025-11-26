@@ -50,28 +50,30 @@
     <h1>WebComponent Registry</h1>
 
     <ul>
-        <li>Automatically Load any web-component on demand, if and when they're used.</li>
-        <li>Group components together in a registry</li>
-        <li>No dependencies, framework-independent</li>
-        <li> 10kb gzip, performant! </li>
-        <li>Interactive islands with client directives, `on:visible` , `on:load`, `on:click`</li>
+        <li>Automatically Load any web-component on demand, if and when they're used in the page.</li>
+        <li>A central registry of components, similar to import maps</li>
+        <li>Customize when components are loaded with with loading attribute, `loading="idle"` , `loading="lazy"`,
+            `loading="interaction"`</li>
         <li>Simple and ergonomic </li>
+        <li>No dependencies, framework-independent</li>
+        <li>1.7kb gzip, performant! </li>
+        <li>Namespaced components - Lazily load any component from any library</li>
     </ul>
 
-    <h2>Examples - Client Directives</h2>
+    <h2>Examples - Loading Attribute</h2>
 
-    <h3>Default - autoloaded </h3>
+    <h3>Autoloaded by default</h3>
     <wa-button>wa-button</wa-button>
 
-    <h3>Idle</h3>
-    <vi-switch on="idle"></vi-switch>
+    <h3>idle</h3>
+    <vi-switch loading="idle"></vi-switch>
 
-    <h3>Interaction - Click or touch</h3>
-    <three-cube on="interaction">
+    <h3>interaction - Click or touch</h3>
+    <three-cube loading="interaction">
         Click for 3d cube
     </three-cube>
 
-    <h3>Visible - with IntersectionObserver</h3>
+    <h3>lazy - when element is visible in the viewport</h3>
 
     <div style="height: 50vh; margin: 0; border: 1px solid #333; text-align: center;">
         <span style="font-size: 6em; position: sticky; top: 0px;">⬇️</span><br />
@@ -79,26 +81,26 @@
     </div>
 
     <div class="animation-overview">
-        <wa-animation name="bounce" on="visible" duration="2000" play>
+        <wa-animation name="bounce" loading="lazy" duration="2000" play>
             <div class="box"></div>
         </wa-animation>
-        <wa-animation name="jello" on="visible" duration="2000" play>
+        <wa-animation name="jello" loading="lazy" duration="2000" play>
             <div class="box"></div>
         </wa-animation>
-        <wa-animation name="heartBeat" on="visible" duration="2000" play>
+        <wa-animation name="heartBeat" loading="lazy" duration="2000" play>
             <div class="box"></div>
         </wa-animation>
-        <wa-animation name="flip" on="visible" duration="2000" play>
+        <wa-animation name="flip" loading="lazy" duration="2000" play>
             <div class="box"></div>
         </wa-animation>
     </div>
 
-    <h3>Manual</h3>
+    <h3>manual</h3>
 
     <p>When you want more control, you can upgrade a component manually, by using a custom directive name
         and calling `registry.upgrade('myDirective')`
     </p>
-    <confetti-button on="manual">
+    <confetti-button loading="manual">
         <wa-button id="confetti">Confetti</wa-button>
     </confetti-button>
     <script type="module">
@@ -136,6 +138,23 @@
 
     <wa-qr-code value="https://shoelace.style/" label="Scan this code to visit Web Awesome on the web!"></wa-qr-code>
 
+    <playground-ide editable-file-system line-numbers resizable>
+        <script type="sample/html" filename="index.html">
+            <!doctype html>
+            <body>
+                Hello
+                <script type="module" src="./index.js">&lt;/script>
+            </body>
+        </script>
+
+        <script type="sample/ts" filename="index.ts">
+            document.body.appendChild(document.createTextNode("World!"))
+        </script>
+    </playground-ide>
+
+    <notfound-component></notfound-component>
+
+
     <style>
         .animation-overview .box {
             display: inline-block;
@@ -147,7 +166,8 @@
     </style>
 
     <script class="echo reflect" type="module" contenteditable="true">
-        import CERegistry from './src';
+        // import CERegistry from 'https://esm.sh/ce-autoloader';
+        import CERegistry from './src/index.js';
         import ViComponents from './src/components/vi';
 
         const catalog = {
@@ -164,6 +184,8 @@
                     console.error(`Failed to load component ${full_name}:`, error);
                 }
             },
+            "playground-ide": "https://esm.sh/playground-elements@0.18.1/playground-ide.js",
+            "notfound-component": "/src/components/notfound-component.ts",
             "confetti-button": "/src/components/confetti-button.ts",
             "three-cube": "/src/components/three-cube.js",
             ...ViComponents,
@@ -172,8 +194,9 @@
         globalThis.registry = new CERegistry({
             catalog,
             root: document.body,
-            autoload: true,
+            autoload: false,
         });
+        console.log(await registry.upgrade());
     </script>
     <link rel="stylesheet" href="https://esm.sh/@awesome.me/webawesome@3.0.0/dist/styles/themes/default.css"
         media="none" onload="if(media!='all')media='all'">

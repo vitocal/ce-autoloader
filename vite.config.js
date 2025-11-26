@@ -6,5 +6,8 @@ export default {
       fileName: 'ce-autoloader'
     },
   },
-  publicDir: "dist"
+  publicDir: "dist",
+  server: {
+    cors: true
+  }
 }
