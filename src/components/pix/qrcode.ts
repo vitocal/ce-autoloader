@@ -40,17 +40,16 @@ export default class PixQRCode extends LitElement {
     }
 
     render() {
-        return html`
-            <p>QR Code</p>
+        return html`<section style="display: flex; flex-direction: column; align-items: center; height: 300px;" >
+            <h1>Look, a PIX QR Code</h1>
             ${this.pix ?
                 html`
                     <img src=${this.qrCodeB64} alt='QR Code PIX'/>
-                    <code>${this.pix}</code>
                 ` : html`
                     <p>Loading QR Code...</p>
                 `
             }
-        `;
+        </section>`;
     }
 }
 customElements.define('pix-qrcode', PixQRCode)

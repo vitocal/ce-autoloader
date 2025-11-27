@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CEAutoLoader Test</title>
     <style>
+        @import "https://unpkg.com/open-props";
+        @import "https://unpkg.com/open-props/normalize.min.css";
+        @import "https://unpkg.com/open-props/buttons.min.css";
+        @import "https://unpkg.com/open-props/normalize.light.min.css";
+
         :root {
             --color-primary: #e31;
             --color-secondary: rgb(0 172 172 / 34%);
@@ -33,6 +38,11 @@
             border-radius: 0.33em;
         }
 
+        body {
+            max-width: 80%;
+            margin: 0 auto;
+        }
+
         body>*+* {
             margin-top: 1em;
         }
@@ -55,10 +65,9 @@
             -webkit-overflow-scrolling: touch;
             /* smooth scrolling on iOS */
             padding: .6rem;
-        }
-
-        pre code {
-            display: block;
+            background-color: var(--color-bg);
+            border-radius: 0.33em;
+            box-shadow: var(--shadow-6);
         }
     </style>
     <script type="importmap">
@@ -140,29 +149,31 @@
     <p>For example, here we register everything under `wa-*` namespace, so any component like `wa-qr-code` will
         automatically call our loader function!</p>
 
+    <wa-qr-code></wa-qr-code>
+
+    <p> Heres a example of the namespace loader for `wa-*` with syntax-highlight </p>
+
     <pre>
-        <code>
-"wa-*": async (full_name) => {
-    const [, namespace, name] = full_name.match(/^([a-z]+)-(.*)/);
-    try {
-        const module = await import(
-            /* @vite-ignore */
-            `https://esm.sh/@awesome.me/webawesome/dist/components/${name}/${name}.js`
-        );
-        if (!customElements.get(full_name)) {
-            customElements.define(full_name, module.default);
-        }
-    } catch (error) {
-        console.error(`Failed to load component ${full_name}:`, error);
-    }
-},
-
-        </code>
-    </pre>
-
-    <wa-qr-code
-        value="00020126530014BR.GOV.BCB.PIX0111357836738970216Teste de QR Code52040000530398654041.005802BR5914VITOR CALEJURI6009SAO PAULO62070503***63041755"
-        label="Scan this code to visit Web Awesome on the web!"></wa-qr-code>
+    <syntax-highlight language="js">
+{
+    // ...
+    "wa-*": async (full_name) => {
+        const [, namespace, name] = full_name.match(/^([a-z]+)-(.*)/);
+        try {
+            const module = await import(
+                /* @vite-ignore */
+                `https://esm.sh/@awesome.me/webawesome/dist/components/${name}/${name}.js`
+                );
+                if (!customElements.get(full_name)) {
+                    customElements.define(full_name, module.default);
+                }
+            } catch (error) {
+                console.error(`Failed to load component ${full_name}:`, error);
+            }
+        },
+}
+</syntax-highlight>
+</pre>
 
     <playground-ide editable-file-system line-numbers resizable>
         <script type="sample/html" filename="index.html">
@@ -178,11 +189,7 @@
         </script>
     </playground-ide>
 
-    <notfound-component></notfound-component>
-
-
     <hr>
-    <pix-qrcode></pix-qrcode>
 
     <script class="echo reflect" type="module" contenteditable="true">
         // import CERegistry from 'https://esm.sh/ce-autoloader';
@@ -205,6 +212,7 @@
                     console.error(`Failed to load component ${full_name}:`, error);
                 }
             },
+            "syntax-highlight": "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm",
             "playground-ide": "https://esm.sh/playground-elements@0.18.1/playground-ide.js",
             "notfound-component": "/src/components/notfound-component.ts",
             "confetti-button": "/src/components/confetti-button.ts",
@@ -223,6 +231,7 @@
     </script>
     <link rel="stylesheet" href="https://esm.sh/@awesome.me/webawesome@3.0.0/dist/styles/themes/default.css"
         media="none" onload="if(media!='all')media='all'">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prism.min.css">
 
 </body>
 
