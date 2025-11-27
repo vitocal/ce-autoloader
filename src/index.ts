@@ -23,10 +23,18 @@ function isCustomElement(element: Element) {
   return element instanceof HTMLElement && element.tagName.includes("-")
 }
 
+function debounce(fn, delay = 300) {
+  let timer;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
 /**
  * CSS selector to match custom elements
  */
-function matchCustomElement(root: Element, modifier?: string) {
+function matchCustomElement(root: Element, modifier?: CEAutoLoaderDirectives) {
   const selector = (modifier ? `*[loading~=${modifier}]` : '') + ':not(:defined)'
   return [...new Set([root, ...root.querySelectorAll(selector)])]
     .filter((el) => isCustomElement(el)) as HTMLElement[]
@@ -66,11 +74,20 @@ class CEAutoLoader {
 
   // Mutation and Interaction Observers
   #observers: Array<MutationObserver | IntersectionObserver> = [];
+  #initialized: boolean = false;
 
-  get catalog() {
+  /**
+   * Maybe those are not needed,
+   * because the catalog can be changed at runtime
+   * and will be reflected.
+   *
+   * just a public catalog.
+   * should refactor _namespaces thought
+   */
+  public get catalog() {
     return this._catalog;
   }
-  set catalog(value: CEAutoLoaderCatalog) {
+  public set catalog(value: CEAutoLoaderCatalog) {
     this._catalog = value;
     this._namespaces = Object.fromEntries(
       Object.entries(this._catalog)
@@ -94,17 +111,6 @@ class CEAutoLoader {
     };
     this.catalog = options.catalog;
 
-    if (this.options.live) {
-      this.#observers.push(this.watch());
-    }
-
-    for (const directive of this.options.directives ?? []) {
-      const observers = this.upgrade(directive)
-      if (Array.isArray(observers) &&
-        observers[0] instanceof IntersectionObserver) {
-        this.#observers = [...this.#observers, ...observers]
-      }
-    }
   }
 
   /**
@@ -113,6 +119,79 @@ class CEAutoLoader {
   clean() {
     this.#observers?.forEach((observer) => observer.disconnect())
     this.#observers = []
+  }
+
+  /**
+   * discover custom elements in the page and upgrade them.
+   */
+  async discover() {
+
+    // Load all elements that matches the directives
+    for (const directive of this.options.directives ?? []) {
+      const observers = this.upgrade(directive)
+      if (Array.isArray(observers) &&
+        observers[0] instanceof IntersectionObserver) {
+        this.#observers = [...this.#observers, ...observers]
+      }
+    }
+
+    // Load everyone else right away
+    await this.upgrade();
+
+    // Watch for new elements (and calls discover again)
+    if (!this.#initialized && this.options.live) {
+      this.#observers.push(this.watch());
+    }
+    this.#initialized = true;
+  }
+
+
+  watch() {
+    const observer = new MutationObserver(debounce(this.watcher.bind(this), 100));
+
+    observer.observe(this.options.root || document.body, {
+      childList: true,
+      subtree: true
+    });
+
+    return observer
+  }
+  async watcher(mutations: MutationRecord[]) {
+    for (const mutation of mutations) {
+      if (mutation.type === 'childList') {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType != 1) { continue; }
+
+          // Check the node itself
+          // or any children that are custom elements
+          if (node instanceof HTMLElement && isCustomElement(node) ||
+            matchCustomElement(node as Element).length > 0) {
+            await this.discover();
+          }
+        };
+      }
+    }
+  }
+
+  /**
+   * Some filters to avoid duplicates
+   */
+  private filterByDirective(elements: HTMLElement[], directive?: CEAutoLoaderDirectives) {
+    return elements.filter((el) => (el.getAttribute("loading") == directive))
+  }
+  private uniqueByTag(elements: HTMLElement[]) {
+    const seen = new Set();
+    const uniqueByTag = [];
+
+    for (const el of elements) {
+      const tag = el.tagName;
+      if (!seen.has(tag)) {
+        seen.add(tag);
+        uniqueByTag.push(el);
+      }
+    }
+
+    return uniqueByTag
   }
 
 
@@ -126,9 +205,9 @@ class CEAutoLoader {
    * can be any string really. Then call `registry.upgrade("manual")` to upgrade all elements with that attribute.
    */
   async upgrade(directive?: CEAutoLoaderDirectives) {
-    const elements =
-      matchCustomElement(this.options.root || document.body, directive)
-        .filter((el) => (el.getAttribute("loading") == directive))
+    const ce_elements = matchCustomElement(this.options.root || document.body, directive)
+    const filtered = this.filterByDirective(ce_elements, directive)
+    const elements = this.uniqueByTag(filtered);
 
     console.log("CEAutoLoader: Registering", elements, "with directive", directive)
     // Directives apply special conditions to when the component is loaded
@@ -158,36 +237,6 @@ class CEAutoLoader {
     }
   }
 
-  watch() {
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.type === 'childList') {
-          mutation.addedNodes.forEach((node) => {
-            if (node.nodeType != 1) { return; }
-
-            // Check the node itself
-            if (node instanceof HTMLElement && isCustomElement(node)) {
-              this.registerComponents([node]);
-            } else {
-              // Check children
-              const children =
-                matchCustomElement(node as Element)
-              if (children.length > 0) {
-                this.registerComponents(children);
-              }
-            }
-          });
-        }
-      }
-    });
-
-    observer.observe(this.options.root || document.body, {
-      childList: true,
-      subtree: true
-    });
-
-    return observer
-  }
 
 
 

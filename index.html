@@ -36,6 +36,30 @@
         body>*+* {
             margin-top: 1em;
         }
+
+        .animation-overview .box {
+            display: inline-block;
+            width: 100px;
+            height: 100px;
+            background-color: var(--wa-color-brand-fill-loud);
+            margin: 1.5rem;
+        }
+
+        pre {
+            box-sizing: border-box;
+            max-width: 100%;
+            white-space: pre;
+            /* preserve spaces/newlines exactly */
+            overflow-x: auto;
+            /* show horizontal scrollbar when needed */
+            -webkit-overflow-scrolling: touch;
+            /* smooth scrolling on iOS */
+            padding: .6rem;
+        }
+
+        pre code {
+            display: block;
+        }
     </style>
     <script type="importmap">
     {
@@ -155,15 +179,6 @@
     <notfound-component></notfound-component>
 
 
-    <style>
-        .animation-overview .box {
-            display: inline-block;
-            width: 100px;
-            height: 100px;
-            background-color: var(--wa-color-brand-fill-loud);
-            margin: 1.5rem;
-        }
-    </style>
 
     <script class="echo reflect" type="module" contenteditable="true">
         // import CERegistry from 'https://esm.sh/ce-autoloader';
@@ -196,7 +211,7 @@
             root: document.body,
             autoload: false,
         });
-        console.log(await registry.upgrade());
+        console.log(await registry.discover());
     </script>
     <link rel="stylesheet" href="https://esm.sh/@awesome.me/webawesome@3.0.0/dist/styles/themes/default.css"
         media="none" onload="if(media!='all')media='all'">
