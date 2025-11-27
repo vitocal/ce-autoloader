@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CEAutoLoader Test</title>
+    <link rel="stylesheet" href="https://esm.sh/@awesome.me/webawesome@3.0.0/dist/styles/themes/default.css"
+        media="none" onload="if(media!='all')media='all'">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prism.min.css">
     <style>
         @import "https://unpkg.com/open-props";
         @import "https://unpkg.com/open-props/normalize.min.css";
@@ -29,6 +32,7 @@
 
         :not(:defined) {
             display: block;
+            border: 1px dashed var(--color-accent);
             background-color: var(--color-secondary);
             color: var(--color-fg);
             opacity: 0.8;
@@ -70,6 +74,7 @@
             box-shadow: var(--shadow-6);
         }
     </style>
+
     <script type="importmap">
     {
         "imports": {
@@ -224,15 +229,31 @@
         globalThis.registry = new CERegistry({
             catalog,
             root: document.body,
-            autoload: false,
             fallback: true
         });
         console.log(await registry.discover());
-    </script>
-    <link rel="stylesheet" href="https://esm.sh/@awesome.me/webawesome@3.0.0/dist/styles/themes/default.css"
-        media="none" onload="if(media!='all')media='all'">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prism.min.css">
 
+        await metrics();
+
+        async function metrics() {
+            await Promise.allSettled(
+                Object.keys(catalog).map(async (name) => {
+                    await customElements.whenDefined(name)
+                    await new Promise(requestAnimationFrame)
+
+                    const loaded = performance.getEntriesByName(`load:${name}`);
+                    const defined = performance.getEntriesByName(`defined:${name}`);
+                    const duration = [loaded[0].duration, defined[0].duration];
+
+                    console.log(`${name} loaded,defined in ${duration.map((i) => i.toFixed(2)).join("ms, ")}`);
+                })
+            );
+        }
+    </script>
+
+
+    <!-- Analytics/Performance -->
+    <h1>Analytics/Performance</h1>
 </body>
 
 </html>

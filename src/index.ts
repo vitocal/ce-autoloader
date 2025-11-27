@@ -284,12 +284,32 @@ class CEAutoLoader {
       throw new Error(`Component not found: ${name}`)
     }
 
-    if (typeof asset === "string") {
-      return await this.loadModule(name, asset)
-    } else if (typeof asset === "function") {
-      return await asset(name)
-    } else {
-      throw new Error(`ce-autoloader: Loader of ${name} is invalid! Should be a url or a function`)
+    const markStart = `load:${name}:start`;
+    const markEnd = `load:${name}:end`;
+    const measureName = `load:${name}`;
+    const definedStart = `defined:${name}:start`;
+    const definedEnd = `defined:${name}:end`;
+    const definedMeasureName = `defined:${name}`;
+
+    console.log("ce-autoloader: Loading module", name, asset)
+    performance.mark(markStart);
+    performance.mark(definedStart);
+    customElements.whenDefined(name).then(() => {
+      performance.mark(definedEnd);
+      performance.measure(definedMeasureName, definedStart, definedEnd);
+    })
+
+    try {
+      if (typeof asset === "string") {
+        return await this.loadModule(name, asset)
+      } else if (typeof asset === "function") {
+        return await asset(name)
+      } else {
+        throw new Error(`ce-autoloader: Loader of ${name} is invalid! Should be a url or a function`)
+      }
+    } finally {
+      performance.mark(markEnd);
+      performance.measure(measureName, markStart, markEnd);
     }
 
   }
@@ -298,7 +318,6 @@ class CEAutoLoader {
    * Load a js module from **asset** using "import()"
    */
   async loadModule(name: string, asset: string): Promise<CustomElementConstructor> {
-    console.log("ce-autoloader: Loading module", name, asset)
     // todo: Should we treat relative and absolute path differently?
     let module = await import(/* @vite-ignore */ asset);
 

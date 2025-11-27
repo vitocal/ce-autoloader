@@ -6,6 +6,16 @@
     <title>CEAutoLoader Integration Tests</title>
     <link rel="stylesheet" href="https://unpkg.com/mocha/mocha.css" />
     <style>
+        :root {
+            --color-primary: #e31;
+            --color-secondary: rgb(0 172 172 / 34%);
+            --color-accent: #333;
+            --color-bg-dark: #ddd;
+            --color-bg: #eee;
+            --color-bg-light: #fff;
+            --color-fg: #333;
+        }
+
         #fixtures {
             display: grid;
             width: auto;
@@ -22,10 +32,16 @@
             display: none;
         }
 
-        #fixtures {}
-
         :not(:defined) {
-            border: 1px solid indigo;
+            display: block;
+            border: 1px dashed var(--color-accent);
+            background-color: var(--color-secondary);
+            color: var(--color-fg);
+            opacity: 0.8;
+            width: auto;
+            min-height: 1em;
+            padding: 1em 0.5em;
+            border-radius: 0.33em;
         }
     </style>
 </head>
@@ -115,7 +131,7 @@
                     catalog,
                     root: fixtures,
                 });
-                await registry.upgrade();
+                await registry.discover();
 
                 expect(el.hasAttribute('data-upgraded')).to.be.true;
             });
@@ -126,6 +142,7 @@
                     root: fixtures,
                     observe: true
                 });
+                await registry.discover();
 
                 const container = document.createElement('div');
                 const el = document.createElement('nested-component');
@@ -143,6 +160,8 @@
                     root: fixtures,
                     observe: true
                 });
+                await registry.discover();
+
 
                 const el = document.createElement('dynamic-component');
                 fixtures.appendChild(el);
@@ -165,6 +184,7 @@
                         root: fixtures,
                         observe: false,
                     });
+                    await registry.discover();
 
                     expect(el.hasAttribute('data-upgraded')).to.be.false;
 
@@ -182,6 +202,7 @@
                         catalog,
                         root: fixtures,
                     });
+                    await registry.discover();
 
                     expect(el.hasAttribute('data-upgraded')).to.be.false;
 
@@ -201,6 +222,7 @@
                         root: fixtures,
                         observe: false,
                     });
+                    await registry.discover();
 
                     expect(el.hasAttribute('data-upgraded')).to.be.false;
                     await customElements.whenDefined("visible-component");
@@ -321,6 +343,46 @@
 
                 expect(el.innerHTML).to.include("Registered with name <b>ns-anything</b>");
                 expect(el2.innerHTML).to.include("Registered with name <b>ns-whatever</b>");
+            });
+        });
+
+        describe("Observability", () => {
+            let registry;
+            const fixtures = document.getElementById('fixtures');
+
+            beforeEach(() => {
+                fixtures.innerHTML = '';
+
+                // Reset observers, but we can't really unregister the custom elements.
+                registry?.clean();
+                registry = undefined;
+            });
+
+
+            it("should create performance measurement load:${component-name}", async () => {
+                const el = document.createElement("perf-test");
+                fixtures.appendChild(el);
+
+                const catalog = {
+                    "perf-test": async () => {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        class PerfTest extends BaseComp { }
+                        customElements.define("perf-test", PerfTest);
+                    }
+                };
+
+                registry = new AutoLoader({
+                    catalog,
+                    root: fixtures,
+                });
+                await registry.upgrade();
+
+                await customElements.whenDefined("perf-test");
+
+                const entries = performance.getEntriesByName("load:perf-test");
+                expect(entries).to.have.lengthOf.at.least(1);
+                expect(entries[0].entryType).to.equal("measure");
+                expect(entries[0].duration).to.be.at.least(100);
             });
 
         });
