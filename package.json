@@ -12,6 +12,7 @@
       "require": "./dist/ce-autoloader.umd.cjs"
     }
   },
+  "customElements": "custom-elements.json",
   "files": [
     "dist"
   ],
@@ -38,7 +39,11 @@
   "author": "Vitor Calejuri <vitor.cajuleri@gmail.com>",
   "license": "GPL-3.0",
   "devDependencies": {
+    "@custom-elements-manifest/analyzer": "^0.11.0",
+    "@types/node": "^24.10.1",
+    "buffer": "^6.0.3",
     "lit": "^3.3.1",
+    "qrcode-pix": "^5.0.0",
     "vite": "^7.2.2"
   }
 }

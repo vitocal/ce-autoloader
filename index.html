@@ -105,16 +105,16 @@
     </div>
 
     <div class="animation-overview">
-        <wa-animation name="bounce" loading="lazy" duration="2000" play>
+        <wa-animation name="bounce" loading="lazy" duration="2000" iterations="1" play>
             <div class="box"></div>
         </wa-animation>
-        <wa-animation name="jello" loading="lazy" duration="2000" play>
+        <wa-animation name="fadeIn" loading="lazy" duration="2000" iterations="1" play>
             <div class="box"></div>
         </wa-animation>
-        <wa-animation name="heartBeat" loading="lazy" duration="2000" play>
+        <wa-animation name="fadeIn" loading="lazy" duration="2000" iterations="1" play>
             <div class="box"></div>
         </wa-animation>
-        <wa-animation name="flip" loading="lazy" duration="2000" play>
+        <wa-animation name="flip" loading="lazy" duration="2000" iterations="1" play>
             <div class="box"></div>
         </wa-animation>
     </div>
@@ -160,7 +160,9 @@
         </code>
     </pre>
 
-    <wa-qr-code value="https://shoelace.style/" label="Scan this code to visit Web Awesome on the web!"></wa-qr-code>
+    <wa-qr-code
+        value="00020126530014BR.GOV.BCB.PIX0111357836738970216Teste de QR Code52040000530398654041.005802BR5914VITOR CALEJURI6009SAO PAULO62070503***63041755"
+        label="Scan this code to visit Web Awesome on the web!"></wa-qr-code>
 
     <playground-ide editable-file-system line-numbers resizable>
         <script type="sample/html" filename="index.html">
@@ -179,11 +181,15 @@
     <notfound-component></notfound-component>
 
 
+    <hr>
+    <pix-qrcode></pix-qrcode>
 
     <script class="echo reflect" type="module" contenteditable="true">
         // import CERegistry from 'https://esm.sh/ce-autoloader';
         import CERegistry from './src/index.js';
-        import ViComponents from './src/components/vi';
+
+        const ViComponents = (await import('./src/components/vi')).default;
+        const PixComponents = (await import('./src/components/pix')).default;
 
         const catalog = {
             "wa-button": "https://esm.sh/@awesome.me/webawesome/dist/components/button/button.js",
@@ -204,12 +210,14 @@
             "confetti-button": "/src/components/confetti-button.ts",
             "three-cube": "/src/components/three-cube.js",
             ...ViComponents,
+            ...PixComponents
         };
 
         globalThis.registry = new CERegistry({
             catalog,
             root: document.body,
             autoload: false,
+            fallback: true
         });
         console.log(await registry.discover());
     </script>

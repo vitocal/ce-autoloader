@@ -1,0 +1,426 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "src/components/academic-figure.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "AcademicFigure",
+          "superclass": {
+            "name": "HTMLElement"
+          },
+          "tagName": "academic-figure",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "AcademicFigure",
+            "module": "src/components/academic-figure.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "academic-figure",
+          "declaration": {
+            "name": "AcademicFigure",
+            "module": "src/components/academic-figure.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/components/atlas-map.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "AtlasMap",
+          "superclass": {
+            "name": "HTMLElement"
+          },
+          "tagName": "atlas-map",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "AtlasMap",
+            "module": "src/components/atlas-map.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "atlas-map",
+          "declaration": {
+            "name": "AtlasMap",
+            "module": "src/components/atlas-map.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/components/confetti-button.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "ConfettiButton",
+          "superclass": {
+            "name": "HTMLElement"
+          },
+          "tagName": "confetti-button",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "ConfettiButton",
+            "module": "src/components/confetti-button.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "confetti-button",
+          "declaration": {
+            "name": "ConfettiButton",
+            "module": "src/components/confetti-button.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/components/observable-plot-wrapper.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "ObservablePlotWrapper",
+          "members": [
+            {
+              "kind": "method",
+              "name": "generateData"
+            }
+          ],
+          "superclass": {
+            "name": "HTMLElement"
+          },
+          "tagName": "observable-plot-wrapper",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "ObservablePlotWrapper",
+            "module": "src/components/observable-plot-wrapper.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "observable-plot-wrapper",
+          "declaration": {
+            "name": "ObservablePlotWrapper",
+            "module": "src/components/observable-plot-wrapper.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/components/qr-code.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "QrCode",
+          "superclass": {
+            "name": "HTMLElement"
+          },
+          "tagName": "qr-code",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "QrCode",
+            "module": "src/components/qr-code.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "qr-code",
+          "declaration": {
+            "name": "QrCode",
+            "module": "src/components/qr-code.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/components/three-cube.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "ThreeCube",
+          "superclass": {
+            "name": "HTMLElement"
+          },
+          "tagName": "three-cube",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "ThreeCube",
+            "module": "src/components/three-cube.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "three-cube",
+          "declaration": {
+            "name": "ThreeCube",
+            "module": "src/components/three-cube.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/components/pix/index.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "pix_components",
+          "type": {
+            "text": "object"
+          },
+          "default": "{ \"pix-qrcode\": PixQRCode, }"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "pix_components",
+            "module": "src/components/pix/index.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/components/pix/qrcode.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "PixQRCode",
+          "members": [
+            {
+              "kind": "field",
+              "name": "transaction",
+              "privacy": "public",
+              "type": {
+                "text": "QrCodePixParams"
+              },
+              "attribute": "transaction"
+            },
+            {
+              "kind": "field",
+              "name": "pix",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "attribute": "pix"
+            },
+            {
+              "kind": "field",
+              "name": "qrCodeB64",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "attribute": "qrCodeB64"
+            },
+            {
+              "kind": "method",
+              "name": "generateQRCode"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "transaction",
+              "type": {
+                "text": "QrCodePixParams"
+              },
+              "fieldName": "transaction"
+            },
+            {
+              "name": "pix",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "pix"
+            },
+            {
+              "name": "qrCodeB64",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "qrCodeB64"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "pix-qrcode",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "PixQRCode",
+            "module": "src/components/pix/qrcode.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "pix-qrcode",
+          "declaration": {
+            "name": "PixQRCode",
+            "module": "src/components/pix/qrcode.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/components/vi/index.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "vi_components",
+          "type": {
+            "text": "object"
+          },
+          "default": "{ \"vi-switch\": ViSwitch, \"vi-hello\": ViHello, }"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "vi_components",
+            "module": "src/components/vi/index.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/components/vi/vi-hello.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "ViHello",
+          "members": [],
+          "superclass": {
+            "name": "HTMLElement"
+          },
+          "tagName": "vi-hello",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "vi-hello",
+          "declaration": {
+            "name": "ViHello",
+            "module": "src/components/vi/vi-hello.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "ViHello",
+            "module": "src/components/vi/vi-hello.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/components/vi/vi-switch.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "ViSwitch",
+          "members": [],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "vi-switch",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "vi-switch",
+          "declaration": {
+            "name": "ViSwitch",
+            "module": "src/components/vi/vi-switch.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "default",
+          "declaration": {
+            "name": "ViSwitch",
+            "module": "src/components/vi/vi-switch.ts"
+          }
+        }
+      ]
+    }
+  ]
+}
