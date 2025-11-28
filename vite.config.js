@@ -8,6 +8,9 @@ export default {
   },
   publicDir: "dist",
   server: {
-    cors: true
-  }
+    cors: true,
+    host: '0.0.0.0',
+    allowedHosts: true,
+    debug: true
+  },
 }

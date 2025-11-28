@@ -64,11 +64,14 @@
 
     <script class="mocha-init">
         mocha.setup('bdd');
+        mocha.setup({
+            ignoreLeaks: true
+        });
         mocha.checkLeaks();
     </script>
 
     <script type="module">
-        import { expect } from "https://esm.sh/chai@5.1.2";
+        import { expect } from "chai";
         import { html, signal } from "https://esm.sh/uhtml";
         import AutoLoader from '../src/index.ts';
 
@@ -231,164 +234,15 @@
             });
         });
 
-
-        describe("CEAutoLoader registry", () => {
-            let registry;
-            const fixtures = document.getElementById('fixtures');
-
-            beforeEach(() => {
-                fixtures.innerHTML = '';
-
-                // Reset observers, but we can't really unregister the custom elements.
-                registry?.clean();
-                registry = undefined;
-            });
-
-            it("should allow .catalog to be updated after initialization", async () => {
-                const el = document.createElement("after-component");
-                fixtures.appendChild(el);
-
-                registry = new AutoLoader({
-                    catalog: {},
-                    root: fixtures,
-                    fallback: false
-                });
-                await registry.upgrade()
-
-                expect(registry.catalog).to.be.a("Object");
-                expect(el.hasAttribute("data-upgraded")).to.be.false;
-
-                registry.catalog["after-component"] = async () => {
-                    class AfterComponent extends BaseComp { }
-                    customElements.define("after-component", AfterComponent);
-                };
-                await registry.upgrade()
-
-                expect(el.hasAttribute("data-upgraded")).to.be.true;
-            });
-
-            it("Loader full-name: URL", async () => {
-                const el = document.createElement("vi-hello")
-                fixtures.appendChild(el);
-
-                const catalog = {
-                    "vi-hello": "/src/components/vi/vi-hello.ts"
-                }
-
-                registry = new AutoLoader({
-                    catalog,
-                    root: fixtures,
-                });
-                await registry.upgrade()
-
-                await customElements.whenDefined("vi-hello");
-                expect(customElements.get("vi-hello")).to.be.a("function");
-            });
-            it("Loader full-name: Function", async () => {
-                const el = document.createElement("function-loader")
-                fixtures.appendChild(el);
-
-                const catalog = {
-                    "function-loader": async (full_name) => {
-                        class FunctionLoader extends BaseComp {
-                            render() {
-                                return html`<p>Registered with name <b>${full_name}</b></p>`
-                            }
-                        };
-                        customElements.define("function-loader", FunctionLoader);
-                        return FunctionLoader
-                    }
-                }
-
-                registry = new AutoLoader({
-                    catalog,
-                    root: fixtures,
-                });
-                await registry.upgrade()
-
-                await customElements.whenDefined("function-loader");
-                expect(el.innerHTML).to.include("Registered with name <b>function-loader</b>");
-            });
-            it("Loader namespace-*: Function", async () => {
-                const el = document.createElement("ns-anything")
-                const el2 = document.createElement("ns-whatever")
-                fixtures.appendChild(el);
-                fixtures.appendChild(el2);
-
-                /**
-                 * The interesting part, using namespaces to load
-                 * component libraries, or any other kind of component.
-                 *
-                 * Here, we render any component named ns-* as a <p> tag.
-                 */
-                const catalog = {
-                    "ns-*": async (full_name) => {
-                        const [namespace, name] = full_name.split('-');
-                        class NamespaceLoader extends BaseComp {
-                            render() {
-                                return html`<p>Registered with name <b>${full_name}</b></p>`
-                            }
-                        };
-                        customElements.define(`ns-${name}`, NamespaceLoader);
-                        return NamespaceLoader
-                    }
-                }
-
-                registry = new AutoLoader({
-                    catalog,
-                    root: fixtures,
-                });
-
-                await registry.upgrade();
-
-                expect(el.innerHTML).to.include("Registered with name <b>ns-anything</b>");
-                expect(el2.innerHTML).to.include("Registered with name <b>ns-whatever</b>");
-            });
+        const runner = mocha.run();
+        runner.on('end', () => {
+            window.__MOCHA_DONE__ = true;
+            window.__MOCHA_STATS__ = runner.stats;
         });
-
-        describe("Observability", () => {
-            let registry;
-            const fixtures = document.getElementById('fixtures');
-
-            beforeEach(() => {
-                fixtures.innerHTML = '';
-
-                // Reset observers, but we can't really unregister the custom elements.
-                registry?.clean();
-                registry = undefined;
-            });
-
-
-            it("should create performance measurement load:${component-name}", async () => {
-                const el = document.createElement("perf-test");
-                fixtures.appendChild(el);
-
-                const catalog = {
-                    "perf-test": async () => {
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                        class PerfTest extends BaseComp { }
-                        customElements.define("perf-test", PerfTest);
-                    }
-                };
-
-                registry = new AutoLoader({
-                    catalog,
-                    root: fixtures,
-                });
-                await registry.upgrade();
-
-                await customElements.whenDefined("perf-test");
-
-                const entries = performance.getEntriesByName("load:perf-test");
-                expect(entries).to.have.lengthOf.at.least(1);
-                expect(entries[0].entryType).to.equal("measure");
-                expect(entries[0].duration).to.be.at.least(100);
-            });
-
-        });
-
-        mocha.run();
     </script>
+
+    <script type="module" src="./observability.test.js"></script>
+
 </body>
 
 </html>

@@ -284,20 +284,10 @@ class CEAutoLoader {
       throw new Error(`Component not found: ${name}`)
     }
 
-    const markStart = `load:${name}:start`;
-    const markEnd = `load:${name}:end`;
-    const measureName = `load:${name}`;
-    const definedStart = `defined:${name}:start`;
-    const definedEnd = `defined:${name}:end`;
-    const definedMeasureName = `defined:${name}`;
+    const metric = `load:${name}`;
 
     console.log("ce-autoloader: Loading module", name, asset)
-    performance.mark(markStart);
-    performance.mark(definedStart);
-    customElements.whenDefined(name).then(() => {
-      performance.mark(definedEnd);
-      performance.measure(definedMeasureName, definedStart, definedEnd);
-    })
+    performance.mark(`${metric}:start`);
 
     try {
       if (typeof asset === "string") {
@@ -308,8 +298,8 @@ class CEAutoLoader {
         throw new Error(`ce-autoloader: Loader of ${name} is invalid! Should be a url or a function`)
       }
     } finally {
-      performance.mark(markEnd);
-      performance.measure(measureName, markStart, markEnd);
+      performance.mark(`${metric}:end`);
+      performance.measure(metric, `${metric}:start`, `${metric}:end`);
     }
 
   }

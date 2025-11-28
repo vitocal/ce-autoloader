@@ -9,6 +9,8 @@
         media="none" onload="if(media!='all')media='all'">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prism.min.css">
     <style>
+        @layer openprops, normalize, theme, components.root, components.extended, utils;
+
         @import "https://unpkg.com/open-props";
         @import "https://unpkg.com/open-props/normalize.min.css";
         @import "https://unpkg.com/open-props/buttons.min.css";
@@ -16,7 +18,7 @@
 
         :root {
             --color-primary: #e31;
-            --color-secondary: rgb(0 172 172 / 34%);
+            --color-secondary: rgba(148, 163, 184, 0.55);
             --color-accent: #333;
             --color-bg-dark: #ddd;
             --color-bg: #eee;
@@ -24,22 +26,18 @@
             --color-fg: #333;
         }
 
-        .echo {
-            display: block;
-            margin: 1em;
-            background-color: aqua;
-        }
-
         :not(:defined) {
             display: block;
-            border: 1px dashed var(--color-accent);
-            background-color: var(--color-secondary);
+            /* background-color: var(--color-secondary); */
+            background: radial-gradient(circle at 0 0, var(--color-bg), var(--color-bg));
+            border: 1px dashed var(--color-secondary);
+            font-size: 11px;
             color: var(--color-fg);
-            opacity: 0.8;
+            opacity: 1;
             width: auto;
             min-height: 1em;
             padding: 1em 0.5em;
-            border-radius: 0.33em;
+            border-radius: 1em;
         }
 
         body {
@@ -85,7 +83,8 @@
 </head>
 
 <body>
-    <h1>WebComponent Registry</h1>
+    <h1>ce-autoloader</h1>
+    <p>Load web-components on demand, if and when they're used in the page.</p>
 
     <ul>
         <li>Automatically Load any web-component on demand, if and when they're used in the page.</li>
@@ -112,11 +111,6 @@
     </three-cube>
 
     <h3>lazy - when element is visible in the viewport</h3>
-
-    <div style="height: 50vh; margin: 0; border: 1px solid #333; text-align: center;">
-        <span style="font-size: 6em; position: sticky; top: 0px;">⬇️</span><br />
-        Scroll for more
-    </div>
 
     <div class="animation-overview">
         <wa-animation name="bounce" loading="lazy" duration="2000" iterations="1" play>
@@ -180,20 +174,6 @@
 </syntax-highlight>
 </pre>
 
-    <playground-ide editable-file-system line-numbers resizable>
-        <script type="sample/html" filename="index.html">
-            <!doctype html>
-            <body>
-                Hello
-                <script type="module" src="./index.js">&lt;/script>
-            </body>
-        </script>
-
-        <script type="sample/ts" filename="index.ts">
-            document.body.appendChild(document.createTextNode("World!"))
-        </script>
-    </playground-ide>
-
     <hr>
 
     <script class="echo reflect" type="module" contenteditable="true">
@@ -222,6 +202,7 @@
             "notfound-component": "/src/components/notfound-component.ts",
             "confetti-button": "/src/components/confetti-button.ts",
             "three-cube": "/src/components/three-cube.js",
+            "json-viewer": "https://esm.sh/@alenaksu/json-viewer",
             ...ViComponents,
             ...PixComponents
         };
@@ -242,18 +223,35 @@
                     await new Promise(requestAnimationFrame)
 
                     const loaded = performance.getEntriesByName(`load:${name}`);
-                    const defined = performance.getEntriesByName(`defined:${name}`);
-                    const duration = [loaded[0].duration, defined[0].duration];
+                    const duration = loaded[0].duration;
 
-                    console.log(`${name} loaded,defined in ${duration.map((i) => i.toFixed(2)).join("ms, ")}`);
+                    console.log(`${name} loaded in ${duration.toFixed(2)}ms`);
                 })
             );
         }
     </script>
 
 
-    <!-- Analytics/Performance -->
-    <h1>Analytics/Performance</h1>
+    <!-- Observability/Performance -->
+    <h1>Observability/Performance</h1>
+
+    <p>
+        Observability is already built-in to the registry, and allows measuring the time-to-load of each component.
+        With native `performance` integration, it shows in devtools performance panel and can be exported to your
+        observability metrics as usual.
+    </p>
+
+    <img src="/assets/observability.jpg" alt="Observability has native integration into performance devtools">
+
+    <p>
+        You can access the metrics by querying `performance.getEntriesByName('load:my-component')`
+    </p>
+
+
+
+    <footer>
+        <p>Created by <a href="https://github.com/vitorcalejuri">Vitor Calejuri</a></p>
+    </footer>
 </body>
 
 </html>
