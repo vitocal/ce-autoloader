@@ -16,6 +16,18 @@
         @import "https://unpkg.com/open-props/buttons.min.css";
         @import "https://unpkg.com/open-props/normalize.light.min.css";
 
+        /* 1. Use a more-intuitive box-sizing model */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        /* 2. Remove default margin */
+        * {
+            margin: 0;
+        }
+
         :root {
             --color-primary: #e31;
             --color-secondary: rgba(148, 163, 184, 0.55);
@@ -27,17 +39,16 @@
         }
 
         :not(:defined) {
-            display: block;
+            display: inline-flex;
             /* background-color: var(--color-secondary); */
             background: radial-gradient(circle at 0 0, var(--color-bg), var(--color-bg));
             border: 1px dashed var(--color-secondary);
-            font-size: 11px;
             color: var(--color-fg);
             opacity: 1;
-            width: auto;
+            width: fit-content;
             min-height: 1em;
-            padding: 1em 0.5em;
-            border-radius: 1em;
+            padding: 0.35em;
+            border-radius: 0.5em;
         }
 
         body {
@@ -47,6 +58,17 @@
 
         body>*+* {
             margin-top: 1em;
+        }
+
+        .animation-overview {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            justify-content: center;
+            justify-items: center;
+            align-content: center;
+            align-items: center;
+            gap: 1rem;
+
         }
 
         .animation-overview .box {
@@ -70,6 +92,138 @@
             background-color: var(--color-bg);
             border-radius: 0.33em;
             box-shadow: var(--shadow-6);
+        }
+
+        /**
+         * Animations
+         */
+
+        /* vi-switch {
+            view-transition-name: vi-switch;
+            height: 100%;
+            display: inline-flex;
+        }
+
+        ::view-transition-group(vi-switch) {
+            animation-duration: 1s;
+            overflow: clip;
+        }
+
+        ::view-transition-old(vi-switch) {
+            height: 100%;
+            object-position: left;
+        }
+
+        ::view-transition-new(vi-switch) {
+            height: 100%;
+            object-position: left;
+            height: 100%;
+        } */
+
+        /*
+        three-cube {
+            view-transition-name: three-cube;
+        }
+
+        ::view-transition-group(three-cube) {
+            animation-duration: 1s;
+            overflow: clip;
+        }
+
+        ::view-transition-old(three-cube) {
+            height: 100%;
+            object-position: left;
+        }
+
+        ::view-transition-new(three-cube) {
+            height: 100%;
+            object-position: left;
+            height: 100%;
+        } */
+
+        @keyframes skeleton-loading {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        /* disable view transition root animation */
+        ::view-transition-group(:root) {
+            animation: none;
+        }
+
+
+
+        [data-loading] {
+            view-transition-name: match-element;
+            border: 1px dashed var(--color-secondary);
+            position: relative;
+            overflow: clip;
+
+            &::after {
+                pointer-events: none;
+                content: " ";
+                position: absolute;
+                transform: translateX(-100%);
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg,
+                        #fff6,
+                        #0006 20%,
+                        #0005 60%,
+                        #fff6);
+                animation: shimmer 1s ease-in-out infinite;
+                z-index: -1;
+            }
+        }
+
+        ::view-transition-group(match-element) {
+            animation-duration: 5s;
+            mix-blend-mode: color-dodge;
+        }
+
+        ::view-transition-old(match-element) {
+            animation: slide-out 200ms ease;
+            height: 100%;
+            object-position: left;
+        }
+
+        ::view-transition-new(match-element) {
+            animation: slide-in 200ms ease;
+            height: 100%;
+            object-position: left;
+        }
+
+        @keyframes shimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        @keyframes slide-in {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slide-out {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
         }
     </style>
 
@@ -97,13 +251,19 @@
         <li>Namespaced components - Lazily load any component from any library</li>
     </ul>
 
+    <not-loaded>
+        Hello World, i'm not defined yet!
+    </not-loaded>
+
     <h2>Examples - Loading Attribute</h2>
 
     <h3>Autoloaded by default</h3>
     <wa-button>wa-button</wa-button>
 
     <h3>idle</h3>
-    <vi-switch loading="idle"></vi-switch>
+    <vi-switch loading="idle">
+        idle
+    </vi-switch>
 
     <h3>interaction - Click or touch</h3>
     <three-cube loading="interaction">
@@ -133,13 +293,14 @@
         and calling `registry.upgrade('myDirective')`
     </p>
     <confetti-button loading="manual">
-        <wa-button id="confetti">Confetti</wa-button>
+        <button id="confetti">Confetti</button>
     </confetti-button>
     <script type="module">
         document.getElementById("confetti").addEventListener("click", async () => {
-            let result = await registry.upgrade('manual')
-            console.log('result', result);
-            return result;
+            if (!customElements.get('confetti-button')) {
+                let result = await registry.upgrade('manual')
+                console.log('result', result);
+            }
         });
     </script>
 
@@ -176,6 +337,49 @@
 
     <hr>
 
+    <!-- Observability/Performance -->
+    <h1>Observability & Performance</h1>
+
+    <p>
+        Observability is already built-in to the registry, and allows measuring the time-to-load of each component.
+        With native `performance` integration, it shows in devtools performance panel and can be exported to your
+        observability metrics as usual.
+    </p>
+
+    <img src="/assets/observability.jpg" alt="Observability has native integration into performance devtools">
+
+    <p>
+        You can access the metrics by querying `performance.getEntriesByName('load:my-component')`
+    </p>
+
+    <!-- Animation -->
+    <h1>Animating enter/exit of components</h1>
+
+    <p>It's possible to animate the components upgrade lifecycle. </p>
+
+    <wc-markdown>
+        <script type="wc-content">
+            ### Animation feature
+
+            - [x] Implement a hook to allow document.startViewTransition() before loading (transition: callback)
+            - [X] Implement a [data-loading] and [ready] attributes
+        </script>
+    </wc-markdown>
+
+    <json-viewer loading="interaction" id="json" expand="**">
+        { "quiz": { "sport": { "q1": { "question": "Which one is correct team name in NBA?", "options": [ "New York
+        Bulls", "Los Angeles Kings", "Golden State Warriros", "Houston Rockets" ], "answer": "Houston Rockets" } },
+        "maths": { "q1": { "question": "5 + 7 = ?", "options": [ "10", "11", "12", "13" ], "answer": "12" }, "q2": {
+        "question": "12 - 8 = ?", "options": [ "1", "2", "3", "4" ], "answer": "4" } } } }
+    </json-viewer>
+    <script>
+        customElements.whenDefined('json-viewer').then(() => {
+            const el = document.getElementById('json');
+
+            el.expandAll();
+        })
+    </script>
+
     <script class="echo reflect" type="module" contenteditable="true">
         // import CERegistry from 'https://esm.sh/ce-autoloader';
         import CERegistry from './src/index.js';
@@ -203,6 +407,7 @@
             "confetti-button": "/src/components/confetti-button.ts",
             "three-cube": "/src/components/three-cube.js",
             "json-viewer": "https://esm.sh/@alenaksu/json-viewer",
+            "wc-markdown": "https://cdn.skypack.dev/@vanillawc/wc-markdown",
             ...ViComponents,
             ...PixComponents
         };
@@ -210,7 +415,30 @@
         globalThis.registry = new CERegistry({
             catalog,
             root: document.body,
-            fallback: true
+            fallback: false,
+            /** Called before components  are loaded */
+            transition: async (comps, next) => {
+                comps.forEach(el => el.setAttribute('data-loading', 'true'))
+
+                // debugger;
+
+                await next();
+
+                comps.forEach(el => el.removeAttribute('data-loading'))
+                comps.forEach(el => el.setAttribute('ready', ""))
+                // requestAnimationFrame(() => {})
+
+                // const transition = document.startViewTransition(next);
+                // transition.skipTransition();
+                // try {
+                //     const result = await transition.updateCallbackDone;
+                //     console.log('next() result', result);
+                //     await transition.finished;
+                // } finally {
+                //     comps.forEach(el => el.removeAttribute('data-loading'))
+                //     comps.forEach(el => el.setAttribute('ready', ""))
+                // }
+            }
         });
         console.log(await registry.discover());
 
@@ -230,24 +458,6 @@
             );
         }
     </script>
-
-
-    <!-- Observability/Performance -->
-    <h1>Observability/Performance</h1>
-
-    <p>
-        Observability is already built-in to the registry, and allows measuring the time-to-load of each component.
-        With native `performance` integration, it shows in devtools performance panel and can be exported to your
-        observability metrics as usual.
-    </p>
-
-    <img src="/assets/observability.jpg" alt="Observability has native integration into performance devtools">
-
-    <p>
-        You can access the metrics by querying `performance.getEntriesByName('load:my-component')`
-    </p>
-
-
 
     <footer>
         <p>Created by <a href="https://github.com/vitorcalejuri">Vitor Calejuri</a></p>

@@ -9,7 +9,7 @@ export default class ThreeCube extends HTMLElement {
     connectedCallback() {
         this.shadowRoot.innerHTML = `
             <style>
-                :host { display: block; width: 100%; height: 150px; }
+                :host { display: inline-flex; width: 100%; height: 150px; background-color: red;}
                 #container { width: 100%; height: 100%; }
             </style>
             <div id="container"></div>

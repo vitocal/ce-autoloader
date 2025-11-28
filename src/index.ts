@@ -14,10 +14,11 @@ export type CEAutoLoaderOptions = {
   live?: boolean;
   /** Fallback to components with errors? */
   fallback?: true | CustomElementConstructor;
+  /** Transition function to animate loading components */
+  transition?: (comps: HTMLElement[]) => Promise<void>;
   /** Directives are triggers to when the component should be loaded */
   directives?: CEAutoLoaderDirectives[];
 }
-
 
 function isCustomElement(element: Element) {
   return element instanceof HTMLElement && element.tagName.includes("-")
@@ -76,6 +77,9 @@ class CEAutoLoader {
   #observers: Array<MutationObserver | IntersectionObserver> = [];
   #initialized: boolean = false;
 
+  // Transition/Animations
+  #transition?: ((comps: HTMLElement[], registerAll: () => Promise<PromiseSettledResult<CustomElementConstructor>[]>) => void) = undefined;
+
   /**
    * Maybe those are not needed,
    * because the catalog can be changed at runtime
@@ -111,6 +115,8 @@ class CEAutoLoader {
     };
     this.catalog = options.catalog;
 
+    this.#transition = options.transition;
+
   }
 
   /**
@@ -134,15 +140,17 @@ class CEAutoLoader {
         this.#observers = [...this.#observers, ...observers]
       }
     }
-
-    // Load everyone else right away
-    await this.upgrade();
-
     // Watch for new elements (and calls discover again)
     if (!this.#initialized && this.options.live) {
       this.#observers.push(this.watch());
     }
+
+    // Load everyone else right away
+    const result = await this.upgrade();
+
     this.#initialized = true;
+
+    return result;
   }
 
 
@@ -209,7 +217,7 @@ class CEAutoLoader {
     const filtered = this.filterByDirective(ce_elements, directive)
     const elements = this.uniqueByTag(filtered);
 
-    console.log("CEAutoLoader: Registering", elements, "with directive", directive)
+    // console.log("CEAutoLoader: Registering", elements, "with directive", directive)
     // Directives apply special conditions to when the component is loaded
     if (directive === "idle") {
       requestIdleCallback(() => this.registerComponents(elements))
@@ -244,15 +252,36 @@ class CEAutoLoader {
   * Register all elements in `comps`, that are in the catalog
   */
   async registerComponents(comps: HTMLElement[]) {
+
+    // const _register = (el: HTMLElement) => {
+    //   return document.startViewTransition(async () => {
+    //     await this.registerLeaf(el)
+    //     // await customElements.whenDefined(el.tagName.toLowerCase())
+    //     console.log(`View transition ${el.tagName.toLowerCase()} finished`);
+    //   })
+    // }
+
     // Upgrade everyone in parallel
-    return Promise.allSettled(
-      comps.map((el) => this.registerLeaf(el))
-    )
+    // return await Promise.allSettled(comps.map(_register))
+
+    const _registerAll = async () => {
+      const result = await Promise.allSettled(comps.map((el) => this.registerLeaf(el)))
+      console.log('result', result);
+      return result;
+    }
+
+    // Or a single transition
+    if (this.#transition) {
+      return this.#transition(comps, _registerAll)
+    }
+    // return await document.startViewTransition(async () => {
+    //   await Promise.allSettled(comps.map(el => this.registerLeaf(el)))
+    // })
+
   }
 
   async registerLeaf(el: Element) {
     const name = el.tagName.toLowerCase()
-    // console.log("CEAutoLoader: Registering", el)
 
     // Already registered, so just skip-it
     if (customElements.get(name)) {
@@ -286,10 +315,12 @@ class CEAutoLoader {
 
     const metric = `load:${name}`;
 
-    console.log("ce-autoloader: Loading module", name, asset)
+    // console.log("ce-autoloader: Loading module", name, asset)
     performance.mark(`${metric}:start`);
 
     try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       if (typeof asset === "string") {
         return await this.loadModule(name, asset)
       } else if (typeof asset === "function") {
