@@ -16,6 +16,7 @@ export type CEAutoLoaderOptions = {
   fallback?: true | CustomElementConstructor;
   /** Transition function to animate loading components */
   transition?: (comps: HTMLElement[]) => Promise<void>;
+  beforeImport?: (name: string, proceed: () => Promise<void>) => Promise<void>;
   /** Directives are triggers to when the component should be loaded */
   directives?: CEAutoLoaderDirectives[];
 }
@@ -110,7 +111,8 @@ class CEAutoLoader {
     this.options = {
       live: true,
       root: document.body,
-      directives: ["idle", "lazy", "interaction"],
+      // directives: ["idle", "lazy", "interaction"],
+      directives: ["interaction"],
       ...options
     };
     this.catalog = options.catalog;
@@ -169,6 +171,8 @@ class CEAutoLoader {
       if (mutation.type === 'childList') {
         for (const node of mutation.addedNodes) {
           if (node.nodeType != 1) { continue; }
+
+          console.log("mutated", node)
 
           // Check the node itself
           // or any children that are custom elements
@@ -266,13 +270,15 @@ class CEAutoLoader {
 
     const _registerAll = async () => {
       const result = await Promise.allSettled(comps.map((el) => this.registerLeaf(el)))
-      console.log('result', result);
+      console.log('result', comps.map((el) => el.tagName.toLowerCase()), result);
       return result;
     }
 
     // Or a single transition
     if (this.#transition) {
-      return this.#transition(comps, _registerAll)
+      return await this.#transition(comps, _registerAll)
+    } else {
+      return await _registerAll()
     }
     // return await document.startViewTransition(async () => {
     //   await Promise.allSettled(comps.map(el => this.registerLeaf(el)))
@@ -339,14 +345,41 @@ class CEAutoLoader {
    * Load a js module from **asset** using "import()"
    */
   async loadModule(name: string, asset: string): Promise<CustomElementConstructor> {
-    // todo: Should we treat relative and absolute path differently?
-    let module = await import(/* @vite-ignore */ asset);
 
-    if (!customElements.get(name)) {
-      console.warn(`ce-autoloader: Component ${name} was not auto-registered in the file. Registering now...`)
-      customElements.define(name, module.default);
+    // add debug metrics, does the load happens before the whenDefined?
+    performance.mark(`whenDefined:${name}:start`);
+
+    customElements.whenDefined(name).then(() => {
+      performance.mark(`whenDefined:${name}:end`);
+      performance.measure(`whenDefined:${name}`, `whenDefined:${name}:start`, `whenDefined:${name}:end`);
+    });
+
+    // todo: Should we treat relative and absolute path differently?
+    // let module = await import(/* @vite-ignore */ asset);
+    let module_file = await fetch(asset).then(r => r.text());
+    let blob = URL.createObjectURL(new Blob([module_file], { type: 'text/javascript' }));
+
+    let import_module = async () => {
+      // let module = await import(/* @vite-ignore */ blob);
+      const s = document.createElement("script");
+      s.type = "module";
+      s.textContent = module_file;
+      document.head.append(s);
+
+      // if (!customElements.get(name)) {
+      //   console.warn(`ce-autoloader: Component ${name} was not auto-registered in the file. Registering now...`)
+      //   customElements.define(name, module.default);
+      // }
+
+      return true
     }
-    return module.default || module;
+
+    if (this.options.beforeImport) {
+      return this.options.beforeImport(name, import_module)
+    } else {
+      let module = await import_module();
+      return module.default || module;
+    }
   }
 
 

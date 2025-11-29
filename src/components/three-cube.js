@@ -7,9 +7,10 @@ export default class ThreeCube extends HTMLElement {
     }
 
     connectedCallback() {
+
         this.shadowRoot.innerHTML = `
             <style>
-                :host { display: inline-flex; width: 100%; height: 150px; background-color: red;}
+                :host { display: inline-flex; width: 100%; height: 150px; }
                 #container { width: 100%; height: 100%; }
             </style>
             <div id="container"></div>
@@ -21,7 +22,7 @@ export default class ThreeCube extends HTMLElement {
 
         // Scene
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xffffff);
+        scene.background = new THREE.Color(0x000000);
 
         // Camera
         const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 100);
