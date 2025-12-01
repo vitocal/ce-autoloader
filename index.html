@@ -111,7 +111,7 @@
             border-radius: 0.5em;
         }
 
-        [data-loading] {
+        [loading] {
             border: 1px dashed var(--color-secondary);
             position: relative;
             overflow: clip;
@@ -278,7 +278,7 @@
     <script type="importmap">
     {
         "imports": {
-            "lit": "/node_modules/vite/deps/lit.js"
+            "lit": "/node_modules/vite/deps/lit.js",
         }
     }
     </script>
@@ -291,8 +291,8 @@
     <ul>
         <li>Automatically Load any web-component on demand, if and when they're used in the page.</li>
         <li>A central registry of components, similar to import maps</li>
-        <li>Customize when components are loaded with with loading attribute, `loading="idle"` , `loading="lazy"`,
-            `loading="interaction"`</li>
+        <li>Customize when components are loaded with with loading attribute, `on="idle"` , `on="lazy"`,
+            `on="interaction"`</li>
         <li>Simple and ergonomic </li>
         <li>No dependencies, framework-independent</li>
         <li>1.7kb gzip, performant! </li>
@@ -303,34 +303,36 @@
         Hello World, i'm not defined yet!
     </not-loaded> -->
 
+    <vi-hello></vi-hello>
+
     <h2>Examples - Loading Attribute</h2>
 
     <h3 data-loading>Autoloaded by default</h3>
     <wa-button>wa-button</wa-button>
 
     <h3>idle</h3>
-    <vi-switch loading="idle">
+    <vi-switch on="idle">
         idle
     </vi-switch>
 
     <h3>interaction - Click or touch</h3>
-    <three-cube loading="interaction">
+    <three-cube on="interaction">
         <span>Click for 3d cube</span>
     </three-cube>
 
     <h3>lazy - when element is visible in the viewport</h3>
 
     <div class="animation-overview">
-        <wa-animation name="bounce" loading="lazy" duration="2000" iterations="1" play>
+        <wa-animation name="bounce" on="lazy" duration="2000" iterations="1" play>
             <div class="box"></div>
         </wa-animation>
-        <wa-animation name="fadeIn" loading="lazy" duration="2000" iterations="1" play>
+        <wa-animation name="fadeIn" on="lazy" duration="2000" iterations="1" play>
             <div class="box"></div>
         </wa-animation>
-        <wa-animation name="fadeIn" loading="lazy" duration="2000" iterations="1" play>
+        <wa-animation name="fadeIn" on="lazy" duration="2000" iterations="1" play>
             <div class="box"></div>
         </wa-animation>
-        <wa-animation name="flip" loading="lazy" duration="2000" iterations="1" play>
+        <wa-animation name="flip" on="lazy" duration="2000" iterations="1" play>
             <div class="box"></div>
         </wa-animation>
     </div>
@@ -340,7 +342,7 @@
     <p>When you want more control, you can upgrade a component manually, by using a custom directive name
         and calling `registry.upgrade('myDirective')`
     </p>
-    <confetti-button loading="manual">
+    <confetti-button on="manual">
         <button id="confetti">Confetti</button>
     </confetti-button>
     <script type="module">
@@ -425,7 +427,7 @@
         </script>
     </wc-markdown>
 
-    <json-viewer loading="interaction" id="json" expand="**">
+    <json-viewer id="json" expand="**">
         { "quiz": { "sport": { "q1": { "question": "Which one is correct team name in NBA?", "options": [ "New York
         Bulls", "Los Angeles Kings", "Golden State Warriros", "Houston Rockets" ], "answer": "Houston Rockets" } },
         "maths": { "q1": { "question": "5 + 7 = ?", "options": [ "10", "11", "12", "13" ], "answer": "12" }, "q2": {
@@ -472,52 +474,32 @@
             ...PixComponents
         };
 
-        globalThis.registry = new CERegistry({
-            catalog,
-            root: document.body,
-            live: true,
-            fallback: false,
-            /** Called before components  are loaded */
-            transition: async (comps, proceed) => {
+        class MyCustomRegistry extends CERegistry {
 
-                console.log("transition", comps);
+            async beforeLoad({ name, asset }, next) {
+                const el = document.querySelector(name);
+                console.log("beforeLoad", name, el, asset);
                 try {
                     // add loading/transition-class to all components
-                    comps.forEach(el => {
-                        el.setAttribute('data-loading', 'true');
-                    });
+                    el.setAttribute('loading', 'true');
 
-                    // Load the components
-                    // requestAnimationFrame(proceed);
-                    await proceed()
-
-                    // Transition should start after all components are loaded
-                    // requestAnimationFrame(() => {
-                    //     const transition = document.startViewTransition(async () => {
-                    //         return Promise.allSettled(
-                    //             comps.map(el => customElements.whenDefined(el.tagName.toLowerCase()))
-                    //         )
-                    //     });
-                    //     console.log("Transition started", transition.ready);
-                    // })
+                    await next({ name, asset });
 
                 } finally {
-                    comps.forEach(el => {
-                        // el.removeAttribute('data-loading');
-                        // el.setAttribute('ready', "");
-                        // el.style.viewTransitionName = '';
-                        // el.style.viewTransitionClass = '';
-                    });
+                    el.removeAttribute('loading');
+                    el.setAttribute('ready', "");
                 }
-            },
-            beforeImport: async (name, proceed) => {
+            }
+
+            async afterLoad({ name, asset }, next) {
+                console.log("afterLoad", name, asset);
                 const el = document.querySelector(name);
 
                 el.style.viewTransitionName = 'match-element';
                 el.style.viewTransitionClass = el.tagName.toLowerCase();
 
                 const transition = document.startViewTransition(async () => {
-                    proceed();
+                    await next({ name, asset });
                     el.removeAttribute('data-loading');
                     el.setAttribute('ready', "");
                 });
@@ -528,6 +510,13 @@
                 performance.mark(`viewTransition:${name}:end`);
                 performance.measure(`viewTransition:${name}`, `viewTransition:${name}:start`, `viewTransition:${name}:end`);
             }
+        }
+
+        globalThis.registry = new MyCustomRegistry({
+            catalog,
+            root: document.body,
+            live: true,
+            fallback: false,
         });
         console.log(await registry.discover());
 

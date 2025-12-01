@@ -16,9 +16,23 @@ export type CEAutoLoaderOptions = {
   fallback?: true | CustomElementConstructor;
   /** Transition function to animate loading components */
   transition?: (comps: HTMLElement[]) => Promise<void>;
-  beforeImport?: (name: string, proceed: () => Promise<void>) => Promise<void>;
+  beforeDefine?: (name: string, next: () => Promise<void>) => Promise<void>;
   /** Directives are triggers to when the component should be loaded */
   directives?: CEAutoLoaderDirectives[];
+}
+
+globalThis.DEFINE = customElements.define.bind(customElements);
+customElements.waiting = {};
+customElements.define = function (name, ctor, options) {
+  console.log("[CE] define called:", name, this);
+  customElements.waiting[name] = { ctor, options };
+};
+
+
+declare global {
+  interface CustomElementRegistry {
+    _define?: typeof CustomElementRegistry.prototype.define;
+  }
 }
 
 function isCustomElement(element: Element) {
@@ -37,7 +51,7 @@ function debounce(fn, delay = 300) {
  * CSS selector to match custom elements
  */
 function matchCustomElement(root: Element, modifier?: CEAutoLoaderDirectives) {
-  const selector = (modifier ? `*[loading~=${modifier}]` : '') + ':not(:defined)'
+  const selector = (modifier ? `*[on~=${modifier}]` : '') + ':not(:defined)'
   return [...new Set([root, ...root.querySelectorAll(selector)])]
     .filter((el) => isCustomElement(el)) as HTMLElement[]
 }
@@ -189,7 +203,7 @@ class CEAutoLoader {
    * Some filters to avoid duplicates
    */
   private filterByDirective(elements: HTMLElement[], directive?: CEAutoLoaderDirectives) {
-    return elements.filter((el) => (el.getAttribute("loading") == directive))
+    return elements.filter((el) => (el.getAttribute("on") == directive))
   }
   private uniqueByTag(elements: HTMLElement[]) {
     const seen = new Set();
@@ -257,33 +271,13 @@ class CEAutoLoader {
   */
   async registerComponents(comps: HTMLElement[]) {
 
-    // const _register = (el: HTMLElement) => {
-    //   return document.startViewTransition(async () => {
-    //     await this.registerLeaf(el)
-    //     // await customElements.whenDefined(el.tagName.toLowerCase())
-    //     console.log(`View transition ${el.tagName.toLowerCase()} finished`);
-    //   })
-    // }
-
-    // Upgrade everyone in parallel
-    // return await Promise.allSettled(comps.map(_register))
-
     const _registerAll = async () => {
       const result = await Promise.allSettled(comps.map((el) => this.registerLeaf(el)))
       console.log('result', comps.map((el) => el.tagName.toLowerCase()), result);
       return result;
     }
 
-    // Or a single transition
-    if (this.#transition) {
-      return await this.#transition(comps, _registerAll)
-    } else {
-      return await _registerAll()
-    }
-    // return await document.startViewTransition(async () => {
-    //   await Promise.allSettled(comps.map(el => this.registerLeaf(el)))
-    // })
-
+    return await _registerAll()
   }
 
   async registerLeaf(el: Element) {
@@ -296,7 +290,8 @@ class CEAutoLoader {
     }
 
     try {
-      return await this.load(name);
+      return await this.loader_run({ name });
+      // return await this.findModule(name);
     } catch (error) {
       console.error(`ce-autoloader: Error loading ${name}`, error)
 
@@ -310,10 +305,37 @@ class CEAutoLoader {
     }
   }
 
+  // Run load pipeline
+  async loader_run(ctx = {}) {
+    const pipeline = [
+      this.find.bind(this),
+      this.beforeLoad.bind(this),
+      this.load.bind(this),
+      this.afterLoad.bind(this),
+      this.define.bind(this),
+      this.finished.bind(this),
+    ]
+
+    let i = 0;
+    async function next(_ctx) {
+      const fn = pipeline[i++];
+      if (!fn) return Promise.resolve(_ctx);
+      try {
+        const _next = next;
+        const result = await fn(_ctx, _next);
+        return Promise.resolve();
+      } catch (err) {
+        return Promise.reject(err);
+      }
+    }
+
+    return next(ctx)
+  }
+
   /**
-   * Load the component from the library
+   * Find the module to load
    */
-  async load(name: string) {
+  async find({ name }: { name: string }, next) {
     let asset = this._catalog[name] || this.getNamespace(name)
     if (!asset) {
       throw new Error(`Component not found: ${name}`)
@@ -328,9 +350,11 @@ class CEAutoLoader {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       if (typeof asset === "string") {
-        return await this.loadModule(name, asset)
+        return next({ name, asset })
+        // return await this.loadModule(name, asset)
       } else if (typeof asset === "function") {
-        return await asset(name)
+        // return await asset(name)
+        throw new Error('ce-autoloader: Not implemented');
       } else {
         throw new Error(`ce-autoloader: Loader of ${name} is invalid! Should be a url or a function`)
       }
@@ -342,44 +366,51 @@ class CEAutoLoader {
   }
 
   /**
-   * Load a js module from **asset** using "import()"
+   * Called before load, after findModule
+   * Use for loading indicators
    */
-  async loadModule(name: string, asset: string): Promise<CustomElementConstructor> {
+  async beforeLoad({ name, asset }: { name: string, asset: string }, next) {
+    return await next({ name, asset });
+  }
 
-    // add debug metrics, does the load happens before the whenDefined?
-    performance.mark(`whenDefined:${name}:start`);
+  /**
+   * Load the module
+   */
+  async load({ name, asset }: { name: string, asset: string }, next): Promise<CustomElementConstructor> {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    let module = await import(/** @vite-ignore */ asset);
+    return next({ name, asset, module })
+  }
 
-    customElements.whenDefined(name).then(() => {
-      performance.mark(`whenDefined:${name}:end`);
-      performance.measure(`whenDefined:${name}`, `whenDefined:${name}:start`, `whenDefined:${name}:end`);
-    });
+  /**
+   * Called after load, before component definition.
+   * Use for transition effects, since the next() call will change the DOM with the component
+   */
+  async afterLoad({ name, asset }: { name: string, asset: string }, next) {
+    return await next({ name, asset });
+  }
 
-    // todo: Should we treat relative and absolute path differently?
-    // let module = await import(/* @vite-ignore */ asset);
-    let module_file = await fetch(asset).then(r => r.text());
-    let blob = URL.createObjectURL(new Blob([module_file], { type: 'text/javascript' }));
+  /**
+   * Use for metrics
+   */
+  async finished({ name, asset }: { name: string, asset: string }, next) {
+    return await next({ name, asset });
+  }
 
-    let import_module = async () => {
-      // let module = await import(/* @vite-ignore */ blob);
-      const s = document.createElement("script");
-      s.type = "module";
-      s.textContent = module_file;
-      document.head.append(s);
-
-      // if (!customElements.get(name)) {
-      //   console.warn(`ce-autoloader: Component ${name} was not auto-registered in the file. Registering now...`)
-      //   customElements.define(name, module.default);
-      // }
-
-      return true
+  /*
+   * Define a single component
+   * It will be rendered on DOM after this.
+   */
+  async define({ name, asset }: { name: string, asset: string }, next) {
+    if (customElements.get(name)) {
+      console.log(`ce-autoloader: Component ${name} already defined`)
+      return next({ name, asset });
     }
 
-    if (this.options.beforeImport) {
-      return this.options.beforeImport(name, import_module)
-    } else {
-      let module = await import_module();
-      return module.default || module;
-    }
+    const { ctor, options } = customElements.waiting[name];
+    DEFINE(name, ctor, options);
+
+    return await next({ name, asset });
   }
 
 
