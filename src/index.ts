@@ -24,7 +24,6 @@ export type CEAutoLoaderOptions = {
 globalThis.DEFINE = customElements.define.bind(customElements);
 customElements.waiting = {};
 customElements.define = function (name, ctor, options) {
-  console.log("[CE] define called:", name, this);
   customElements.waiting[name] = { ctor, options };
 };
 
@@ -125,8 +124,8 @@ class CEAutoLoader {
     this.options = {
       live: true,
       root: document.body,
-      // directives: ["idle", "lazy", "interaction"],
-      directives: ["interaction"],
+      directives: ["idle", "lazy", "interaction"],
+      // directives: ["interaction"],
       ...options
     };
     this.catalog = options.catalog;
@@ -233,7 +232,8 @@ class CEAutoLoader {
   async upgrade(directive?: CEAutoLoaderDirectives) {
     const ce_elements = matchCustomElement(this.options.root || document.body, directive)
     const filtered = this.filterByDirective(ce_elements, directive)
-    const elements = this.uniqueByTag(filtered);
+    const elements = filtered;
+    // const elements = this.uniqueByTag(filtered);
 
     // console.log("CEAutoLoader: Registering", elements, "with directive", directive)
     // Directives apply special conditions to when the component is loaded
@@ -272,8 +272,9 @@ class CEAutoLoader {
   async registerComponents(comps: HTMLElement[]) {
 
     const _registerAll = async () => {
+      console.log("registering", comps.map((el) => el.tagName.toLowerCase()));
       const result = await Promise.allSettled(comps.map((el) => this.registerLeaf(el)))
-      console.log('result', comps.map((el) => el.tagName.toLowerCase()), result);
+      comps.map((el) => el.tagName.toLowerCase());
       return result;
     }
 
@@ -283,15 +284,8 @@ class CEAutoLoader {
   async registerLeaf(el: Element) {
     const name = el.tagName.toLowerCase()
 
-    // Already registered, so just skip-it
-    if (customElements.get(name)) {
-      console.log(`CEAutoLoader: Already registered ${name}`)
-      return customElements.get(name) as CustomElementConstructor;
-    }
-
     try {
-      return await this.loader_run({ name });
-      // return await this.findModule(name);
+      return await this.loader_run({ name, el });
     } catch (error) {
       console.error(`ce-autoloader: Error loading ${name}`, error)
 
@@ -335,33 +329,19 @@ class CEAutoLoader {
   /**
    * Find the module to load
    */
-  async find({ name }: { name: string }, next) {
+  async find({ name, el }: { name: string, el: Element }, next) {
     let asset = this._catalog[name] || this.getNamespace(name)
     if (!asset) {
       throw new Error(`Component not found: ${name}`)
     }
 
-    const metric = `load:${name}`;
-
-    // console.log("ce-autoloader: Loading module", name, asset)
-    performance.mark(`${metric}:start`);
-
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      if (typeof asset === "string") {
-        return next({ name, asset })
-        // return await this.loadModule(name, asset)
-      } else if (typeof asset === "function") {
-        // return await asset(name)
-        throw new Error('ce-autoloader: Not implemented');
-      } else {
-        throw new Error(`ce-autoloader: Loader of ${name} is invalid! Should be a url or a function`)
-      }
-    } finally {
-      performance.mark(`${metric}:end`);
-      performance.measure(metric, `${metric}:start`, `${metric}:end`);
-    }
+    // try {
+    // await new Promise(resolve => setTimeout(resolve, 1000));
+    return next({ name, el, asset })
+    // } finally {
+    //   performance.mark(`${metric}:end`);
+    //   performance.measure(metric, `${metric}:start`, `${metric}:end`);
+    // }
 
   }
 
@@ -369,48 +349,64 @@ class CEAutoLoader {
    * Called before load, after findModule
    * Use for loading indicators
    */
-  async beforeLoad({ name, asset }: { name: string, asset: string }, next) {
-    return await next({ name, asset });
+  async beforeLoad({ name, el, asset }: { name: string, el: Element, asset: string }, next) {
+    performance.mark(`load:${name}:start`);
+    return await next({ name, el, asset });
   }
 
   /**
    * Load the module
    */
-  async load({ name, asset }: { name: string, asset: string }, next): Promise<CustomElementConstructor> {
+  async load({ name, el, asset }: { name: string, el: Element, asset: string | Function }, next): Promise<CustomElementConstructor> {
     await new Promise(resolve => setTimeout(resolve, 1000));
-    let module = await import(/** @vite-ignore */ asset);
-    return next({ name, asset, module })
+
+    if (typeof asset === "string") {
+      let module = await import(/** @vite-ignore */ asset);
+      return next({ name, el, asset, module })
+    } else if (typeof asset === "function") {
+      const module = await asset(name);
+      return next({ name, el, asset, module });
+    } else {
+      throw new Error(`ce-autoloader: Loader of ${name} is invalid! Should be a url or a function`)
+    }
   }
 
   /**
    * Called after load, before component definition.
    * Use for transition effects, since the next() call will change the DOM with the component
    */
-  async afterLoad({ name, asset }: { name: string, asset: string }, next) {
-    return await next({ name, asset });
-  }
+  async afterLoad({ name, el, asset }: { name: string, el: Element, asset: string }, next) {
+    performance.mark(`load:${name}:end`);
+    performance.measure(`load:${name}`, `load:${name}:start`, `load:${name}:end`);
 
-  /**
-   * Use for metrics
-   */
-  async finished({ name, asset }: { name: string, asset: string }, next) {
-    return await next({ name, asset });
+    performance.mark(`define:${name}:start`);
+    return await next({ name, el, asset });
   }
 
   /*
    * Define a single component
    * It will be rendered on DOM after this.
    */
-  async define({ name, asset }: { name: string, asset: string }, next) {
+  async define({ name, el, asset }: { name: string, el: Element, asset: string }, next) {
     if (customElements.get(name)) {
       console.log(`ce-autoloader: Component ${name} already defined`)
-      return next({ name, asset });
+      return await next({ name, el, asset });
     }
 
     const { ctor, options } = customElements.waiting[name];
     DEFINE(name, ctor, options);
 
     return await next({ name, asset });
+  }
+
+  /**
+   * Use for metrics
+   */
+  async finished({ name, el, asset }: { name: string, el: Element, asset: string }, next) {
+    performance.mark(`define:${name}:end`);
+    performance.measure(`define:${name}`, `define:${name}:start`, `define:${name}:end`);
+
+    return await next({ name, el, asset });
   }
 
 
