@@ -5,7 +5,10 @@ import puppeteer from 'puppeteer';
   const page = await browser.newPage();
 
   // Forward console logs to terminal
-  page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+  page.on('console', async msg => {
+    const args = await Promise.all(msg.args().map(arg => arg.jsonValue()));
+    console.log('PAGE LOG:', ...args);
+  });
 
   // Handle page errors
   page.on('pageerror', err => console.error('PAGE ERROR:', err));

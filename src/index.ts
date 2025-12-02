@@ -18,6 +18,8 @@ export type CEAutoLoaderOptions = {
   fallback?: true | CustomElementConstructor;
   /** Directives are triggers to when the component should be loaded */
   directives?: CEAutoLoaderDirectives[];
+  /** Interval to flush batches */
+  batchInterval?: number;
 }
 
 /**
@@ -27,9 +29,14 @@ export type CEAutoLoaderOptions = {
  * For example, you can load components into memory, and in a single animation frame
  * define all of them, and animate them in.
  */
-globalThis.DEFINE = customElements.define.bind(customElements);
+globalThis._DEFINE = customElements.define.bind(customElements);
+globalThis.DEFINE = (name, ctor, options) => {
+  globalThis._DEFINE(name, ctor, options);
+  delete customElements.waiting[name];
+}
+
 customElements.waiting = {};
-customElements.define = function (name, ctor, options) {
+customElements.define = function (name, ctor, options?) {
   customElements.waiting[name] = { ctor, options };
 };
 
@@ -66,14 +73,31 @@ function matchCustomElement(root: Element, modifier?: CEAutoLoaderDirectives) {
 class DevFallback extends HTMLElement {
   error: string = "";
 
+  static get observedAttributes() {
+    return ["error"];
+  }
+
   constructor() {
     super();
-    this.attachShadow({ mode: "open" });
     this.error = this.getAttribute("error") || "";
   }
 
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === "error") {
+      this.error = newValue;
+      this.render();
+    }
+  }
+
   connectedCallback() {
-    this.shadowRoot!.innerHTML = `
+    this.attachShadow({ mode: "open" });
+    this.render();
+  }
+
+  render() {
+    if (!this.shadowRoot) return;
+
+    this.shadowRoot.innerHTML = `
       <style>
         :host {
           display: block;
@@ -83,8 +107,9 @@ class DevFallback extends HTMLElement {
           padding: 8px;
         }
       </style>
-      ${this.error}
+      <p>${this.error}</p>
     `;
+
   }
 }
 
@@ -134,7 +159,7 @@ class CEAutoLoader {
       live: true,
       root: document.body,
       directives: ["idle", "lazy", "interaction"],
-      // directives: ["interaction"],
+      batchInterval: 500,
       ...options
     };
     this.catalog = options.catalog;
@@ -172,7 +197,7 @@ class CEAutoLoader {
     // Load everyone else right away
     const result = await this.upgrade();
 
-    // Run a final flush, and clear batches
+    // Stop batch loop
     if (this.batches.length > 0) {
       this.batchedDefine(this.batches);
       clearInterval(this.batchLoop);
@@ -290,18 +315,14 @@ class CEAutoLoader {
     const _registerAll = async () => {
       console.log("registering", comps.map((el) => el.tagName.toLowerCase()));
 
-      // flush batches every 100ms
+      // flush batches every 500ms
       if (!this.batchLoop) {
         this.batchLoop = setInterval(() => {
           this.batchedDefine(this.batches);
-        }, 500);
+        }, this.options.batchInterval);
       }
 
       const result = await Promise.allSettled(comps.map((el) => this.registerLeaf(el)))
-
-      // clearInterval(interval);
-      // await this.batchedDefine(this.batches);
-      // this.batches = [];
 
       return result;
     }
@@ -318,12 +339,18 @@ class CEAutoLoader {
       console.error(`ce-autoloader: Error loading ${name}`, error)
 
       // A fallback component is defined to show the error
+      el.removeAttribute("loading");
       if (this.options.fallback) {
         el.setAttribute("error", `${error}`);
-        customElements.define(name, this.options.fallback !== true ? this.options.fallback : DevFallback);
+
+        if (customElements.get(name)) {
+          console.log("Fallback already defined", name);
+        } else {
+          DEFINE(name, this.options.fallback !== true ? this.options.fallback : DevFallback);
+          await Promise.resolve(requestAnimationFrame)
+        }
       }
 
-      throw error
     }
   }
 
@@ -363,14 +390,7 @@ class CEAutoLoader {
       throw new Error(`Component not found: ${name}`)
     }
 
-    // try {
-    // await new Promise(resolve => setTimeout(resolve, 1000));
     return next({ name, el, asset })
-    // } finally {
-    //   performance.mark(`${metric}:end`);
-    //   performance.measure(metric, `${metric}:start`, `${metric}:end`);
-    // }
-
   }
 
   /**
@@ -416,9 +436,7 @@ class CEAutoLoader {
    * It will be rendered on DOM after this.
    */
   async define({ name, el, asset }: { name: string, el: Element, asset: string }, next) {
-    console.log("im in define", name)
     if (customElements.get(name)) {
-      console.log(`ce-autoloader: Component ${name} already defined`)
       return await next({ name, el, asset });
     }
 
@@ -448,8 +466,6 @@ class CEAutoLoader {
     console.log("flushing", this.batches.length);
 
     const transition = document.startViewTransition(async () => {
-      console.log("startViewTransition");
-      console.trace();
       return Promise.allSettled(jobs.map((job) => job()))
     })
 
@@ -461,6 +477,13 @@ class CEAutoLoader {
       performance.measure(`viewTransition`, `viewTransition:start`, `viewTransition:end`);
     } catch (error) {
       console.error("View transition failed:", error)
+    }
+
+    // Some components definitions can be still in waiting (they're not in DOM, but were defined)
+    // Define them, they're not used in the DOM, but was neverthless defined by someone.
+    if (Object.keys(customElements.waiting).length > 0) {
+      Object.entries(customElements.waiting).map(
+        ([name, { ctor, options }]) => DEFINE(name, ctor, options))
     }
 
     this.batches = []

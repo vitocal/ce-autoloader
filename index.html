@@ -5,19 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CEAutoLoader Test</title>
-    <link rel="stylesheet" href="https://esm.sh/@awesome.me/webawesome@3.0.0/dist/styles/themes/default.css"
-        media="none" onload="if(media!='all')media='all'">
+
+    <!-- <link rel="stylesheet" href="https://esm.sh/@awesome.me/webawesome@3.0.0/dist/styles/themes/default.css"
+        media="none" onload="if(media!='all')media='all'"> -->
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prism.min.css">
     <style>
-        @layer openprops, normalize, theme, components.root, components.extended, utils;
-
-        @layer openprops {
-            @import "https://unpkg.com/open-props";
-        }
+        @layer normalize, theme, ds, components.root, components.extended, utils;
+        @import "https://nordcdn.net/ds/css/4.2.0/nord.min.css" layer(ds);
 
         @layer normalize {
-            @import "https://unpkg.com/open-props/normalize.min.css";
-            @import "https://unpkg.com/open-props/normalize.light.min.css";
 
             /* 1. Use a more-intuitive box-sizing model */
             *,
@@ -48,12 +45,25 @@
 
                 --spring-easing: linear(0, 0.0092, 0.0345, 0.0726, 0.1205, 0.1757, 0.2358, 0.299, 0.3635, 0.428, 0.4913, 0.5525, 0.6109, 0.6659, 0.7172, 0.7644, 0.8075, 0.8465, 0.8812, 0.912, 0.9389, 0.9621, 0.9819, 0.9985, 1.0122, 1.0233, 1.032, 1.0386, 1.0433, 1.0464, 1.0482, 1.0487, 1.0483, 1.0471, 1.0453, 1.043, 1.0403, 1.0374, 1.0343, 1.0312, 1.028, 1.025, 1.022, 1.0191, 1.0164, 1.0139, 1.0116, 1.0095, 1.0076, 1.0059, 1.0044, 1.003, 1.0019, 1.0009, 1.0001, 0.9994, 0.9989, 0.9985, 0.9981, 0.9979, 0.9977, 0.9977, 0.9976, 0.9976, 0.9977, 0.9978, 0.9979, 0.998, 0.9982, 0.9983, 0.9985, 0.9986, 0.9988, 0.9989, 0.9991, 0.9992, 0.9993, 0.9994, 0.9995, 0.9996, 0.9997, 0.9998, 0.9998, 0.9999, 1, 1, 1, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1);
                 --spring-duration: 0.73s;
-            }
 
+                --spacing-xs: 0.25rem;
+                --spacing-sm: 0.5rem;
+                --spacing-md: 1rem;
+                --spacing-lg: 1.5rem;
+                --spacing-xl: 2rem;
+                --spacing-2xl: 3rem;
+                --spacing-3xl: 4rem;
+                --spacing-4xl: 5rem;
+                --spacing-5xl: 6rem;
+                --spacing-6xl: 7rem;
+                --spacing-7xl: 8rem;
+                --spacing-8xl: 9rem;
+                --spacing-9xl: 10rem;
+            }
         }
 
         body {
-            max-width: 80%;
+            max-width: 90%;
             margin: 0 auto;
         }
 
@@ -61,31 +71,50 @@
             margin-top: 1em;
         }
 
+        .container {
+            display: grid;
+            grid-template-columns:
+                [left-start] 1fr [center-start] 4fr [center-end right-start] 1fr [right-end];
+            grid-template-rows: auto;
+            grid-gap: 1em;
+
+            /* default spans 3 columns */
+            &>* {
+                grid-column: 1 / -1;
+            }
+
+            /* Optional placement areas */
+            .left {
+                grid-column: left-start / center-start;
+            }
+
+            .center {
+                grid-column: center-start / center-end;
+            }
+
+            .right {
+                grid-column: right-start / right-end;
+            }
+
+            /* Combined areas */
+            .leftcenter {
+                grid-column: left-start / center-end;
+                /* alias explained below */
+            }
+
+            .centerright {
+                grid-column: center-start / right-end;
+            }
+        }
+
+
         img {
             max-width: 100%;
         }
 
-        .animation-overview {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            justify-content: center;
-            justify-items: center;
-            align-content: center;
-            align-items: center;
-            gap: 1rem;
-
-        }
-
-        .animation-overview .box {
-            display: inline-block;
-            width: 100px;
-            height: 100px;
-            background-color: var(--wa-color-brand-fill-loud);
-            margin: 1.5rem;
-        }
-
         pre {
             box-sizing: border-box;
+            display: block;
             max-width: 100%;
             white-space: pre;
             /* preserve spaces/newlines exactly */
@@ -98,6 +127,9 @@
             border-radius: 0.33em;
             box-shadow: var(--shadow-6);
         }
+
+
+
 
         @layer components.extended {
             pre:has(syntax-highlight) {
@@ -127,18 +159,20 @@
         }
 
         @layer components.root {
-            @import "https://unpkg.com/open-props/buttons.min.css";
-
             :not(:defined) {
-                display: inline-flex;
-                background-color: var(--color-secondary);
+                visibility: visible;
+                display: inline-block;
                 color: var(--color-fg);
                 outline: 2px dashed var(--color-secondary);
+                outline-offset: 4px;
+
                 width: fit-content;
                 min-height: 1em;
                 padding: 0.35em;
                 border-radius: 0.5em;
                 overflow: hidden;
+                overflow-clip-margin: 0.5em;
+
                 position: relative;
 
             }
@@ -168,12 +202,14 @@
             }
 
             [ready] {
-                outline: 2px dashed var(--color-success);
-                border-radius: 0.5em;
-                display: inline-flex;
+                outline: 2px dashed transparent;
+                outline-offset: 0.25em;
                 overflow: hidden;
-            }
+                overflow-clip-margin: 0.5em;
+                visibility: visible;
 
+                animation: outline-highlight 0.7s ease-in-out 5 alternate;
+            }
         }
 
 
@@ -325,6 +361,20 @@
                 opacity: 0;
             }
         }
+
+        @keyframes outline-highlight {
+            0% {
+                outline-color: var(--color-secondary);
+            }
+
+            50% {
+                outline-color: var(--color-success);
+            }
+
+            100% {
+                outline-color: var(--color-secondary);
+            }
+        }
     </style>
 
     <script type="importmap">
@@ -336,7 +386,7 @@
     </script>
 </head>
 
-<body>
+<body class="container">
     <h1>ce-autoloader</h1>
     <p>Load web-components on demand, if and when they're used in the page.</p>
 
@@ -351,16 +401,24 @@
         <li>Namespaced components - Lazily load any component from any library</li>
     </ul>
 
-    <!-- <not-loaded>
-        Hello World, i'm not defined yet!
-    </not-loaded> -->
-
-    <vi-hello></vi-hello>
-
     <h2>Examples - Loading Attribute</h2>
 
     <h3>Autoloaded by default</h3>
-    <wa-button>wa-button</wa-button>
+    <nord-button>nord-button</nord-button>
+
+    <h3>Nord Health</h3>
+    <nord-stack gap="m" direction="horizontal">
+        <nord-button href="#">Default</nord-button>
+        <nord-button href="#" variant="primary">Primary</nord-button>
+        <nord-button href="#" variant="danger">Danger</nord-button>
+        <nord-button href="#" variant="dashed">
+            <nord-icon name="interface-filter"></nord-icon>
+            Filter
+        </nord-button>
+        <nord-button href="#" square>
+            <nord-icon name="interface-menu-small" label="Options"></nord-icon>
+        </nord-button>
+    </nord-stack>
 
     <h3>idle</h3>
     <vi-switch on="idle">
@@ -374,20 +432,136 @@
 
     <h3>lazy - when element is visible in the viewport</h3>
 
-    <div class="animation-overview">
-        <wa-animation name="bounce" on="lazy" duration="2000" iterations="1" play>
-            <div class="box"></div>
-        </wa-animation>
-        <wa-animation name="fadeIn" on="lazy" duration="2000" iterations="1" play>
-            <div class="box"></div>
-        </wa-animation>
-        <wa-animation name="fadeIn" on="lazy" duration="2000" iterations="1" play>
-            <div class="box"></div>
-        </wa-animation>
-        <wa-animation name="flip" on="lazy" duration="2000" iterations="1" play>
-            <div class="box"></div>
-        </wa-animation>
-    </div>
+    <nord-stack gap="m">
+        <nord-message highlight unread>
+            Ariel Salminen arrived to clinic with Pixie cat.
+            <span slot="footer">Just now at Nord Clinic</span>
+        </nord-message>
+        <nord-message unread>
+            Nina Hallikainen arrived to clinic with Durante dog.
+            <span slot="footer">20 minutes ago at Nord Clinic</span>
+        </nord-message>
+        <nord-message unread>
+            David Darnes arrived to clinic with Norfryd cat.
+            <span slot="footer">2 hours ago at Nord Clinic</span>
+        </nord-message>
+    </nord-stack>
+
+    <h3>Table</h3>
+
+    <nord-banner variant="success">
+        Your order has been shipped and will arrive on May 27th. <a href="#">Track order</a>.
+    </nord-banner>
+
+    <nord-dropdown size="s" style="z-index: 1;">
+        <nord-button slot="toggle">Menu</nord-button>
+        <nord-dropdown-item href="#">View profile</nord-dropdown-item>
+        <nord-dropdown-item>Settings</nord-dropdown-item>
+        <nord-dropdown-item>Show keyboard shortcuts</nord-dropdown-item>
+        <nord-dropdown-item>Help & Support</nord-dropdown-item>
+        <nord-dropdown-item>API</nord-dropdown-item>
+        <nord-dropdown-item>Sign out</nord-dropdown-item>
+    </nord-dropdown>
+
+    <nord-table on="lazy">
+        <table>
+            <thead>
+                <tr>
+                    <th class="n-table-align-right">Amount</th>
+                    <th>Description</th>
+                    <th>Method</th>
+                    <th class="n-table-align-right">Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="n-table-align-right">350,00&thinsp;€</td>
+                    <td class="n-table-ellipsis">
+                        Suspendisse blandit sodales eros, quis aliquet leo aliquet ultrices lorem ipsum dolor sit
+                        amet
+                        consectetuer
+                        adipiscing suspendisse blandit sodales eros, quis aliquet leo aliquet ultrices lorem ipsum
+                        dolor
+                        sit amet
+                        consectetuer adipiscing
+                    </td>
+                    <td>Card</td>
+                    <td class="n-table-align-right">20.3.2021</td>
+                </tr>
+                <tr>
+                    <td class="n-table-align-right">29,90&thinsp;€</td>
+                    <td class="n-table-ellipsis">
+                        Suspendisse blandit sodales eros, quis aliquet leo aliquet ultrices lorem ipsum dolor sit
+                        amet
+                        consectetuer
+                        adipiscing suspendisse blandit sodales eros, quis aliquet leo aliquet ultrices lorem ipsum
+                        dolor
+                        sit amet
+                        consectetuer adipiscing
+                    </td>
+                    <td>Card</td>
+                    <td class="n-table-align-right">19.3.2021</td>
+                </tr>
+                <tr>
+                    <td class="n-table-align-right">50,00&thinsp;€</td>
+                    <td class="n-table-ellipsis">
+                        Suspendisse blandit sodales eros, quis aliquet leo aliquet ultrices lorem ipsum dolor sit
+                        amet
+                        consectetuer
+                        adipiscing suspendisse blandit sodales eros, quis aliquet leo aliquet ultrices lorem ipsum
+                        dolor
+                        sit amet
+                        consectetuer adipiscing
+                    </td>
+                    <td>Card</td>
+                    <td class="n-table-align-right">18.3.2021</td>
+                </tr>
+                <tr>
+                    <td class="n-table-align-right">290,00&thinsp;€</td>
+                    <td class="n-table-ellipsis">
+                        Suspendisse blandit sodales eros, quis aliquet leo aliquet ultrices lorem ipsum dolor sit
+                        amet
+                        consectetuer
+                        adipiscing suspendisse blandit sodales eros, quis aliquet leo aliquet ultrices lorem ipsum
+                        dolor
+                        sit amet
+                        consectetuer adipiscing
+                    </td>
+                    <td>Card</td>
+                    <td class="n-table-align-right">17.3.2021</td>
+                </tr>
+                <tr>
+                    <td class="n-table-align-right">49,90&thinsp;€</td>
+                    <td class="n-table-ellipsis">
+                        Suspendisse blandit sodales eros, quis aliquet leo aliquet ultrices lorem ipsum dolor sit
+                        amet
+                        consectetuer
+                        adipiscing suspendisse blandit sodales eros, quis aliquet leo aliquet ultrices lorem ipsum
+                        dolor
+                        sit amet
+                        consectetuer adipiscing
+                    </td>
+                    <td>Card</td>
+                    <td class="n-table-align-right">16.3.2021</td>
+                </tr>
+                <tr>
+                    <td class="n-table-align-right">25,00&thinsp;€</td>
+                    <td class="n-table-ellipsis">
+                        Suspendisse blandit sodales eros, quis aliquet leo aliquet ultrices lorem ipsum dolor sit
+                        amet
+                        consectetuer
+                        adipiscing suspendisse blandit sodales eros, quis aliquet leo aliquet ultrices lorem ipsum
+                        dolor
+                        sit amet
+                        consectetuer adipiscing
+                    </td>
+                    <td>Card</td>
+                    <td class="n-table-align-right">15.3.2021</td>
+                </tr>
+            </tbody>
+        </table>
+    </nord-table>
+
 
     <h3>manual</h3>
 
@@ -395,7 +569,7 @@
         and calling `registry.upgrade('myDirective')`
     </p>
     <confetti-button on="manual">
-        <button id="confetti">Confetti</button>
+        <nord-button id="confetti" size="l" variant="primary">Throw confetti 🎉</nord-button>
     </confetti-button>
     <script type="module">
         document.getElementById("confetti").addEventListener("click", async () => {
@@ -407,39 +581,42 @@
     </script>
 
     <h2>Namespaced Components</h2>
-    <p>You can lazily import a whole library of components by using namespace `myns-*`</p>
-    <p>For example, here we register everything under `wa-*` namespace, so any component like `wa-qr-code` will
-        automatically call our loader function!</p>
+    <p>You can lazily import a whole library of components by using namespace <code>myns-*</code></p>
+    <p class="leftcenter">
+        For example, here we register everything under <code>nord-*</code> namespace, so any component like
+        <code>nord-qr-code</code> will
+        automatically load! There's no need to declare/import each component manually.
+    </p>
 
-    <wa-qr-code></wa-qr-code>
+    <figure class="right">
+        <nord-qrcode value="https://ce-autoloader.com"></nord-qrcode>
+        <figcaption>
+            Send me a ❤️ via pix
+        </figcaption>
+    </figure>
 
-    <p> Heres a example of the namespace loader for `wa-*` with syntax-highlight </p>
+
+
+    <p> Heres the full loader for <code>nord-*</code></p>
 
     <pre>
     <syntax-highlight language="js">
-{
-    // ...
-    "wa-*": async (full_name) => {
-        const [, namespace, name] = full_name.match(/^([a-z]+)-(.*)/);
-        try {
-            const module = await import(
-                /* @vite-ignore */
-                `https://esm.sh/@awesome.me/webawesome/dist/components/${name}/${name}.js`
-                );
-                if (!customElements.get(full_name)) {
-                    customElements.define(full_name, module.default);
-                }
-            } catch (error) {
-                console.error(`Failed to load component ${full_name}:`, error);
-            }
-        },
-}
+/**
+ * Nord Health design system
+ */
+"nord-*": async (full_name) => {
+    const [, namespace, name] = full_name.match(/^([a-z]+)-(.*)/);
+    const module = await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/${capitalize(name)}.js`);
+    if (!customElements.get(full_name)) {
+        customElements.define(full_name, module.default);
+    }
+    return module
+},
 </syntax-highlight>
 </pre>
 
     <hr>
 
-    <!-- Observability/Performance -->
     <h1>Observability & Performance</h1>
 
     <p>
@@ -454,7 +631,6 @@
         You can access the metrics by querying `performance.getEntriesByName('load:my-component')`
     </p>
 
-    <!-- Animation -->
     <h1>Animating enter/exit of components</h1>
 
     <p>It's possible to animate the components upgrade lifecycle. </p>
@@ -496,23 +672,34 @@
         // import CERegistry from 'https://esm.sh/ce-autoloader';
         import CERegistry from './src/index.js';
 
+        // import Popout from "https://nordcdn.net/ds/components/4.9.0/Popout.js"
+        // DEFINE('nord-popout', Popout);
+
         const ViComponents = (await import('./src/components/vi')).default;
         const PixComponents = (await import('./src/components/pix')).default;
 
+
+        const capitalize = (str) =>
+            str.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('');
+
+        globalThis.process = {
+            env: {
+                NODE_ENV: 'development'
+            }
+        }
+
         const catalog = {
-            "wa-button": "https://esm.sh/@awesome.me/webawesome/dist/components/button/button.js",
-            "wa-animation": "https://esm.sh/@awesome.me/webawesome/dist/components/animation/animation.js",
-            "wa-*": async (full_name) => {
+
+            /**
+             * Nord Health design system
+             */
+            "nord-*": async (full_name) => {
                 const [, namespace, name] = full_name.match(/^([a-z]+)-(.*)/);
-                try {
-                    const module = await import(/* @vite-ignore */ `https://esm.sh/@awesome.me/webawesome/dist/components/${name}/${name}.js`);
-                    if (!customElements.get(full_name)) {
-                        customElements.define(full_name, module.default);
-                    }
-                    return module
-                } catch (error) {
-                    console.error(`Failed to load component ${full_name}:`, error);
+                const module = await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/${capitalize(name)}.js`);
+                if (!customElements.get(full_name)) {
+                    customElements.define(full_name, module.default);
                 }
+                return module
             },
             "syntax-highlight": "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm",
             "playground-ide": "https://esm.sh/playground-elements@0.18.1/playground-ide.js",
@@ -550,25 +737,6 @@
                 this.batches.push(async () => {
                     return await next({ name, asset });
                 });
-
-                // const transition = await runBatchAfter(this.batches,
-                //     async (batches) => {
-                //         console.log('Running batch', batches);
-                //         return document.startViewTransition(async () => {
-                //             return await Promise.allSettled(batches)
-                //         })
-                //     },
-                //     100);
-                // const transition = document.startViewTransition(async () => {
-                //     await next({ name, asset });
-                // });
-
-
-                // await transition.ready;
-                // performance.mark(`viewTransition:${name}:start`);
-                // await transition.finished
-                // performance.mark(`viewTransition:${name}:end`);
-                // performance.measure(`viewTransition:${name}`, `viewTransition:${name}:start`, `viewTransition:${name}:end`);
             }
 
         }
@@ -576,10 +744,10 @@
         globalThis.registry = new MyCustomRegistry({
             catalog,
             root: document.body,
-            live: false,
+            live: true,
             fallback: false,
         });
-        console.log(await registry.discover());
+        console.log('First discover', await registry.discover());
 
 
         async function metrics() {
@@ -603,6 +771,7 @@
     <footer>
         <p>Created by <a href="https://github.com/vitorcalejuri">Vitor Calejuri</a></p>
     </footer>
+
 </body>
 
 </html>

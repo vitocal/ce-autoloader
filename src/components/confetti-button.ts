@@ -2,7 +2,7 @@ import confetti from 'https://esm.sh/canvas-confetti';
 
 export default class ConfettiButton extends HTMLElement {
     connectedCallback() {
-        // this.style.display = 'block';
+        this.style.display = 'block';
         confetti({
             particleCount: 150,
             spread: 60,
