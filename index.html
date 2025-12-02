@@ -129,6 +129,7 @@
                 padding: .5rem 1rem 1rem;
                 display: inline-block;
                 max-inline-size: 100%;
+                width: 100%;
                 position: relative;
                 border-radius: .5rem;
                 overflow: auto;
@@ -401,11 +402,25 @@
 
     <h1> Usage </h1>
 
-    <p>Import and declare your component registry</p>
+    <p>Import <code>ce-autoloader</code> and declare your component registry. Call <code>discover()</code>
+        when you're ready, generally after <strong>load</strong>.
+
+    </p>
 
     <pre>
-<syntax-highlight language="js">import { declareComponent } from 'ce-autoloader';
-declareComponent('nord-button', 'https://unpkg.com/@nord-ui/button@1.0.0/dist/nord-button.js');
+<syntax-highlight language="js">import CERegistry from 'ce-autoloader';
+import { * as mycomps } from './src/components';
+
+/** A unified registry for all your components */
+const catalog = {
+    ...mycomps,
+    "nord-button": "https://unpkg.com/@nord-ui/button@1.0.0/dist/nord-button.js",
+    // ...
+}
+const registry = new CERegistry({catalog, root: document.body});
+
+// Start when you're ready
+await registry.discover();
 </syntax-highlight>
 </pre>
 
@@ -570,7 +585,6 @@ declareComponent('nord-button', 'https://unpkg.com/@nord-ui/button@1.0.0/dist/no
         </table>
     </nord-table>
 
-
     <h3>manual</h3>
 
     <p>When you want more control, you can upgrade a component manually, by using a custom directive name
@@ -588,7 +602,9 @@ declareComponent('nord-button', 'https://unpkg.com/@nord-ui/button@1.0.0/dist/no
         });
     </script>
 
-    <h2>Namespaced Components</h2>
+    <hr />
+    <h1>Namespaced Components</h1>
+
     <p>You can lazily import a whole library of components by using namespace <code>myns-*</code></p>
     <p class="leftcenter">
         For example, here we register everything under <code>nord-*</code> namespace, so any component like
@@ -602,8 +618,6 @@ declareComponent('nord-button', 'https://unpkg.com/@nord-ui/button@1.0.0/dist/no
             Send me a ❤️ via pix
         </figcaption>
     </figure>
-
-
 
     <p> Heres the full loader for <code>nord-*</code></p>
 
@@ -677,9 +691,6 @@ declareComponent('nord-button', 'https://unpkg.com/@nord-ui/button@1.0.0/dist/no
     <script class="echo reflect" type="module" contenteditable="true">
         // import CERegistry from 'https://esm.sh/ce-autoloader';
         import CERegistry from './src/index.js';
-
-        // import Popout from "https://nordcdn.net/ds/components/4.9.0/Popout.js"
-        // DEFINE('nord-popout', Popout);
 
         const ViComponents = (await import('./src/components/vi')).default;
         const PixComponents = (await import('./src/components/pix')).default;
