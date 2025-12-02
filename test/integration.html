@@ -179,7 +179,7 @@
             describe("loading attribute", () => {
                 it('should allow manual', async () => {
                     const el = document.createElement('manual-component')
-                    el.setAttribute('loading', 'manual');
+                    el.setAttribute('on', 'manual');
                     fixtures.appendChild(el);
 
                     registry = new AutoLoader({
@@ -198,7 +198,7 @@
 
                 it('should allow interaction', async () => {
                     const el = document.createElement('interaction-component')
-                    el.setAttribute('loading', 'interaction');
+                    el.setAttribute('on', 'interaction');
                     fixtures.appendChild(el);
 
                     registry = new AutoLoader({
@@ -217,7 +217,7 @@
 
                 it('should allow lazy', async () => {
                     const el = document.createElement('visible-component')
-                    el.setAttribute('loading', 'lazy');
+                    el.setAttribute('on', 'lazy');
                     fixtures.appendChild(el);
 
                     registry = new AutoLoader({

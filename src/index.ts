@@ -1,3 +1,5 @@
+// import { Batcher } from "./utils";
+
 /**
  * A module can be a URL or a function that returns a Promise<CustomElementConstructor>
  */
@@ -14,13 +16,17 @@ export type CEAutoLoaderOptions = {
   live?: boolean;
   /** Fallback to components with errors? */
   fallback?: true | CustomElementConstructor;
-  /** Transition function to animate loading components */
-  transition?: (comps: HTMLElement[]) => Promise<void>;
-  beforeDefine?: (name: string, next: () => Promise<void>) => Promise<void>;
   /** Directives are triggers to when the component should be loaded */
   directives?: CEAutoLoaderDirectives[];
 }
 
+/**
+ * customElements.define is monkey patched to be lazy and ordered rendering.
+ * Useful for deferring component definition until they are needed.
+ *
+ * For example, you can load components into memory, and in a single animation frame
+ * define all of them, and animate them in.
+ */
 globalThis.DEFINE = customElements.define.bind(customElements);
 customElements.waiting = {};
 customElements.define = function (name, ctor, options) {
@@ -31,7 +37,9 @@ customElements.define = function (name, ctor, options) {
 declare global {
   interface CustomElementRegistry {
     _define?: typeof CustomElementRegistry.prototype.define;
+    waiting: Record<string, { ctor: CustomElementConstructor, options?: ElementDefinitionOptions }>;
   }
+  var DEFINE: typeof CustomElementRegistry.prototype.define;
 }
 
 function isCustomElement(element: Element) {
@@ -91,8 +99,9 @@ class CEAutoLoader {
   #observers: Array<MutationObserver | IntersectionObserver> = [];
   #initialized: boolean = false;
 
-  // Transition/Animations
-  #transition?: ((comps: HTMLElement[], registerAll: () => Promise<PromiseSettledResult<CustomElementConstructor>[]>) => void) = undefined;
+  // Batches of fns to be called in a single animation frame
+  batches: Array<() => Promise<void>> = [];
+  batchLoop?: NodeJS.Timeout = undefined;
 
   /**
    * Maybe those are not needed,
@@ -130,8 +139,6 @@ class CEAutoLoader {
     };
     this.catalog = options.catalog;
 
-    this.#transition = options.transition;
-
   }
 
   /**
@@ -146,6 +153,8 @@ class CEAutoLoader {
    * discover custom elements in the page and upgrade them.
    */
   async discover() {
+
+    this.batches = [];
 
     // Load all elements that matches the directives
     for (const directive of this.options.directives ?? []) {
@@ -162,6 +171,13 @@ class CEAutoLoader {
 
     // Load everyone else right away
     const result = await this.upgrade();
+
+    // Run a final flush, and clear batches
+    if (this.batches.length > 0) {
+      this.batchedDefine(this.batches);
+      clearInterval(this.batchLoop);
+      this.batchLoop = undefined;
+    }
 
     this.#initialized = true;
 
@@ -273,8 +289,20 @@ class CEAutoLoader {
 
     const _registerAll = async () => {
       console.log("registering", comps.map((el) => el.tagName.toLowerCase()));
+
+      // flush batches every 100ms
+      if (!this.batchLoop) {
+        this.batchLoop = setInterval(() => {
+          this.batchedDefine(this.batches);
+        }, 500);
+      }
+
       const result = await Promise.allSettled(comps.map((el) => this.registerLeaf(el)))
-      comps.map((el) => el.tagName.toLowerCase());
+
+      // clearInterval(interval);
+      // await this.batchedDefine(this.batches);
+      // this.batches = [];
+
       return result;
     }
 
@@ -388,6 +416,7 @@ class CEAutoLoader {
    * It will be rendered on DOM after this.
    */
   async define({ name, el, asset }: { name: string, el: Element, asset: string }, next) {
+    console.log("im in define", name)
     if (customElements.get(name)) {
       console.log(`ce-autoloader: Component ${name} already defined`)
       return await next({ name, el, asset });
@@ -407,6 +436,34 @@ class CEAutoLoader {
     performance.measure(`define:${name}`, `define:${name}:start`, `define:${name}:end`);
 
     return await next({ name, el, asset });
+  }
+
+  /**
+   * Group multiple ad-hoc define(name, component) calls into a single batched one.
+   * We transition everyone in a single pass.
+   */
+  async batchedDefine(jobs: Array<() => Promise<void>>) {
+    if (jobs.length === 0) return;
+
+    console.log("flushing", this.batches.length);
+
+    const transition = document.startViewTransition(async () => {
+      console.log("startViewTransition");
+      console.trace();
+      return Promise.allSettled(jobs.map((job) => job()))
+    })
+
+    try {
+      await transition.ready;
+      performance.mark(`viewTransition:start`);
+      await transition.finished
+      performance.mark(`viewTransition:end`);
+      performance.measure(`viewTransition`, `viewTransition:start`, `viewTransition:end`);
+    } catch (error) {
+      console.error("View transition failed:", error)
+    }
+
+    this.batches = []
   }
 
 

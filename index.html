@@ -217,24 +217,24 @@
         }
 
         /* */
-        ::view-transition-group(.three-cube) {
+        ::view-transition-group(*.three-cube) {
             animation-timing-function: var(--spring-easing);
             animation-duration: var(--spring-duration);
         }
 
 
-        ::view-transition-image-pair(.three-cube) {
+        ::view-transition-image-pair(*.three-cube) {
             overflow: clip;
             overflow-clip-margin: 2em;
         }
 
-        ::view-transition-old(.three-cube),
-        ::view-transition-new(.three-cube) {
+        ::view-transition-old(*.three-cube),
+        ::view-transition-new(*.three-cube) {
             width: auto;
             height: 100%;
         }
 
-        ::view-transition-old(.three-cube) {
+        ::view-transition-old(*.three-cube) {
             animation-name: blur-out;
             height: auto;
         }
@@ -465,17 +465,16 @@
 
             - [x] Implement a hook to allow document.startViewTransition() before loading (transition: callback)
             - [X] Implement a [data-loading] and [ready] attributes
-            - [ ] How to start the transition right after the module is loaded, but the DOM
+            - [X] How to start the transition right after the module is loaded, but the DOM
                   was not changed yet.
 
-                  Thats hard, because if we startViewTransition(registry.registerComponents), then
-                  it starts before the loading of the module, and only concludes after, taking many seconds
-                  without updating the UI.
 
-                  If we startViewTransition after it's defined, then it's too late, because the DOM was already
-                  changed.
+            Thats hard, because if we startViewTransition(registry.registerComponents), then
+            it starts before the loading of the module, and only concludes after, taking many seconds
+            without updating the UI.
 
-
+            If we startViewTransition after it's defined, then it's too late, because the DOM was already
+            changed.
         </script>
     </wc-markdown>
 
@@ -548,16 +547,30 @@
                 el.style.viewTransitionName = 'match-element';
                 el.style.viewTransitionClass = el.tagName.toLowerCase();
 
-                const transition = document.startViewTransition(async () => {
-                    await next({ name, asset });
+                this.batches.push(async () => {
+                    return await next({ name, asset });
                 });
 
-                await transition.ready;
-                performance.mark(`viewTransition:${name}:start`);
-                await transition.finished
-                performance.mark(`viewTransition:${name}:end`);
-                performance.measure(`viewTransition:${name}`, `viewTransition:${name}:start`, `viewTransition:${name}:end`);
+                // const transition = await runBatchAfter(this.batches,
+                //     async (batches) => {
+                //         console.log('Running batch', batches);
+                //         return document.startViewTransition(async () => {
+                //             return await Promise.allSettled(batches)
+                //         })
+                //     },
+                //     100);
+                // const transition = document.startViewTransition(async () => {
+                //     await next({ name, asset });
+                // });
+
+
+                // await transition.ready;
+                // performance.mark(`viewTransition:${name}:start`);
+                // await transition.finished
+                // performance.mark(`viewTransition:${name}:end`);
+                // performance.measure(`viewTransition:${name}`, `viewTransition:${name}:start`, `viewTransition:${name}:end`);
             }
+
         }
 
         globalThis.registry = new MyCustomRegistry({
