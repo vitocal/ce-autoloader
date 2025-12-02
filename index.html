@@ -6,10 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CEAutoLoader Test</title>
 
-    <!-- <link rel="stylesheet" href="https://esm.sh/@awesome.me/webawesome@3.0.0/dist/styles/themes/default.css"
-        media="none" onload="if(media!='all')media='all'"> -->
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prism.min.css">
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css">
     <style>
         @layer normalize, theme, ds, components.root, components.extended, utils;
         @import "https://nordcdn.net/ds/css/4.2.0/nord.min.css" layer(ds);
@@ -116,35 +114,35 @@
             box-sizing: border-box;
             display: block;
             max-width: 100%;
-            white-space: pre;
-            /* preserve spaces/newlines exactly */
-            overflow-x: auto;
-            /* show horizontal scrollbar when needed */
-            -webkit-overflow-scrolling: touch;
-            /* smooth scrolling on iOS */
-            padding: .6rem;
-            background-color: var(--color-bg);
-            border-radius: 0.33em;
-            box-shadow: var(--shadow-6);
-        }
 
+            font-size: 12px;
 
+            &:has(code, syntax-highlight) {
+                white-space: pre-wrap;
+                word-break: break-all;
 
-
-        @layer components.extended {
-            pre:has(syntax-highlight) {
-                background-color: transparent;
-                margin: 0;
-                padding: 0;
-                display: contents;
-
-                syntax-highlight {
-                    display: block;
-                    overflow: auto;
-                }
+                tab-size: 2;
+                overflow: auto;
             }
 
+            syntax-highlight {
+                padding: .5rem 1rem 1rem;
+                display: inline-block;
+                max-inline-size: 100%;
+                position: relative;
+                border-radius: .5rem;
+                overflow: auto;
+            }
         }
+
+        code {
+            font-size: 12px;
+            background-color: var(--color-bg-dark);
+            padding: 0.25rem 0.5rem;
+        }
+
+
+
 
 
 
@@ -386,7 +384,7 @@
     </script>
 </head>
 
-<body class="container">
+<body class="container n-reset">
     <h1>ce-autoloader</h1>
     <p>Load web-components on demand, if and when they're used in the page.</p>
 
@@ -400,6 +398,16 @@
         <li>1.7kb gzip, performant! </li>
         <li>Namespaced components - Lazily load any component from any library</li>
     </ul>
+
+    <h1> Usage </h1>
+
+    <p>Import and declare your component registry</p>
+
+    <pre>
+<syntax-highlight language="js">import { declareComponent } from 'ce-autoloader';
+declareComponent('nord-button', 'https://unpkg.com/@nord-ui/button@1.0.0/dist/nord-button.js');
+</syntax-highlight>
+</pre>
 
     <h2>Examples - Loading Attribute</h2>
 
@@ -600,8 +608,7 @@
     <p> Heres the full loader for <code>nord-*</code></p>
 
     <pre>
-    <syntax-highlight language="js">
-/**
+<syntax-highlight language="js">/**
  * Nord Health design system
  */
 "nord-*": async (full_name) => {
@@ -611,8 +618,7 @@
         customElements.define(full_name, module.default);
     }
     return module
-},
-</syntax-highlight>
+},</syntax-highlight>
 </pre>
 
     <hr>
