@@ -1,0 +1,368 @@
+@layer normalize, utils, theme, ds, components.root, components.extended;
+@import "https://nordcdn.net/ds/css/4.2.0/nord.min.css" layer(ds);
+@import "@loadingio/transition.css" layer(utils);
+
+@layer normalize {
+
+    /* 1. Use a more-intuitive box-sizing model */
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    /* 2. Remove default margin */
+    * {
+        margin: 0;
+    }
+}
+
+@layer theme {
+    :root {
+        --color-primary: #e31;
+        --color-secondary: rgba(148, 163, 184, 0.55);
+        --color-accent: #333;
+        --color-bg-dark: #ddd;
+        --color-bg: #eee;
+        --color-bg-light: #fff;
+        --color-fg: #333;
+
+        --color-success: rgb(11, 185, 34);
+        --color-warning: rgb(255, 243, 72);
+        --color-danger: #e31;
+
+        --spring-easing: linear(0, 0.0092, 0.0345, 0.0726, 0.1205, 0.1757, 0.2358, 0.299, 0.3635, 0.428, 0.4913, 0.5525, 0.6109, 0.6659, 0.7172, 0.7644, 0.8075, 0.8465, 0.8812, 0.912, 0.9389, 0.9621, 0.9819, 0.9985, 1.0122, 1.0233, 1.032, 1.0386, 1.0433, 1.0464, 1.0482, 1.0487, 1.0483, 1.0471, 1.0453, 1.043, 1.0403, 1.0374, 1.0343, 1.0312, 1.028, 1.025, 1.022, 1.0191, 1.0164, 1.0139, 1.0116, 1.0095, 1.0076, 1.0059, 1.0044, 1.003, 1.0019, 1.0009, 1.0001, 0.9994, 0.9989, 0.9985, 0.9981, 0.9979, 0.9977, 0.9977, 0.9976, 0.9976, 0.9977, 0.9978, 0.9979, 0.998, 0.9982, 0.9983, 0.9985, 0.9986, 0.9988, 0.9989, 0.9991, 0.9992, 0.9993, 0.9994, 0.9995, 0.9996, 0.9997, 0.9998, 0.9998, 0.9999, 1, 1, 1, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1);
+        --spring-duration: 0.73s;
+    }
+}
+
+body {
+    max-width: 90%;
+    margin: 0 auto;
+}
+
+body>*+* {
+    margin-top: 1em;
+}
+
+.container {
+    display: grid;
+    grid-template-columns:
+        [left-start] 1fr [center-start] 4fr [center-end right-start] 1fr [right-end];
+    grid-template-rows: auto;
+    grid-gap: 1em;
+
+    /* default spans 3 columns */
+    &>* {
+        grid-column: 1 / -1;
+    }
+
+    /* Optional placement areas */
+    .left {
+        grid-column: left-start / center-start;
+    }
+
+    .center {
+        grid-column: center-start / center-end;
+    }
+
+    .right {
+        grid-column: right-start / right-end;
+    }
+
+    /* Combined areas */
+    .leftcenter {
+        grid-column: left-start / center-end;
+        /* alias explained below */
+    }
+
+    .centerright {
+        grid-column: center-start / right-end;
+    }
+}
+
+
+img {
+    max-width: 100%;
+}
+
+pre {
+    box-sizing: border-box;
+    display: block;
+    max-width: 100%;
+
+    font-size: 12px;
+
+    &:has(code, syntax-highlight) {
+        white-space: pre-wrap;
+        word-break: break-all;
+
+        tab-size: 2;
+        overflow: auto;
+    }
+
+    syntax-highlight {
+        padding: .5rem 1rem 1rem;
+        display: inline-block;
+        max-inline-size: 100%;
+        width: 100%;
+        position: relative;
+        border-radius: .5rem;
+        overflow: auto;
+    }
+}
+
+code {
+    font-size: 12px;
+    background-color: var(--color-bg-dark);
+    padding: 0.25rem 0.5rem;
+}
+
+
+hr {
+    border: 0px;
+    border-top: 1px solid var(--color-secondary);
+}
+
+
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+@layer components.root {
+    :not(:defined) {
+        visibility: visible;
+        display: inline-block;
+        color: var(--color-fg);
+        outline: 1px dashed var(--color-secondary);
+
+        width: fit-content;
+        min-height: 1em;
+        padding: 0.35em;
+        border-radius: 0.5em;
+        overflow: clip;
+        overflow-clip-margin: 0.5em;
+
+        position: relative;
+
+    }
+
+    /* [loading] {
+        outline: 1px dashed var(--color-secondary);
+        position: relative;
+        overflow: clip;
+
+        &::after {
+            pointer-events: none;
+            content: " ";
+            position: absolute;
+            transform: translateX(-100%);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: 0 0 100px 50px rgba(0, 0, 0, 0.5) inset;
+            /* Large blur, negative spread for vignette */
+    /* background: linear-gradient(90deg,
+                    transparent,
+                    #0006 20%,
+                    #0005 60%,
+                    transparent); */
+    /*
+            animation: shimmer 1s ease-in-out infinite;
+            z-index: 0;
+        }
+    } */
+
+    [ready] {
+        outline: 2px dashed transparent;
+        outline-offset: 0px;
+        border-radius: 0.5em;
+        overflow: clip;
+        overflow-clip-margin: 0.5em;
+        visibility: visible;
+
+        animation: outline-highlight 0.7s ease-in-out 4 alternate;
+    }
+}
+
+
+/**
+         * Animations
+         */
+/* ::view-transition-group(*) {
+            animation: none;
+        } */
+
+
+/* ::view-transition-group(*) {
+            animation: none;
+            animation-duration: 1s;
+        }
+*/
+::view-transition-old(*) {
+    width: fit-content;
+    height: 100%;
+    object-position: left;
+
+    /* But maintain it within the image itself */
+    object-fit: none;
+}
+
+::view-transition-new(*) {
+    height: 100%;
+    object-position: left;
+
+    /* But maintain it within the image itself */
+    object-fit: none;
+}
+
+
+/* disable view transition root animation */
+::view-transition-group(root) {}
+
+::view-transition-new(root),
+::view-transition-old(root) {}
+
+
+/* */
+::view-transition-group(*.three-cube) {
+    /* animation-timing-function: var(--spring-easing); */
+    /* animation-duration: 1s; */
+}
+
+
+::view-transition-image-pair(*.three-cube) {
+    overflow: clip;
+    overflow-clip-margin: 2em;
+}
+
+::view-transition-old(*.three-cube),
+::view-transition-new(*.three-cube) {
+    width: auto;
+    height: 100%;
+}
+
+::view-transition-old(*.three-cube) {
+    border: 1px solid red;
+    height: 100%;
+    /* animation-name: ld-fade-out; */
+    /* animation-duration: 0.1s; */
+}
+
+::view-transition-new(*.three-cube) {
+    border: 1px solid green;
+    /* animation-name: ld-fade-in; */
+    /* animation-duration: 1s; */
+}
+
+@keyframes grow {
+    from {
+        height: 50%;
+    }
+
+    80% {
+        height: 50%;
+    }
+
+    to {
+        height: 100%;
+    }
+}
+
+@keyframes shrink {
+    from {
+        height: 100%;
+    }
+
+    20% {
+        height: 50%;
+    }
+
+    to {
+        height: 50%;
+    }
+}
+
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+@keyframes slide-in {
+    0% {
+        transform: translateX(-33%);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+@keyframes slide-out {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-33%);
+    }
+}
+
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes fade-out {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes blur-out {
+    0% {
+        filter: blur(0);
+        opacity: 1;
+    }
+
+    100% {
+        filter: blur(10px);
+        opacity: 0;
+    }
+}
+
+@keyframes outline-highlight {
+    0% {
+        outline-color: transparent;
+        outline-offset: 4px;
+    }
+
+    50% {
+        outline-color: var(--color-success);
+        outline-offset: 8px;
+    }
+
+    100% {
+        outline-color: transparent;
+        outline-offset: 0px;
+    }
+}

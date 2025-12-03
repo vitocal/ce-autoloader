@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEAutoLoader - Single view-transition</title>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "lit": "/node_modules/.vite/deps/lit.js",
+                "lit/decorators.js": "/node_modules/.vite/deps/lit_decorators__js.js",
+                "lit/directives/ref.js": "/node_modules/.vite/deps/lit_directives_ref__js.js",
+                "lit/directives/if-defined.js": "/node_modules/.vite/deps/lit_directives_if-defined__js.js",
+                "lit/directives/unsafe-html.js": "/node_modules/.vite/deps/lit_directives_unsafe-html__js.js",
+                "lit/": "/node_modules/.vite/deps/lit/"
+            }
+        }
+    </script>
+
+    <link rel="stylesheet" href="/docs/styles.css">
+    <style>
+        .flex {
+            display: flex;
+        }
+
+        .gap-4 {
+            gap: 1rem;
+        }
+    </style>
+
+    <link rel="modulepreload" href="https://esm.sh/@nordhealth/components/lib/Button.js?external=lit">
+
+    <script src="https://esm.sh/@nordhealth/components/lib/Button.js?external=lit" type="module"></script>
+
+</head>
+
+<body class="container n-reset">
+    <p>
+        Playground for view transitions
+    </p>
+
+    <nord-banner variant="success">
+        <span>Your order has been shipped and will arrive on May 27th. <a href="#">Track order.</a></span>
+    </nord-banner>
+
+    <nord-button onclick="start(event)" variant="primary">Start -></nord-button>
+
+    <!--
+    How to disable css temporarly
+     document.querySelector('link[href="a.css"]').disabled = true
+    -->
+
+
+    <script type="module" defer>
+        // import { customElement, property, eventOptions, query } from 'lit/decorators.js';
+        // import { ref } from "lit/directives/ref.js";
+        // import { ifDefined } from "lit/directives/if-defined.js";
+        // import { unsafeHTML } from "lit/directives/unsafe-html.js";
+
+        // import { customElement, property } from 'lit/decorators.js';
+        import CERegistry from './src/index.js';
+
+        const capitalize = (str) =>
+            str.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('');
+
+        globalThis.process = {
+            env: {
+                NODE_ENV: 'development'
+            }
+        }
+
+        window.addEventListener('load', async () => {
+            console.log("load");
+            performance.mark('pageload:start');
+            performance.mark('pageload:end');
+            performance.measure('pageload', 'pageload:start', 'pageload:end')
+
+
+        })
+
+        const catalog = {
+
+            /**
+             * Nord Health design system
+             */
+            "nord-*": async (full_name) => {
+                const [, namespace, name] = full_name.match(/^([a-z]+)-(.*)/);
+                const module = await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/${capitalize(name)}.js?external=lit`);
+                if (!customElements.get(full_name)) {
+                    customElements.define(full_name, module.default);
+                }
+                return module
+            },
+            "three-cube": "/src/components/three-cube.js",
+        };
+
+        class MyCustomRegistry extends CERegistry {
+
+            async beforeLoad({ name, el, asset }, next) {
+                performance.mark(`load:${name}:start`);
+
+                // add loading/transition-class to all components
+                el.setAttribute('loading', 'true');
+
+                await next({ name, el, asset });
+            }
+
+            async afterLoad({ name, el, asset }, next) {
+                performance.mark(`load:${name}:end`);
+                performance.measure(`load:${name}`, `load:${name}:start`, `load:${name}:end`);
+
+                performance.mark(`define:${name}:start`);
+
+                el.removeAttribute('loading');
+                el.setAttribute('ready', "");
+                // el.style.viewTransitionName = 'match-element';
+                // el.style.viewTransitionClass = el.tagName.toLowerCase();
+
+                this.batches.push(async () => {
+                    return await next({ name, asset });
+                });
+            }
+
+        }
+
+        globalThis.registry = new MyCustomRegistry({
+            catalog,
+            root: document.body,
+            live: true,
+            fallback: false,
+        });
+
+
+        // performance.mark('discover:start');
+        // await registry.discover();
+        // performance.mark('discover:end');
+        // performance.measure('discover', 'discover:start', 'discover:end')
+
+
+    </script>
+    <script>
+        async function start(ev) {
+            ev.target.setAttribute('loading', true);
+            await registry.discover();
+            ev.target.removeAttribute('loading');
+        }
+    </script>
+</body>
+
+</html>

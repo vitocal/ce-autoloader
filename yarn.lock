@@ -226,6 +226,11 @@
   dependencies:
     "@lit-labs/ssr-dom-shim" "^1.4.0"
 
+"@loadingio/transition.css@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.npmjs.org/@loadingio/transition.css/-/transition.css-3.0.0.tgz"
+  integrity sha512-VETvwZU9I0kK/tqwOp0mWy3wbKSyI7KXDlYuvg8BCAIgB9UtHhN4821wv7C7NdT8/R7xOHTvdnCOAWnzFI8r8g==
+
 "@napi-rs/wasm-runtime@^1.0.7":
   version "1.0.7"
   resolved "https://registry.npmjs.org/@napi-rs/wasm-runtime/-/wasm-runtime-1.0.7.tgz"

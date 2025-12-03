@@ -5,6 +5,15 @@ export default {
       name: 'ce-autoloader',
       fileName: 'ce-autoloader'
     },
+    rollupOptions: {
+      external: ['lit'],
+      output: {
+        globals: {
+          lit: 'lit'
+        }
+      }
+
+    }
   },
   publicDir: "dist",
   server: {

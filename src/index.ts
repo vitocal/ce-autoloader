@@ -159,7 +159,7 @@ class CEAutoLoader {
       live: true,
       root: document.body,
       directives: ["idle", "lazy", "interaction"],
-      batchInterval: 500,
+      batchInterval: 100,
       ...options
     };
     this.catalog = options.catalog;
@@ -406,10 +406,10 @@ class CEAutoLoader {
    * Load the module
    */
   async load({ name, el, asset }: { name: string, el: Element, asset: string | Function }, next): Promise<CustomElementConstructor> {
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // await new Promise(resolve => setTimeout(resolve, 1000));
 
     if (typeof asset === "string") {
-      let module = await import(/** @vite-ignore */ asset);
+      let module = await import(/* @vite-ignore */ asset);
       return next({ name, el, asset, module })
     } else if (typeof asset === "function") {
       const module = await asset(name);
@@ -479,12 +479,6 @@ class CEAutoLoader {
       console.error("View transition failed:", error)
     }
 
-    // Some components definitions can be still in waiting (they're not in DOM, but were defined)
-    // Define them, they're not used in the DOM, but was neverthless defined by someone.
-    if (Object.keys(customElements.waiting).length > 0) {
-      Object.entries(customElements.waiting).map(
-        ([name, { ctor, options }]) => DEFINE(name, ctor, options))
-    }
 
     this.batches = []
   }
@@ -496,6 +490,18 @@ class CEAutoLoader {
   getNamespace(name: string): CEAutoLoaderModule | null {
     const [prefix, _comp_name] = name.split('-');
     return this._namespaces[prefix];
+  }
+
+  /**
+   * Register components in the waiting queue
+   */
+  registerInWaiting(name: string, ctor: CustomElementConstructor, options?: ElementDefinitionOptions) {
+    // Some components definitions can be still in waiting (they' have called customElements.define but they're not in DOM)
+    // Let's define them now
+    if (Object.keys(customElements.waiting).length > 0) {
+      Object.entries(customElements.waiting).map(
+        ([name, { ctor, options }]) => DEFINE(name, ctor, options))
+    }
   }
 
 }

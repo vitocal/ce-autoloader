@@ -42,6 +42,7 @@
   "license": "GPL-3.0",
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.11.0",
+    "@loadingio/transition.css": "^3.0.0",
     "@types/node": "^24.10.1",
     "buffer": "^6.0.3",
     "chai": "^6.2.1",
