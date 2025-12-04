@@ -10,7 +10,7 @@ export default class ThreeCube extends HTMLElement {
 
         this.shadowRoot.innerHTML = `
             <style>
-                :host { display: inline-flex; width: 100%; height: 150px; }
+                :host { display: inline-flex; width: 100%; min-height: 160px; }
                 #container { width: 100%; height: 100%; }
             </style>
             <div id="container"></div>

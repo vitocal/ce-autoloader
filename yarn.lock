@@ -197,6 +197,26 @@
   resolved "https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.25.12.tgz"
   integrity sha512-alJC0uCZpTFrSL0CCDjcgleBXPnCrEAhTBILpeAp7M/OFgoqtAetfBzX0xM00MUsVVPpVjlPuMbREqnZCXaTnA==
 
+"@floating-ui/core@^1.7.3":
+  version "1.7.3"
+  resolved "https://registry.npmjs.org/@floating-ui/core/-/core-1.7.3.tgz"
+  integrity sha512-sGnvb5dmrJaKEZ+LDIpguvdX3bDlEllmv4/ClQ9awcmCZrlx5jQyyMWFM5kBI+EyNOCDDiKk8il0zeuX3Zlg/w==
+  dependencies:
+    "@floating-ui/utils" "^0.2.10"
+
+"@floating-ui/dom@^1.6.13":
+  version "1.7.4"
+  resolved "https://registry.npmjs.org/@floating-ui/dom/-/dom-1.7.4.tgz"
+  integrity sha512-OOchDgh4F2CchOX94cRVqhvy7b3AFb+/rQXyswmzmGakRfkMgoWVjfnLWkRirfLEfuD4ysVW16eXzwt3jHIzKA==
+  dependencies:
+    "@floating-ui/core" "^1.7.3"
+    "@floating-ui/utils" "^0.2.10"
+
+"@floating-ui/utils@^0.2.10":
+  version "0.2.10"
+  resolved "https://registry.npmjs.org/@floating-ui/utils/-/utils-0.2.10.tgz"
+  integrity sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==
+
 "@github/catalyst@^1.6.0":
   version "1.7.0"
   resolved "https://registry.npmjs.org/@github/catalyst/-/catalyst-1.7.0.tgz"
@@ -260,6 +280,22 @@
   dependencies:
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
+
+"@nordhealth/components@^4.9.0":
+  version "4.9.0"
+  resolved "https://registry.npmjs.org/@nordhealth/components/-/components-4.9.0.tgz"
+  integrity sha512-xVACTjKFs/Ksy+CNSnEAJWEEx8ZgOL3Wu0y+GRRD8OYvgvOP7Uf1c7pKDKHrEZeVllToI51F4Xj8bba/j+ESPg==
+  dependencies:
+    "@floating-ui/dom" "^1.6.13"
+    "@nordhealth/icons" "^3.11.0"
+    lit "^3.3.0"
+    qr "^0.4.2"
+    tinykeys "^1.4.0"
+
+"@nordhealth/icons@^3.11.0":
+  version "3.11.0"
+  resolved "https://registry.npmjs.org/@nordhealth/icons/-/icons-3.11.0.tgz"
+  integrity sha512-1rIF7lIobXQIxkwKPSXO1l78meoD43FVqPWT7LYO4MdcY3k1EC2JfX4P2rn6rTVOkbV2YLhd2RG9oP0bxE0KOw==
 
 "@oxc-resolver/binding-android-arm-eabi@11.14.0":
   version "11.14.0"
@@ -1335,7 +1371,7 @@ lit-html@^3.3.0:
   dependencies:
     "@types/trusted-types" "^2.0.2"
 
-lit@^3.3.1:
+lit@^3.3.0, lit@^3.3.1:
   version "3.3.1"
   resolved "https://registry.npmjs.org/lit/-/lit-3.3.1.tgz"
   integrity sha512-Ksr/8L3PTapbdXJCk+EJVB78jDodUMaP54gD24W186zGRARvwrsPfS60wae/SSCTCNZVPd1chXqio1qHQmu4NA==
@@ -1711,6 +1747,11 @@ puppeteer@^24.31.0:
     puppeteer-core "24.31.0"
     typed-query-selector "^2.12.0"
 
+qr@^0.4.2:
+  version "0.4.2"
+  resolved "https://registry.npmjs.org/qr/-/qr-0.4.2.tgz"
+  integrity sha512-wCv4rt7IcPNGT0J8JiTBHx7YrZzYuzpof38y/MFYd5Sp7OTyAFYL1e110In8PrAG/ffIOVl1ha3joJ2zpYxKMQ==
+
 qrcode-pix@^5.0.0:
   version "5.0.0"
   resolved "https://registry.npmjs.org/qrcode-pix/-/qrcode-pix-5.0.0.tgz"
@@ -1978,6 +2019,11 @@ supports-color@^8.1.1:
   dependencies:
     has-flag "^4.0.0"
 
+syntax-highlight-element@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.npmjs.org/syntax-highlight-element/-/syntax-highlight-element-1.2.0.tgz"
+  integrity sha512-S6/+oh/Ba7wpPX5f7Glx58fhBq/g8tASwm9noxp+7DLXaR6NFMbC3R2ki3as7pOqyTV7w2BU545Zh61Kw/acVQ==
+
 tar-fs@^3.1.1:
   version "3.1.1"
   resolved "https://registry.npmjs.org/tar-fs/-/tar-fs-3.1.1.tgz"
@@ -2012,6 +2058,11 @@ tinyglobby@^0.2.15:
   dependencies:
     fdir "^6.5.0"
     picomatch "^4.0.3"
+
+tinykeys@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.npmjs.org/tinykeys/-/tinykeys-1.4.0.tgz"
+  integrity sha512-ysnVd2E4nWbNXIbHaUidcKGLTmNimqP0hdpsD0Ph5hPJ84ntCF6PHj+Jg3im9nZt9/hNsBg/E6m1psHc2KaPnQ==
 
 to-regex-range@^5.0.1:
   version "5.0.1"
