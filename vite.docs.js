@@ -21,7 +21,8 @@ export default defineConfig({
         single: resolve(__dirname, 'single.html'),
       }
     },
-    emptyOutDir: false,
+    outDir: 'docs/',
+    emptyOutDir: true,
   },
 
   server: {
