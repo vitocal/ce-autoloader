@@ -12,7 +12,8 @@ export default defineConfig({
       name: 'ce-autoloader',
       fileName: 'ce-autoloader'
     },
-    rollupOptions: {}
+    rollupOptions: {},
+    emptyOutDir: false,
   },
 
   server: {

@@ -1,6 +1,6 @@
 {
   "name": "ce-autoloader",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A webcomponents auto loader and registry",
   "type": "module",
   "main": "./dist/ce-autoloader.umd.cjs",
@@ -14,7 +14,7 @@
   },
   "customElements": "custom-elements.json",
   "files": [
-    "dist"
+    "dist/*.js"
   ],
   "scripts": {
     "dev": "vite build --mode development --watch",
@@ -25,7 +25,8 @@
     "serve": "npm run build:vi-components && vite",
     "build": "npm run build:vi-components && npm run build:examples && vite build",
     "test": "npm run test:headless",
-    "test:headless": "node scripts/run-integration-tests.js"
+    "test:headless": "node scripts/run-integration-tests.js",
+    "prepack": "npm run build"
   },
   "repository": {
     "type": "git",

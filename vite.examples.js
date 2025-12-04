@@ -8,7 +8,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 export default defineConfig({
   optimizeDeps: {
     include: ['@nordhealth/components/lib/*.js'],
-    exclude: ['lit', 'lit-html','lit-element','@lit/reactive-element'],
+    exclude: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element'],
     esbuildOptions: {
       treeShaking: true
     }
@@ -20,7 +20,8 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         single: resolve(__dirname, 'single.html'),
       }
-    }
+    },
+    emptyOutDir: false,
   },
 
   server: {

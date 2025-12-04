@@ -1,16 +1,21 @@
 # ce-autoloader
 
-A webcomponent lazy loader and component registry for the web.
-The missing piece
+A webcomponent lazy loader and registry for the web.
+The missing parts of `customElements` API.
 
-- Automatically Load any web-component on demand, if and when they're used.
+- Automatically Load any web-component on demand, if and when they're used in the page.
+- Interactive islands with customizable behaviour `on="visible"` , `on="interaction"`, etc.
+- Supports for animations with view-transitions!
 - Framework-independent: React, Lit, Svelte, Vue, Angular...
-- No dependencies, <10kb gzip, performant!
-- Interactive islands with client directives, `on="visible"` , `on="load"`, `on="interaction"`
-- Painless extension and customization.
-- Simple and ergonomic.
-- Perfect for CMS, Blogs, static sites and any other web application.
+- No dependencies, <10kb gzip, and fast!
 
+### Use Cases
+
+- Hackers tired of frontend fatigue, react madness and hydration issues.
+- Markdown blogs: hey, webcomponents are already supported natively!
+- Progressive enhancement for static sites and CMS.
+- Multi-page applications with interactive islands.
+- Smart editors like Obsidian, Notion, LogSeq.
 
 ## Installation
 
@@ -19,39 +24,38 @@ ce-autoloader is available as a npm package
 ```
 npm install ce-autoloader
 ```
-```
-<script type="module" src="/assets/ce-autoloader.js"></script>
-```
 
 ## Usage
 
 Import ce-autoloader in your primary bundle and add a components registry:
 
 ```js
-```js
 import CERegistry from "ce-autoloader";
 
 const catalog = {
-    // Shoelace
+    // Shoelace (whole library)
     "sl-*": "https://cdn.jsdelivr.net/npm/shoelace@2.20.1/",
 
-    // Material design custom loader
+    // Material design - only the components used
     "md-*": async (full_name) => {
         const [namespace, name] = full_name.split('-');
         import(`https://esm.run/@material/web/${name}`);
     },
     // My own components
-    "x-counter": "./components/x-counter.js",
+    "x-counter": () => import("./components/x-counter.js"),
 }
 
-// Start the watcher
-globalThis.registry = new CERegistry({
+var registry = new CERegistry({
     catalog,
     observe: document.body
 })
+
+// Start loading wherever you're ready
+document.addEventListener("load", () => registry.discover())
 ```
 
-Now you can use in your HTML any component from the library, anywhere.
+Now you can use any component from the library, anywhere. They're only loaded
+if they're used in the page.
 
 ```html
 <body>
@@ -59,22 +63,22 @@ Now you can use in your HTML any component from the library, anywhere.
 </body>
 ```
 
-## Use cases
+## Gotchas
 
-## Performance and customization
+### Performance and customization
 
-Since they're loaded at runtime, each module imported() by a component causes another network request.
+Since they're loaded at runtime, each module `imported()` by a component causes another network request.
 And if every component loads the full library, instead of sharing, it would be a lot of code to load,
 repeatedly.
 
 This happens if every component is compiled separatedly, without deduplication, as the default behavior
 of most bundlers.
 
-### De-duplicating dependencies with `?external`
+#### De-duplicating dependencies with `?external`
 
 We can deduplicate by marking core dependencies as **external**, and loading them once.
 
- - For URL's, theres `esm.sh?external` option
+ - For CDN's, there's generally and `external` option: `esm.sh?external`.
  - Rollup or other bundlers always has an `external` config
 
 ## Browser support
@@ -85,9 +89,9 @@ We can deduplicate by marking core dependencies as **external**, and loading the
 
 - [X] Implement component loader function: Allow functions to be registered as a component.
 - [X] Tests for url loader, function loader, namespaced loader.
-- [X] Robust Loading: Support modules that auto-register. Check customElements.get(name) after import to see if it was registered by the module before trying to define it manually.
+- [X] Robust Loading: Support modules that auto-register.
 
-- [ ] Flexible Directives: Split the on attribute by whitespace to allow multiple directives.
-- [ ] Accessibility: Expand interaction to include focus or keydown.
+    Check customElements.get(name) after import to see if it was registered by the module before trying to define it manually.
+
 - [X] Cleanup: Move lit to devDependencies if not used in core.
-- [ ] Publish on npm
+- [X] Publish on npm
