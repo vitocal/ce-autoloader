@@ -6,6 +6,7 @@ import { defineConfig } from 'vite'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
+  base: '/ce-autoloader/',
   optimizeDeps: {
     include: ['@nordhealth/components/lib/*.js'],
     exclude: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element'],
@@ -31,4 +32,5 @@ export default defineConfig({
     allowedHosts: true,
     debug: true
   },
+
 })
