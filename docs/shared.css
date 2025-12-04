@@ -35,6 +35,7 @@
     animation-timing-function: linear;
     background: linear-gradient(to right, transparent 10%, #0006 50%, transparent 90%);
     background-size: 200% 100%;
+    transform-origin: center;
 }
 
 @keyframes shimmer {
@@ -44,5 +45,17 @@
 
     to {
         background-position: -200% 0;
+    }
+}
+
+@keyframes zoom-load {
+    0% {
+        opacity: 0;
+        transform: scale(1.15);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
     }
 }
