@@ -1,0 +1,1 @@
+import{_ as o}from"./preload-helper-DzD11Dr3.js";import"lit";const t=()=>o(()=>import("./vi-switch-DA_faiwA.js"),[]),i=()=>o(()=>import("./vi-hello-CWZCzT8q.js"),[]),r={"vi-switch":t,"vi-hello":i};export{r as default};
