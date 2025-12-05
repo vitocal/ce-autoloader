@@ -56,7 +56,7 @@ class CEAutoLoader {
 	_namespaces: Record<string, CEAutoLoaderModule> = {};
 
 	// Mutation and Interaction Observers
-	#observers: Array<MutationObserver | IntersectionObserver> = [];
+	#observers: Record<string, MutationObserver | IntersectionObserver> = {};
 	#initialized: boolean = false;
 
 	// Batches of fns to be called in a single animation frame
@@ -117,7 +117,9 @@ class CEAutoLoader {
 			characterData: true
 		});
 
-		return observer
+		this.#observers['mutation'] = observer;
+
+		return;
 	}
 	async watcher(mutations: MutationRecord[]) {
 		console.log("mutated", mutations)
@@ -169,8 +171,10 @@ class CEAutoLoader {
 	 * Clean up observers to avoid memory leak
 	 */
 	clean() {
-		this.#observers?.forEach((observer) => observer.disconnect())
-		this.#observers = []
+		Object.entries(this.#observers)
+			.map(([_, obs]) => obs.disconnect())
+
+		this.#observers = {}
 	}
 
 
@@ -186,16 +190,12 @@ class CEAutoLoader {
 
 		// Watch for new elements
 		if (!this.#initialized && this.options.live) {
-			this.#observers.push(this.watch());
+			this.watch();
 		}
 
 		// Load elements that matches directives
 		for (const directive of this.options.directives ?? []) {
-			const observers = this.upgrade(directive)
-			if (Array.isArray(observers) &&
-				observers[0] instanceof IntersectionObserver) {
-				this.#observers = [...this.#observers, ...observers]
-			}
+			this.upgrade(directive)
 		}
 
 		// Load everyone else right away
@@ -235,16 +235,20 @@ class CEAutoLoader {
 		// console.log("CEAutoLoader: Registering", elements, "with directive", directive)
 		// Directives apply special conditions to when the component is loaded
 		if (directive === "visible" || this.options.defaultDirective === "visible") {
-			return elements.map((el) => {
-				const observer = new IntersectionObserver((entries) => {
-					if (entries[0].isIntersecting) {
-						this.registerComponents([el], "visible")
-						observer.disconnect()
+
+			if (!this.#observers['intersection']) {
+				this.#observers['intersection'] = new IntersectionObserver((entries) => {
+					for (const entry of entries.filter(
+						(entry) => (entry.isIntersecting &&
+							!customElements.get(entry.target.tagName.toLowerCase()))
+					)) {
+						this.registerComponents([entry.target as HTMLElement], "visible")
 					}
 				})
-				observer.observe(el)
-				return observer
-			})
+			}
+
+			return elements.map((el) => this.#observers['intersection'].observe(el))
+
 		} else if (directive === "interaction" || this.options.defaultDirective === "interaction") {
 			return elements.map((el) => {
 				return el.addEventListener("pointerdown", () => {
