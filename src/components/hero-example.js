@@ -6,12 +6,15 @@ class HeroExample extends LitElement {
     @layer component {
 		hero-example {
 			display: grid;
-			grid-template-columns: 1fr 1fr;
+			grid-template-columns: 2fr 1fr;
 			grid-gap: 1rem;
 			position: relative;
 			align-items: center;
 		}
-		syntax-highlight { height: 100%; width: 100%; }
+		syntax-highlight {
+			height: 100%; width: 100%;
+  			white-space: pre-wrap;
+		}
 		three-cube {
 			width: 100%;
 			height: 160px;
@@ -44,7 +47,7 @@ class HeroExample extends LitElement {
 			height: auto;
 		}
 
-		@media (max-width: 420px) {
+		@media (max-width: 60ch) {
 			hero-example {
 				display: flex;
 				flex-direction: column;
