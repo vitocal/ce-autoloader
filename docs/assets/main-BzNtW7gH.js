@@ -1,0 +1,16 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/index-C_LmB6_I.js","assets/preload-helper-DzD11Dr3.js","assets/hero-example-6hccosGP.js","assets/lit-html-DgaWPDDD.js"])))=>i.map(i=>d[i]);
+import{C as n}from"./index-DLMf8Lpq.js";import{_ as a}from"./preload-helper-DzD11Dr3.js";document.getElementById("confetti").addEventListener("click",async()=>{if(!customElements.get("confetti-button")){let e=await registry.upgrade("manual");console.log("result",e)}});class c extends HTMLElement{constructor(){super(),this.error="",this.stack="",this.error=this.getAttribute("error")||"",this.stack=this.getAttribute("stack")||""}static get observedAttributes(){return["error","stack"]}attributeChangedCallback(t,r,s){t==="error"?(this.error=s,this.render()):t==="stack"&&(this.stack=s,this.render())}connectedCallback(){this.attachShadow({mode:"open"}),this.render()}render(){this.shadowRoot&&(this.shadowRoot.innerHTML=`
+      <style>
+        :host {
+          display: block;
+          background-color: red;
+          font-family: monospace;
+          color: white;
+          padding: 8px 4px;
+        }
+      </style>
+      <details>
+        <summary>${this.error}</summary>
+        ${this.stack?`<pre>${this.stack}</pre>`:""}
+      </details>
+    `)}}const d=(await a(async()=>{const{default:e}=await import("./index-C_LmB6_I.js");return{default:e}},__vite__mapDeps([0,1]))).default,l=e=>e.split("-").map(t=>t.charAt(0).toUpperCase()+t.slice(1)).join("");globalThis.process={env:{NODE_ENV:"development"}};const i={"syntax-highlight":"https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm","playground-ide":"https://cdn.jsdelivr.net/npm/playground-elements@0.18.1/+esm","json-viewer":"https://esm.sh/@alenaksu/json-viewer","wc-markdown":"https://cdn.skypack.dev/@vanillawc/wc-markdown","hero-example":()=>a(()=>import("./hero-example-6hccosGP.js"),__vite__mapDeps([2,3])),"confetti-button":()=>a(()=>import("./confetti-button-Bw2NmyCW.js"),[]),"three-cube":()=>a(()=>import("./three-cube-8HBqYzGh.js"),[]),"nord-*":async e=>{const[,t,r]=e.match(/^([a-z]+)-(.*)/),s=await a(()=>import(`https://esm.sh/@nordhealth/components/lib/${l(r)}.js`),[]);return customElements.get(e)||customElements.define(e,s.default),s},...d};class m extends n{async beforeLoad({name:t,el:r,asset:s},o){performance.mark(`load:${t}:start`),r.setAttribute("ce-loading","true"),await o({name:t,el:r,asset:s})}async afterLoad({name:t,el:r,asset:s},o){performance.mark(`load:${t}:end`),performance.measure(`load:${t}`,`load:${t}:start`,`load:${t}:end`),performance.mark(`define:${t}:start`),r.removeAttribute("ce-loading"),r.setAttribute("ce-defined",""),r.getAttribute("view-transition")&&(r.style.viewTransitionName="match-element",r.style.viewTransitionClass=r.tagName.toLowerCase()),this.batches.push(async()=>await o({name:t,asset:s}))}}globalThis.registry=new m({catalog:i,root:document.body,live:!0,fallback:c,defaultDirective:"visible"});console.log("Discovered on first run:",await registry.discover());async function u(){await Promise.allSettled(Object.keys(i).map(async e=>{await customElements.whenDefined(e),await new Promise(requestAnimationFrame);const r=performance.getEntriesByName(`load:${e}`)[0].duration;console.log(`${e} loaded in ${r.toFixed(2)}ms`)}))}await u();

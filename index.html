@@ -6,11 +6,10 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>《❰ce-autoloader❱》 Test</title>
 
-	<!-- <link rel="stylesheet" href="styles.css"> -->
-	<!-- <link rel="preload" href="styles.css" as="style" onload="this.rel='stylesheet'">
-	<noscript> -->
-	<link rel="stylesheet" href="styles.css">
-	<!-- </noscript> -->
+	<link rel="preload" href="styles.css" as="style" onload="this.rel='stylesheet'">
+	<noscript>
+		<link rel="stylesheet" href="styles.css">
+	</noscript>
 
 
 	<link rel="preload" href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css"
@@ -57,10 +56,6 @@
 	</ul>
 
 	<h1> Usage </h1>
-
-	<not-defined></not-defined>
-
-	<another-error></another-error>
 
 	<p>Import <code>ce-autoloader</code> and declare your component registry. Call <code>discover()</code>
 		when you're ready, generally after <strong>load</strong>.
@@ -270,7 +265,7 @@
 		automatically load! There's no need to declare/import each component manually.
 	</p>
 
-	<figure class="right">
+	<figure class="right flex-y ai-center">
 		<nord-qrcode value="https://ce-autoloader.com" on="visible"></nord-qrcode>
 		<figcaption>
 			Send me a ❤️ via pix
@@ -304,7 +299,7 @@
 	</p>
 
 	<img src="assets/observability.jpg" alt="Observability has native integration into performance devtools"
-		loading="visible">
+		width="1024" height="768" loading="visible">
 
 	<p>
 		You can access the metrics by querying `performance.getEntriesByName('load:my-component')`

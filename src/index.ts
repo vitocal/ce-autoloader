@@ -242,7 +242,6 @@ class CEAutoLoader {
 			}
 
 			// TODO: Must check if elements are already observed
-			debugger;
 			console.log("observing intersection of", elements)
 			elements.map((el) => this.#observers['intersection'].observe(el))
 
@@ -270,36 +269,32 @@ class CEAutoLoader {
 	*/
 	async loadAndDefine(comps: HTMLElement[], source: string) {
 
-		const _registerAll = async () => {
-			console.log(`registering from ${source}`, comps.map((el) => el.tagName.toLowerCase()));
+		console.log(`registering from ${source}`, comps.map((el) => el.tagName.toLowerCase()));
 
-			const load_result = await Promise.allSettled(comps.map((el) => this.load(el)))
-			const load_success = load_result.filter((result) => result.status === "fulfilled")
-			const load_fail = load_result.filter((result) => result.status === "rejected")
+		const load_result = await Promise.allSettled(comps.map((el) => this.load(el)))
+		const load_success = load_result.filter((result) => result.status === "fulfilled")
+		const load_fail = load_result.filter((result) => result.status === "rejected")
 
-			// Fallback for failed loads
-			if (this.options.fallback) {
-				await Promise.allSettled(load_fail.map((result) => {
-					const origin = result.reason.details;
+		// Fallback for failed loads
+		if (this.options.fallback) {
+			await Promise.allSettled(load_fail.map((result) => {
+				const origin = result.reason.details;
 
-					// We must clone, because browsers don't allow to define the same class with the same name
-					let fallback_cloned = class ClonedFallback extends this.options.fallback!{ }
+				// We must clone, because browsers don't allow to define the same class with the same name
+				let fallback_cloned = class ClonedFallback extends this.options.fallback!{ }
 
-					origin.el.setAttribute('error', result.reason.message);
-					origin.el.setAttribute('stack', result.reason.stack);
-					this.define({ name: origin.name, el: origin.el, module: fallback_cloned })
-				}))
-			}
-
-			await Promise.allSettled([
-				...load_success.map((result) => this.define(result.value)),
-				this.flushDefine()
-			])
-
-			return load_result;
+				origin.el.setAttribute('error', result.reason.message);
+				origin.el.setAttribute('stack', result.reason.stack);
+				this.define({ name: origin.name, el: origin.el, module: fallback_cloned })
+			}))
 		}
 
-		return await _registerAll()
+		await Promise.allSettled([
+			...load_success.map((result) => this.define(result.value)),
+			this.flushDefine()
+		])
+
+		return load_result;
 	}
 
 	/**
@@ -316,11 +311,13 @@ class CEAutoLoader {
 		let module;
 		try {
 			performance.mark(`load:${name}:start`);
+			el.setAttribute('ce-loading', "");
 
 			// TODO: Remove this
-			await new Promise((resolve) => setTimeout(resolve, 1000));
+			// if (name == "nord-icon" || name == "nord-button") {
+			// 	// await new Promise((resolve) => setTimeout(resolve, 60000));
+			// }
 
-			el.setAttribute('ce-loading', "");
 			if (typeof asset === "string") {
 				module = await import(/* @vite-ignore */ asset);
 			} else if (typeof asset === "function") {

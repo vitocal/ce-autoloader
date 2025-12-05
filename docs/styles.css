@@ -1,4 +1,4 @@
-@layer normalize, ds, shared, page, components, scoped;
+@layer normalize, ds, shared, page, components, scoped, hotfix;
 @import "https://nordcdn.net/ds/css/4.2.0/nord.min.css" layer(ds);
 @import "./shared.css" layer(shared);
 
@@ -101,9 +101,9 @@
         }
     }
 
-
     img {
         max-width: 100%;
+        height: auto;
     }
 
     pre {
@@ -138,10 +138,19 @@
         padding: 0.25rem 0.5rem;
     }
 
-
     hr {
         border: 0px;
         border-top: 1px solid var(--color-secondary);
+    }
+
+
+    figure {
+        margin: 0;
+
+        figcaption {
+            text-align: center;
+            font-style: italic;
+        }
     }
 }
 
@@ -161,12 +170,14 @@
 
         position: relative;
         contain: paint;
+        will-change: contents;
     }
 
     [ce-loading] {
         outline: 1px dashed var(--color-secondary);
         position: relative;
         overflow: clip;
+        overflow-clip-margin: 0px;
 
         &::after {
             pointer-events: none;
@@ -185,19 +196,30 @@
                     transparent); */
             /* animation: shimmer 1s ease-in-out infinite; */
 
-            animation: shimmer 3s;
+            z-index: 0;
+            will-change: transform;
+
+            animation: shimmer 1s;
             animation-iteration-count: infinite;
             animation-timing-function: linear;
             background: linear-gradient(to right, transparent 10%, #0006 50%, transparent 90%);
             background-size: 200% 100%;
 
-            z-index: 0;
+        }
+
+        /** Disable nested loading */
+        & [ce-loading] {
+            &::after {
+                animation: none;
+                background: transparent;
+            }
         }
     }
 
     [ce-defined] {
-        /* contain: paint; */
         border-radius: 0.5em;
+        overflow-clip-margin: 0.5em;
+
         overflow: clip;
         visibility: visible;
     }
@@ -207,6 +229,13 @@
         outline-offset: 0px;
 
         animation: outline-highlight 0.7s ease-in-out 4 alternate;
+    }
+
+}
+
+@layer hotfix {
+    nord-table {
+        all: revert-layer !important;
     }
 }
 

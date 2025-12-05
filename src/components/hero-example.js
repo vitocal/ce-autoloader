@@ -10,6 +10,24 @@ export default class HeroExample extends LitElement {
 			grid-gap: 1rem;
 			position: relative;
 			align-items: center;
+
+			.left {
+				grid-column: 1 / 2;
+			}
+			.right {
+				grid-column: 2 / 3;
+			}
+
+			.preview {
+				transition: height 0.3s ease-in-out;
+			}
+			.preview[mode="code"] {
+				height: 150px;
+			}
+			.preview[mode="preview"] {
+				height: calc-size(auto, size);
+				height: auto;
+			}
 		}
 		syntax-highlight {
 			height: 100%; width: 100%;
@@ -28,25 +46,6 @@ export default class HeroExample extends LitElement {
 			}
 		}
 
-
-		.left {
-			grid-column: 1 / 2;
-		}
-		.right {
-			grid-column: 2 / 3;
-		}
-
-		.preview {
-			transition: height 0.3s ease-in-out;
-		}
-		.preview[mode="code"] {
-			height: 150px;
-		}
-		.preview[mode="preview"] {
-			height: calc-size(auto, size);
-			height: auto;
-		}
-
 		@media (max-width: 60ch) {
 			hero-example {
 				display: flex;
@@ -54,10 +53,10 @@ export default class HeroExample extends LitElement {
 				width: 100%;
 				flex-wrap: wrap;
 				align-items: stretch;
-			}
 
-			.left,.right {
-				max-width: 100%;
+				.left,.right {
+					max-width: 100%;
+				}
 			}
 		}
     }`

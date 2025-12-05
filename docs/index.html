@@ -6,9 +6,19 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>《❰ce-autoloader❱》 Test</title>
 
-	<link rel="stylesheet"
-		href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css">
-	<link rel="stylesheet" href="styles.css">
+	<link rel="preload" href="styles.css" as="style" onload="this.rel='stylesheet'">
+	<noscript>
+		<link rel="stylesheet" href="styles.css">
+	</noscript>
+
+
+	<link rel="preload" href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css"
+		as="style" onload="this.rel='stylesheet'">
+	<noscript>
+		<link rel="stylesheet"
+			href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css">
+	</noscript>
+
 
 
 
@@ -27,8 +37,8 @@
         }
     }
     </script>
-  <script type="module" crossorigin src="/ce-autoloader/assets/main-DFurO3rV.js"></script>
-  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/index-kH7p54Ok.js">
+  <script type="module" crossorigin src="/ce-autoloader/assets/main-BzNtW7gH.js"></script>
+  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/index-DLMf8Lpq.js">
   <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/preload-helper-DzD11Dr3.js">
 </head>
 
@@ -41,7 +51,7 @@
 	<ul>
 		<li>Automatically Load any web-component on demand, if and when they're used in the page.</li>
 		<li>A central registry of components, similar to import maps</li>
-		<li>Customize when components are loaded with with loading attribute, `on="idle"` , `on="lazy"`,
+		<li>Customize when components are loaded with with loading attribute, `on="idle"` , `on="visible"`,
 			`on="interaction"`</li>
 		<li>Simple and ergonomic </li>
 		<li>No dependencies, framework-independent</li>
@@ -63,7 +73,7 @@
 	<br><br><br>
 
 	<!-- That's heavy, almost 8mb with several duplicated dependencies
-    <playground-ide editable-file-system line-numbers resizable on="lazy" style="height: 300px">
+    <playground-ide editable-file-system line-numbers resizable on="visible" style="height: 300px">
         <script type="sample/html" filename="index.html">
             <!doctype html>
             <body>
@@ -104,7 +114,7 @@
 		<span>And I'll be loaded when you click me</span>
 	</three-cube>
 
-	<nord-stack gap="m" on="lazy">
+	<nord-stack gap="m" on="visible">
 		<nord-message highlight unread>
 			Ariel Salminen arrived to clinic with Pixie cat.
 			<span slot="footer">Just now at Nord Clinic</span>
@@ -123,7 +133,7 @@
 		Your order has been shipped and will arrive on May 27th. <a href="#">Track order</a>.
 	</nord-banner>
 
-	<nord-dropdown size="s" style="z-index: 1;" on="lazy">
+	<nord-dropdown size="s" style="z-index: 1;" on="visible">
 		<nord-button slot="toggle">Menu</nord-button>
 		<nord-dropdown-item href="#">View profile</nord-dropdown-item>
 		<nord-dropdown-item>Settings</nord-dropdown-item>
@@ -133,7 +143,7 @@
 		<nord-dropdown-item>Sign out</nord-dropdown-item>
 	</nord-dropdown>
 
-	<nord-table on="lazy">
+	<nord-table on="visible">
 		<table>
 			<thead>
 				<tr>
@@ -251,8 +261,8 @@
 		automatically load! There's no need to declare/import each component manually.
 	</p>
 
-	<figure class="right">
-		<nord-qrcode value="https://ce-autoloader.com" on="lazy"></nord-qrcode>
+	<figure class="right flex-y ai-center">
+		<nord-qrcode value="https://ce-autoloader.com" on="visible"></nord-qrcode>
 		<figcaption>
 			Send me a ❤️ via pix
 		</figcaption>
@@ -285,7 +295,7 @@
 	</p>
 
 	<img src="/ce-autoloader/assets/observability-D7OwlOYm.jpg" alt="Observability has native integration into performance devtools"
-		loading="lazy">
+		width="1024" height="768" loading="visible">
 
 	<p>
 		You can access the metrics by querying `performance.getEntriesByName('load:my-component')`
@@ -300,7 +310,7 @@
             ### Animation feature
 
             - [x] Implement a hook to allow document.startViewTransition() before loading (transition: callback)
-            - [X] Implement a [data-loading] and [ready] attributes
+            - [X] Implement a [ce-loading] and [ce-defined] attributes
             - [X] How to start the transition right after the module is loaded, but the DOM
                   was not changed yet.
 

@@ -24,8 +24,20 @@
     flex-direction: column;
 }
 
+.ai-center {
+    align-items: center;
+}
+
+.j-center {
+    justify-content: center;
+}
+
 .ml-auto {
     margin-left: auto;
+}
+
+.full-w {
+    width: 100%;
 }
 
 /* Shimmer/skeleton */
@@ -40,11 +52,11 @@
 
 @keyframes shimmer {
     from {
-        background-position: 0px 0;
+        transform: translateX(0px);
     }
 
     to {
-        background-position: -200% 0;
+        transform: translateX(200%);
     }
 }
 
