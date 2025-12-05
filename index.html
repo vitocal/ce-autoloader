@@ -58,6 +58,10 @@
 
 	<h1> Usage </h1>
 
+	<not-defined></not-defined>
+
+	<another-error></another-error>
+
 	<p>Import <code>ce-autoloader</code> and declare your component registry. Call <code>discover()</code>
 		when you're ready, generally after <strong>load</strong>.
 	</p>
@@ -345,6 +349,7 @@
 
 	<script type="module" defer>
 		import CERegistry from './src/index.js';
+		import ErrorFallback from './src/components/error-fallback.js';
 
 		const ViComponents = (await import('./src/components/vi')).default;
 
@@ -419,7 +424,7 @@
 			catalog,
 			root: document.body,
 			live: true,
-			fallback: false,
+			fallback: ErrorFallback,
 			defaultDirective: 'visible',
 		});
 		console.log('Discovered on first run:', await registry.discover());

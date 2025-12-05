@@ -93,3 +93,13 @@ We can deduplicate by marking core dependencies as **external**, and loading the
 - [X] Animation lifecycle: Support for view transitions and/or html-attribute change([ce-loading] and [ce-defined]) triggers css animations.
 - [X] Cleanup: Move lit to devDependencies if not used in core.
 - [X] Publish on npm
+
+
+### Separate load and define
+
+Nowadays, the loader_run() calls both `load` and `define`. This means that the promises returned by `registerComponents()` are resolved when the component is defined, not when it's loaded.
+
+We can split, so the `loader_run()` just calls `load`.
+So the promise now only resolves when the component(s) is defined.
+
+But we need another step to `define()` the component.

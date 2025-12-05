@@ -14,16 +14,24 @@ export type CEAutoLoaderOptions = {
 	root?: HTMLElement;
 	/** Watch for new custom elements in the page? */
 	live?: boolean;
-	/** Fallback to components with errors? */
-	fallback?: true | CustomElementConstructor;
+	/** Fallback for components with errors */
+	fallback?: CustomElementConstructor;
 	/** Directives are triggers to when the component should be loaded */
 	directives?: CEAutoLoaderDirectives[];
 	/** Overwrite the default directive */
 	defaultDirective?: CEAutoLoaderDirectives;
 	/** Interval to flush batches */
-	batchInterval?: number;
+	// batchInterval?: number;
 }
 
+class CEError extends Error {
+	details: any;
+
+	constructor(message: string, details: any) {
+		super(`CEAutoLoader: ${message}`);
+		this.details = details;
+	}
+}
 
 
 
@@ -60,8 +68,8 @@ class CEAutoLoader {
 	#initialized: boolean = false;
 
 	// Batches of fns to be called in a single animation frame
-	batches: Array<() => Promise<void>> = [];
-	batchLoop?: NodeJS.Timeout = undefined;
+	// batches: Array<() => Promise<void>> = [];
+	// batchLoop?: NodeJS.Timeout = undefined;
 
 	/**
 	 * Maybe those are not needed,
@@ -95,7 +103,6 @@ class CEAutoLoader {
 			root: document.body,
 			directives: ["eager", "visible", "interaction"],
 			defaultDirective: "eager",
-			batchInterval: 500,
 			...options
 		};
 		this.catalog = options.catalog;
@@ -186,8 +193,6 @@ class CEAutoLoader {
 	 */
 	async discover() {
 
-		this.batches = [];
-
 		// Watch for new elements
 		if (!this.#initialized && this.options.live) {
 			this.watch();
@@ -200,22 +205,12 @@ class CEAutoLoader {
 
 		// Load everyone else right away
 		const result = await this.upgrade();
-
-		// Run batched define() calls
-		// if (this.batches.length > 0) {
-		// 	await this.batchedDefine(this.batches);
-		// }
-
-		// clearInterval(this.batchLoop);
-		// this.batchLoop = undefined;
-		this.flushDefine();
+		console.log("finished discover", result)
 
 		this.#initialized = true;
 
 		return result;
 	}
-
-
 
 	/**
 	 * Upgrade the custom elements in the root
@@ -236,31 +231,34 @@ class CEAutoLoader {
 		// Directives apply special conditions to when the component is loaded
 		if (directive === "visible" || this.options.defaultDirective === "visible") {
 
+			// Create observer if it doesn't exist
 			if (!this.#observers['intersection']) {
 				this.#observers['intersection'] = new IntersectionObserver((entries) => {
-					for (const entry of entries.filter(
-						(entry) => (entry.isIntersecting &&
-							!customElements.get(entry.target.tagName.toLowerCase()))
-					)) {
-						this.registerComponents([entry.target as HTMLElement], "visible")
-					}
-				})
+					entries
+						.filter((entry) => !customElements.get(entry.target.tagName.toLowerCase()))
+						.filter((entry) => (entry.isIntersecting))
+						.map((entry) => this.loadAndDefine([entry.target as HTMLElement], "visible"));
+				});
 			}
 
-			return elements.map((el) => this.#observers['intersection'].observe(el))
+			// TODO: Must check if elements are already observed
+			debugger;
+			console.log("observing intersection of", elements)
+			elements.map((el) => this.#observers['intersection'].observe(el))
+
+			return elements;
 
 		} else if (directive === "interaction" || this.options.defaultDirective === "interaction") {
 			return elements.map((el) => {
 				return el.addEventListener("pointerdown", () => {
-					this.registerComponents([el], "interaction")
+					this.loadAndDefine([el], "interaction")
 				}, { once: true });
 			})
 		} else if (directive === "eager" || this.options.defaultDirective === "eager") {
-			return await this.registerComponents(elements, "eager")
+			return await this.loadAndDefine(elements, "eager")
 		} else {
 			// Load right away everyone else (eager)
-			debugger;
-			return await this.registerComponents(elements, "default")
+			return await this.loadAndDefine(elements, "default")
 		}
 	}
 
@@ -268,189 +266,110 @@ class CEAutoLoader {
 
 
 	/*
-	* Register all elements in `comps`, that are in the catalog
+	* Load and define components
 	*/
-	async registerComponents(comps: HTMLElement[], source: string) {
+	async loadAndDefine(comps: HTMLElement[], source: string) {
 
 		const _registerAll = async () => {
 			console.log(`registering from ${source}`, comps.map((el) => el.tagName.toLowerCase()));
 
-			// flush component animations every 500ms
-			if (!this.batchLoop) {
-				this.batchLoop = setInterval(async () => {
-					console.log("flushing batches interval", this.batches.length);
-					await this.batchedDefine(this.batches);
-					requestAnimationFrame(() => this.flushDefine())
-					// clearInterval(this.batchLoop)
-					// this.batchLoop = undefined
-				}, this.options.batchInterval);
+			const load_result = await Promise.allSettled(comps.map((el) => this.load(el)))
+			const load_success = load_result.filter((result) => result.status === "fulfilled")
+			const load_fail = load_result.filter((result) => result.status === "rejected")
+
+			// Fallback for failed loads
+			if (this.options.fallback) {
+				await Promise.allSettled(load_fail.map((result) => {
+					const origin = result.reason.details;
+
+					// We must clone, because browsers don't allow to define the same class with the same name
+					let fallback_cloned = class ClonedFallback extends this.options.fallback!{ }
+
+					origin.el.setAttribute('error', result.reason.message);
+					origin.el.setAttribute('stack', result.reason.stack);
+					this.define({ name: origin.name, el: origin.el, module: fallback_cloned })
+				}))
 			}
 
-			const result = await Promise.allSettled(comps.map((el) => this.registerLeaf(el)))
+			await Promise.allSettled([
+				...load_success.map((result) => this.define(result.value)),
+				this.flushDefine()
+			])
 
-			return result;
+			return load_result;
 		}
 
 		return await _registerAll()
 	}
 
-	async registerLeaf(el: Element) {
+	/**
+	 * Load a single component
+	 */
+	async load(el: Element) {
 		const name = el.tagName.toLowerCase()
 
-		try {
-			return await this.loader_run({ name, el });
-		} catch (error) {
-			console.error(`ce-autoloader: Error loading ${name}`, error)
-
-			// A fallback component is defined to show the error
-			el.removeAttribute("loading");
-			if (this.options.fallback) {
-				el.setAttribute("error", `${error}`);
-
-				if (customElements.get(name)) {
-					console.log("Fallback already defined", name);
-				} else {
-					DEFINE(name, this.options.fallback !== true ? this.options.fallback : DevFallback);
-					await Promise.resolve(requestAnimationFrame)
-				}
-			}
-
-		}
-	}
-
-	// Run load pipeline
-	async loader_run(ctx = {}) {
-		const pipeline = [
-			this.find.bind(this),
-			this.beforeLoad.bind(this),
-			this.load.bind(this),
-			this.afterLoad.bind(this),
-			this.define.bind(this),
-			this.finished.bind(this),
-		]
-
-		let i = 0;
-		async function next(_ctx) {
-			const fn = pipeline[i++];
-			try {
-				const _next = next;
-				return await fn(_ctx, _next);
-			} catch (err) {
-				return Promise.reject(err);
-			}
-		}
-
-		return next(ctx)
-	}
-
-	/**
-	 * Find the module to load
-	 */
-	async find({ name, el }: { name: string, el: Element }, next) {
 		let asset = this._catalog[name] || this.getNamespace(name)
 		if (!asset) {
-			throw new Error(`Component not found: ${name}`)
+			throw new CEError(`Component ${name} not found in catalog`, { name, el })
 		}
-
-		return next({ name, el, asset })
-	}
-
-	/**
-	 * Called before load, after findModule
-	 * Use for loading indicators
-	 */
-	async beforeLoad({ name, el, asset }: { name: string, el: Element, asset: string }, next) {
-		return next({ name, el, asset });
-	}
-
-	/**
-	 * Load the module
-	 */
-	async load({ name, el, asset }: { name: string, el: Element, asset: string | Function }, next): Promise<CustomElementConstructor> {
-		// await new Promise(resolve => setTimeout(resolve, 60 * 1000));
-		performance.mark(`load:${name}:start`);
 
 		let module;
-		if (typeof asset === "string") {
-			module = await import(/* @vite-ignore */ asset);
-		} else if (typeof asset === "function") {
-			module = await asset(name);
-		} else {
-			throw new Error(`ce-autoloader: Loader of ${name} is invalid! Should be a url or a function`)
+		try {
+			performance.mark(`load:${name}:start`);
+
+			// TODO: Remove this
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+
+			el.setAttribute('ce-loading', "");
+			if (typeof asset === "string") {
+				module = await import(/* @vite-ignore */ asset);
+			} else if (typeof asset === "function") {
+				module = await asset(name);
+			} else {
+				throw new CEError(`Loader of ${name} is invalid! Should be a url or a function`, { name, el, module })
+			}
+		} finally {
+			el.removeAttribute('ce-loading');
+			performance.mark(`load:${name}:end`);
+			performance.measure(`load:${name}`, `load:${name}:start`, `load:${name}:end`);
 		}
 
-		performance.mark(`load:${name}:end`);
-		performance.measure(`load:${name}`, `load:${name}:start`, `load:${name}:end`);
 
-		return next({ name, el, asset, module });
+		return { name, module, asset, el }
 	}
+
 
 	/**
-	 * Called after load, before component definition.
-	 * Use for transition effects, since the next() call will change the DOM with the component
-	 */
-	async afterLoad({ name, el, asset }: { name: string, el: Element, asset: string }, next) {
-		this.batches.push(async () => {
-			return await next({ name, asset });
-		});
-	}
-
-	/*
 	 * Define a single component
-	 * It will be rendered on DOM after this.
 	 */
-	async define({ name, el, asset }: { name: string, el: Element, asset: string }, next) {
-		performance.mark(`define:${name}:start`);
+	async define({ name, el, module }) {
+		// Maybe it's already defined...
 		if (customElements.get(name)) {
-			performance.mark(`define:${name}:end`);
-			performance.measure(`define:${name}`, `define:${name}:start`, `define:${name}:end`);
-			return next({ name, el, asset });
+			return;
 		}
 
-		const { ctor, options } = customElements.waiting[name];
-		DEFINE(name, ctor, options);
+		if (customElements.waiting[name]) {
+			module = customElements.waiting[name]['ctor']
+		} else {
+			if (!module) {
+				throw new CEError(`Component ${name} wasn't registered! This is a bug!!!`, { name, el, module })
+			}
 
-		performance.mark(`define:${name}:end`);
-		performance.measure(`define:${name}`, `define:${name}:start`, `define:${name}:end`);
-
-		return next({ name, asset });
-	}
-
-	/**
-	 * Use for metrics
-	 */
-	async finished({ name, el, asset }: { name: string, el: Element, asset: string }, next) {
-
-		return next({ name, el, asset });
-	}
-
-	/**
-	 * Group multiple ad-hoc define(name, component) calls into a single batched one.
-	 * We transition everyone in a single pass.
-	 */
-	async batchedDefine(jobs: Array<() => Promise<void>>) {
-		if (jobs.length === 0) return;
-
-		console.log("flushing", this.batches.length);
-
-		const transition = document.startViewTransition(async () => {
-			// run all jobs that mutate DOM in a single pass
-			return Promise.allSettled(jobs.map((job) => job()))
-		})
+			module = module?.prototype instanceof HTMLElement ? module : module?.default;
+		}
 
 		try {
-			await transition.ready;
-			performance.mark(`viewTransition:start`);
-			await transition.finished
-			performance.mark(`viewTransition:end`);
-			performance.measure(`viewTransition`, `viewTransition:start`, `viewTransition:end`);
-		} catch (error) {
-			console.error("View transition failed:", error)
+			performance.mark(`define:${name}:start`);
+
+			el.setAttribute('ce-defined', '');
+			DEFINE(name, module, {});
+		} finally {
+			performance.mark(`define:${name}:end`);
+			performance.measure(`define:${name}`, `define:${name}:start`, `define:${name}:end`);
 		}
 
-		this.batches = []
+		return { name, module }
 	}
-
 
 	/**
 	 * Matches a component name to a namespace (if exists)
@@ -464,7 +383,7 @@ class CEAutoLoader {
 	 * Define components in the waiting queue
 	 */
 	flushDefine() {
-		console.log("defines in waiting", Object.keys(customElements.waiting))
+		console.log("flushDefine()", Object.keys(customElements.waiting))
 		// Some components definitions can be still in waiting (they' have called customElements.define but they're not in DOM)
 		// Let's define them now
 		if (Object.keys(customElements.waiting).length > 0) {
@@ -495,10 +414,12 @@ function monkeyPatchDefine() {
 	globalThis._DEFINE = customElements.define.bind(customElements);
 	globalThis.DEFINE = (name, ctor, options) => {
 		globalThis._DEFINE(name, ctor, options);
+		customElements.registered[name] = { ctor, options };
 		delete customElements.waiting[name];
 	}
 
 	customElements.waiting = {};
+	customElements.registered = {};
 	customElements.define = function (name, ctor, options?) {
 		customElements.waiting[name] = { ctor, options };
 	};
@@ -508,6 +429,7 @@ function monkeyPatchDefine() {
 declare global {
 	interface CustomElementRegistry {
 		waiting: Record<string, { ctor: CustomElementConstructor, options?: ElementDefinitionOptions }>;
+		registered: Record<string, { ctor: CustomElementConstructor, options?: ElementDefinitionOptions }>
 	}
 	var _DEFINE: typeof CustomElementRegistry.prototype.define;
 	var DEFINE: typeof CustomElementRegistry.prototype.define;

@@ -1,18 +1,23 @@
-export class ErrorFallback extends HTMLElement {
+export default class ErrorFallback extends HTMLElement {
   error: string = "";
+  stack: string = "";
 
   static get observedAttributes() {
-    return ["error"];
+    return ["error", "stack"];
   }
 
   constructor() {
     super();
     this.error = this.getAttribute("error") || "";
+    this.stack = this.getAttribute("stack") || "";
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (name === "error") {
       this.error = newValue;
+      this.render();
+    } else if (name === "stack") {
+      this.stack = newValue;
       this.render();
     }
   }
@@ -32,14 +37,15 @@ export class ErrorFallback extends HTMLElement {
           background-color: red;
           font-family: monospace;
           color: white;
-          padding: 8px;
+          padding: 8px 4px;
         }
       </style>
-      <p>${this.error}</p>
+      <details>
+        <summary>${this.error}</summary>
+        ${this.stack ? `<pre>${this.stack}</pre>` : ""}
+      </details>
     `;
-
   }
 }
 
-
-customElements.define('error-fallback', ErrorFallback);
+// customElements.define('error-fallback', ErrorFallback);

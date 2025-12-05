@@ -1,7 +1,7 @@
 import { LitElement, css, adoptStyles } from "lit";
 import { html, unsafeStatic } from 'lit/static-html.js';
 
-class HeroExample extends LitElement {
+export default class HeroExample extends LitElement {
 	static styles = css`
     @layer component {
 		hero-example {
