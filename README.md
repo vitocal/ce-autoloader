@@ -89,9 +89,7 @@ We can deduplicate by marking core dependencies as **external**, and loading the
 
 - [X] Implement component loader function: Allow functions to be registered as a component.
 - [X] Tests for url loader, function loader, namespaced loader.
-- [X] Robust Loading: Support modules that auto-register.
-
-    Check customElements.get(name) after import to see if it was registered by the module before trying to define it manually.
-
+- [X] Robust Loading: Support modules that auto-register, or not.
+- [X] Animation lifecycle: Support for view transitions and/or html-attribute change([ce-loading] and [ce-defined]) triggers css animations.
 - [X] Cleanup: Move lit to devDependencies if not used in core.
 - [X] Publish on npm

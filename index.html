@@ -6,9 +6,20 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>《❰ce-autoloader❱》 Test</title>
 
-	<link rel="stylesheet"
-		href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css">
-	<link rel="stylesheet" href="styles.css">
+	<!-- <link rel="stylesheet" href="styles.css"> -->
+	<link rel="preload" href="styles.css" as="style" onload="this.rel='stylesheet'">
+	<noscript>
+		<link rel="stylesheet" href="styles.css">
+	</noscript>
+
+
+	<link rel="preload" href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css"
+		as="style" onload="this.rel='stylesheet'">
+	<noscript>
+		<link rel="stylesheet"
+			href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css">
+	</noscript>
+
 
 	<script type="importmap">
     {
