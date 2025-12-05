@@ -1,0 +1,16 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/hero-example-6hccosGP.js","assets/lit-html-DgaWPDDD.js"])))=>i.map(i=>d[i]);
+import{_ as i,C as m}from"./index-sJ7gVsGJ.js";class n extends HTMLElement{constructor(){super(),this.error="",this.stack="",this.error=this.getAttribute("error")||"",this.stack=this.getAttribute("stack")||""}static get observedAttributes(){return["error","stack"]}attributeChangedCallback(t,e,r){t==="error"?(this.error=r,this.render()):t==="stack"&&(this.stack=r,this.render())}connectedCallback(){this.render()}render(){this.innerHTML=`
+      <style>
+        :host {
+          display: block;
+          background-color: red;
+          font-family: monospace;
+          color: white;
+          padding: 8px 4px;
+        }
+      </style>
+      <details>
+        <summary>${this.error}</summary>
+        ${this.stack?`<pre>${this.stack}</pre>`:""}
+      </details>
+    `}}customElements.define("error-fallback",n);const u=s=>s.split("-").map(t=>t.charAt(0).toUpperCase()+t.slice(1)).join(""),c={"syntax-highlight":"https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm","playground-ide":"https://cdn.jsdelivr.net/npm/playground-elements@0.18.1/+esm","json-viewer":"https://esm.sh/@alenaksu/json-viewer","wc-markdown":"https://cdn.skypack.dev/@vanillawc/wc-markdown","hero-example":()=>i(()=>import("./hero-example-6hccosGP.js"),__vite__mapDeps([0,1])),"confetti-button":()=>i(()=>import("./confetti-button-Bw2NmyCW.js"),[]),"three-cube":()=>i(()=>import("./three-cube-8HBqYzGh.js"),[]),"nord-*":async s=>{const[,t,e]=s.match(/^([a-z]+)-(.*)/),r=await i(()=>import(`https://esm.sh/@nordhealth/components/lib/${u(e)}.js`),[]);return customElements.get(s)||customElements.define(s,r.default),r}};class h extends m{async beforeLoad({name:t,el:e,asset:r},a){performance.mark(`load:${t}:start`),e.setAttribute("ce-loading","true"),await a({name:t,el:e,asset:r})}async afterLoad({name:t,el:e,asset:r},a){performance.mark(`load:${t}:end`),performance.measure(`load:${t}`,`load:${t}:start`,`load:${t}:end`),performance.mark(`define:${t}:start`),e.removeAttribute("ce-loading"),e.setAttribute("ce-defined",""),e.getAttribute("view-transition")&&(e.style.viewTransitionName="match-element",e.style.viewTransitionClass=e.tagName.toLowerCase()),this.batches.push(async()=>await a({name:t,asset:r}))}}globalThis.registry=new h({catalog:c,root:document.body,live:!0,fallback:n,defaultDirective:"visible"});console.log("Discovered on first run:",await registry.discover());async function p(){await Promise.allSettled(Object.keys(c).map(async s=>{await customElements.whenDefined(s),await new Promise(requestAnimationFrame);const e=performance.getEntriesByName(`load:${s}`)[0].duration;console.log(`${s} loaded in ${e.toFixed(2)}ms`)}))}await p();document.getElementById("confetti").addEventListener("click",async()=>{if(!customElements.get("confetti-button")){let s=await registry.upgrade("manual");console.log("result",s)}});async function d(s,t,{parent:e=document.head,position:r="beforeend"}={}){const a=await fetch(s).then(l=>l.text()),o=document.createElement("style");return o.setAttribute("data-layer",t),o.textContent=`@layer ${t} {${a}}`,e.insertAdjacentElement(r,o),o}d("shared.css","ds");d("https://nordcdn.net/ds/css/4.2.0/nord.min.css","ds");

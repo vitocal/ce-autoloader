@@ -23,14 +23,15 @@ export default class ErrorFallback extends HTMLElement {
   }
 
   connectedCallback() {
-    this.attachShadow({ mode: "open" });
+    // this.attachShadow({ mode: "open" });
     this.render();
   }
 
   render() {
-    if (!this.shadowRoot) return;
+    // if (!this.shadowRoot) return;
 
-    this.shadowRoot.innerHTML = `
+    // this.shadowRoot.innerHTML =
+    this.innerHTML = `
       <style>
         :host {
           display: block;
@@ -48,4 +49,4 @@ export default class ErrorFallback extends HTMLElement {
   }
 }
 
-// customElements.define('error-fallback', ErrorFallback);
+customElements.define('error-fallback', ErrorFallback);

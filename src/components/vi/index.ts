@@ -1,5 +1,3 @@
-import "lit";
-
 const ViSwitch = () => import("./vi-switch.ts");
 const ViHello = () => import("./vi-hello.ts");
 

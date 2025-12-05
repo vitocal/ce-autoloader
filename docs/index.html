@@ -6,10 +6,12 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>《❰ce-autoloader❱》 Test</title>
 
-	<link rel="preload" href="styles.css" as="style" onload="this.rel='stylesheet'">
+	<link rel="preconnect" href="https://nordcdn.net" />
+
+	<link rel="stylesheet" href="styles.css">
+	<!-- <link rel="preload" href="styles.css" as="style" onload="this.rel='stylesheet'">
 	<noscript>
-		<link rel="stylesheet" href="styles.css">
-	</noscript>
+	</noscript> -->
 
 
 	<link rel="preload" href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css"
@@ -29,6 +31,8 @@
 			min-height: 320px;
 		}
 	</style>
+
+
 	<script type="importmap">
     {
         "imports": {
@@ -37,9 +41,8 @@
         }
     }
     </script>
-  <script type="module" crossorigin src="/ce-autoloader/assets/main-BzNtW7gH.js"></script>
-  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/index-DLMf8Lpq.js">
-  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/preload-helper-DzD11Dr3.js">
+  <script type="module" crossorigin src="/ce-autoloader/assets/main-BI1o4Mvz.js"></script>
+  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/index-sJ7gVsGJ.js">
 </head>
 
 <body class="container n-reset">
@@ -61,16 +64,18 @@
 
 	<h1> Usage </h1>
 
+	<error-fallback error="Teste"></error-fallback>
+
 	<p>Import <code>ce-autoloader</code> and declare your component registry. Call <code>discover()</code>
 		when you're ready, generally after <strong>load</strong>.
 	</p>
+
+	<br><br><br>
 
 	<hero-example></hero-example>
 
 
 	<h1>Examples</h1>
-
-	<br><br><br>
 
 	<!-- That's heavy, almost 8mb with several duplicated dependencies
     <playground-ide editable-file-system line-numbers resizable on="visible" style="height: 300px">
@@ -295,7 +300,7 @@
 	</p>
 
 	<img src="/ce-autoloader/assets/observability-D7OwlOYm.jpg" alt="Observability has native integration into performance devtools"
-		width="1024" height="768" loading="visible">
+		width="1024" height="768" loading="lazy">
 
 	<p>
 		You can access the metrics by querying `performance.getEntriesByName('load:my-component')`
@@ -337,7 +342,6 @@
 			el.expandAll();
 		})
 	</script>
-
 
 	<footer>
 		<p>Created by <a href="https://github.com/vitorcalejuri">Vitor Calejuri</a></p>
