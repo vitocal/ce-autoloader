@@ -1,4 +1,7 @@
 import ErrorFallback from '/src/components/error-fallback.js';
+import "/src/components/hero-example.js";
+import "lit";
+
 import CERegistry from '/src/index.js';
 
 const capitalize = (str) =>
@@ -11,7 +14,6 @@ const catalog = {
     "json-viewer": "https://esm.sh/@alenaksu/json-viewer",
     "wc-markdown": "https://cdn.skypack.dev/@vanillawc/wc-markdown",
 
-    "hero-example": () => import("/src/components/hero-example.js"),
     "confetti-button": () => import("/src/components/confetti-button.ts"),
     "three-cube": () => import("/src/components/three-cube.js"),
 
@@ -20,7 +22,7 @@ const catalog = {
      */
     "nord-*": async (full_name) => {
         const [, namespace, name] = full_name.match(/^([a-z]+)-(.*)/);
-        const module = await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/${capitalize(name)}.js`);
+        const module = await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/${capitalize(name)}.js?external=lit`);
         if (!customElements.get(full_name)) {
             customElements.define(full_name, module.default);
         }
@@ -84,4 +86,9 @@ async function metrics() {
     );
 }
 
-await metrics();
+
+import { loadCSSLayer } from '../utils.ts'
+
+loadCSSLayer('shared.css', 'ds');
+loadCSSLayer('https://nordcdn.net/ds/css/4.2.0/nord.min.css', 'ds');
+

@@ -72,15 +72,10 @@ export default class HeroExample extends LitElement {
 	constructor() {
 		super();
 		this.mode = "code";
-	}
-
-	connectedCallback() {
-		super.connectedCallback();
 
 		// In light-dom mode, we need to adopt the styles
-		if (this.shadowRoot === null && this.constructor.styles.styleSheet &&
-			!document.adoptedStyleSheets.includes(this.constructor.styles.styleSheet)
-		) {
+		if (this.constructor.styles.styleSheet &&
+			!document.adoptedStyleSheets.includes(this.constructor.styles.styleSheet)) {
 			document.adoptedStyleSheets.push(this.constructor.styles.styleSheet);
 		}
 	}

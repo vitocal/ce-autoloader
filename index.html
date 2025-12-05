@@ -8,12 +8,19 @@
 
 	<link rel="preconnect" href="https://nordcdn.net" />
 
+	<style>
+		/** To avoid FOUC (Flash of Unstyled Content) or Layout Shifts,
+			we should style early our components, before the first render of page.
+
+			I like to just match the size/aspect ratio, aligning before/after to avoid layout shifts.
+			See `:not(:defined)` for more info on how to style every component at once.
+		*/
+		hero-example {
+			width: 100%;
+			min-height: 320px;
+		}
+	</style>
 	<link rel="stylesheet" href="styles.css">
-	<!-- <link rel="preload" href="styles.css" as="style" onload="this.rel='stylesheet'">
-	<noscript>
-	</noscript> -->
-
-
 	<link rel="preload" href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css"
 		as="style" onload="this.rel='stylesheet'">
 	<noscript>
@@ -21,25 +28,17 @@
 			href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css">
 	</noscript>
 
-
 	<script type="importmap">
     {
         "imports": {
-            "lit": "https://esm.sh/lit@3.3.1?bundle",
             "syntax-highlight": "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm"
         }
     }
     </script>
 
-	<style>
-		/** The first render of our components (undefined) */
-		hero-example {
-			width: 100%;
-			min-height: 320px;
-		}
-	</style>
 
-	<script type="module" defer src="src/pages/index.js"></script>
+
+	<script type="module" src="src/pages/index.js"></script>
 
 </head>
 
@@ -61,8 +60,6 @@
 	</ul>
 
 	<h1> Usage </h1>
-
-	<error-fallback error="Teste"></error-fallback>
 
 	<p>Import <code>ce-autoloader</code> and declare your component registry. Call <code>discover()</code>
 		when you're ready, generally after <strong>load</strong>.
@@ -352,12 +349,6 @@
 	<footer>
 		<p>Created by <a href="https://github.com/vitorcalejuri">Vitor Calejuri</a></p>
 	</footer>
-	<script type="module">
-		import { loadCSSLayer } from './src/utils.ts'
-
-		loadCSSLayer('shared.css', 'ds');
-		loadCSSLayer('https://nordcdn.net/ds/css/4.2.0/nord.min.css', 'ds');
-	</script>
 
 </body>
 

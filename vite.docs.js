@@ -16,10 +16,15 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element'],
+      // external: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element'],
       input: {
         main: resolve(__dirname, 'index.html'),
         single: resolve(__dirname, 'single.html'),
+      },
+      output: {
+        manualChunks: {
+          lit: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element'],
+        }
       }
     },
     outDir: 'docs/',

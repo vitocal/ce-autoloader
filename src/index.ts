@@ -1,5 +1,3 @@
-// import { Batcher } from "./utils";
-
 /**
  * A module can be a URL or a function that returns a Promise<CustomElementConstructor>
  */
