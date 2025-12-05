@@ -6,7 +6,7 @@
 export type CEAutoLoaderModule = string | ((name?: string) => Promise<CustomElementConstructor>)
 export type CEAutoLoaderCatalog = Record<string, CEAutoLoaderModule>;
 
-export type CEAutoLoaderDirectives = "eager" | "lazy" | "interaction" | string
+export type CEAutoLoaderDirectives = "eager" | "visible" | "interaction" | string
 export type CEAutoLoaderOptions = {
 	/* The component catalog */
 	catalog: CEAutoLoaderCatalog;
@@ -93,7 +93,7 @@ class CEAutoLoader {
 		this.options = {
 			live: true,
 			root: document.body,
-			directives: ["eager", "lazy", "interaction"],
+			directives: ["eager", "visible", "interaction"],
 			defaultDirective: "eager",
 			batchInterval: 500,
 			...options
@@ -202,13 +202,14 @@ class CEAutoLoader {
 		const result = await this.upgrade();
 
 		// Run batched define() calls
-		if (this.batches.length > 0) {
-			this.batchedDefine(this.batches);
-			clearInterval(this.batchLoop);
-			this.batchLoop = undefined;
-		}
+		// if (this.batches.length > 0) {
+		// 	await this.batchedDefine(this.batches);
+		// }
 
+		// clearInterval(this.batchLoop);
+		// this.batchLoop = undefined;
 		this.flushDefine();
+
 		this.#initialized = true;
 
 		return result;
@@ -233,11 +234,11 @@ class CEAutoLoader {
 
 		// console.log("CEAutoLoader: Registering", elements, "with directive", directive)
 		// Directives apply special conditions to when the component is loaded
-		if (directive === "lazy" || this.options.defaultDirective === "lazy") {
+		if (directive === "visible" || this.options.defaultDirective === "visible") {
 			return elements.map((el) => {
 				const observer = new IntersectionObserver((entries) => {
 					if (entries[0].isIntersecting) {
-						this.registerComponents([el])
+						this.registerComponents([el], "visible")
 						observer.disconnect()
 					}
 				})
@@ -247,15 +248,15 @@ class CEAutoLoader {
 		} else if (directive === "interaction" || this.options.defaultDirective === "interaction") {
 			return elements.map((el) => {
 				return el.addEventListener("pointerdown", () => {
-					this.registerComponents([el])
+					this.registerComponents([el], "interaction")
 				}, { once: true });
 			})
 		} else if (directive === "eager" || this.options.defaultDirective === "eager") {
-			return await this.registerComponents(elements)
+			return await this.registerComponents(elements, "eager")
 		} else {
 			// Load right away everyone else (eager)
 			debugger;
-			return await this.registerComponents(elements)
+			return await this.registerComponents(elements, "default")
 		}
 	}
 
@@ -265,10 +266,10 @@ class CEAutoLoader {
 	/*
 	* Register all elements in `comps`, that are in the catalog
 	*/
-	async registerComponents(comps: HTMLElement[]) {
+	async registerComponents(comps: HTMLElement[], source: string) {
 
 		const _registerAll = async () => {
-			console.log("registering", comps.map((el) => el.tagName.toLowerCase()));
+			console.log(`registering from ${source}`, comps.map((el) => el.tagName.toLowerCase()));
 
 			// flush component animations every 500ms
 			if (!this.batchLoop) {
@@ -276,15 +277,12 @@ class CEAutoLoader {
 					console.log("flushing batches interval", this.batches.length);
 					await this.batchedDefine(this.batches);
 					requestAnimationFrame(() => this.flushDefine())
-					clearInterval(this.batchLoop)
-					this.batchLoop = undefined
+					// clearInterval(this.batchLoop)
+					// this.batchLoop = undefined
 				}, this.options.batchInterval);
 			}
 
 			const result = await Promise.allSettled(comps.map((el) => this.registerLeaf(el)))
-
-			// await this.batchedDefine(this.batches);
-			// requestAnimationFrame(() => this.flushDefine())
 
 			return result;
 		}

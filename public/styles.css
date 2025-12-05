@@ -196,8 +196,11 @@
     }
 
     [ce-defined] {
-        contain: paint;
+        /* contain: paint; */
         border-radius: 0.5em;
+        overflow-clip-margin: 0.5em;
+
+
         overflow: clip;
         visibility: visible;
     }

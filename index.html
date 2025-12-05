@@ -7,10 +7,10 @@
 	<title>《❰ce-autoloader❱》 Test</title>
 
 	<!-- <link rel="stylesheet" href="styles.css"> -->
-	<link rel="preload" href="styles.css" as="style" onload="this.rel='stylesheet'">
-	<noscript>
-		<link rel="stylesheet" href="styles.css">
-	</noscript>
+	<!-- <link rel="preload" href="styles.css" as="style" onload="this.rel='stylesheet'">
+	<noscript> -->
+	<link rel="stylesheet" href="styles.css">
+	<!-- </noscript> -->
 
 
 	<link rel="preload" href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css"
@@ -48,7 +48,7 @@
 	<ul>
 		<li>Automatically Load any web-component on demand, if and when they're used in the page.</li>
 		<li>A central registry of components, similar to import maps</li>
-		<li>Customize when components are loaded with with loading attribute, `on="idle"` , `on="lazy"`,
+		<li>Customize when components are loaded with with loading attribute, `on="idle"` , `on="visible"`,
 			`on="interaction"`</li>
 		<li>Simple and ergonomic </li>
 		<li>No dependencies, framework-independent</li>
@@ -70,7 +70,7 @@
 	<br><br><br>
 
 	<!-- That's heavy, almost 8mb with several duplicated dependencies
-    <playground-ide editable-file-system line-numbers resizable on="lazy" style="height: 300px">
+    <playground-ide editable-file-system line-numbers resizable on="visible" style="height: 300px">
         <script type="sample/html" filename="index.html">
             <!doctype html>
             <body>
@@ -111,7 +111,7 @@
 		<span>And I'll be loaded when you click me</span>
 	</three-cube>
 
-	<nord-stack gap="m" on="lazy">
+	<nord-stack gap="m" on="visible">
 		<nord-message highlight unread>
 			Ariel Salminen arrived to clinic with Pixie cat.
 			<span slot="footer">Just now at Nord Clinic</span>
@@ -130,7 +130,7 @@
 		Your order has been shipped and will arrive on May 27th. <a href="#">Track order</a>.
 	</nord-banner>
 
-	<nord-dropdown size="s" style="z-index: 1;" on="lazy">
+	<nord-dropdown size="s" style="z-index: 1;" on="visible">
 		<nord-button slot="toggle">Menu</nord-button>
 		<nord-dropdown-item href="#">View profile</nord-dropdown-item>
 		<nord-dropdown-item>Settings</nord-dropdown-item>
@@ -140,7 +140,7 @@
 		<nord-dropdown-item>Sign out</nord-dropdown-item>
 	</nord-dropdown>
 
-	<nord-table on="lazy">
+	<nord-table on="visible">
 		<table>
 			<thead>
 				<tr>
@@ -267,7 +267,7 @@
 	</p>
 
 	<figure class="right">
-		<nord-qrcode value="https://ce-autoloader.com" on="lazy"></nord-qrcode>
+		<nord-qrcode value="https://ce-autoloader.com" on="visible"></nord-qrcode>
 		<figcaption>
 			Send me a ❤️ via pix
 		</figcaption>
@@ -300,7 +300,7 @@
 	</p>
 
 	<img src="assets/observability.jpg" alt="Observability has native integration into performance devtools"
-		loading="lazy">
+		loading="visible">
 
 	<p>
 		You can access the metrics by querying `performance.getEntriesByName('load:my-component')`
@@ -343,7 +343,7 @@
 		})
 	</script>
 
-	<script type="module">
+	<script type="module" defer>
 		import CERegistry from './src/index.js';
 
 		const ViComponents = (await import('./src/components/vi')).default;
@@ -420,8 +420,9 @@
 			root: document.body,
 			live: true,
 			fallback: false,
+			defaultDirective: 'visible',
 		});
-		console.log('First discover', await registry.discover());
+		console.log('Discovered on first run:', await registry.discover());
 
 
 		async function metrics() {
