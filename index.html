@@ -315,7 +315,7 @@
             ### Animation feature
 
             - [x] Implement a hook to allow document.startViewTransition() before loading (transition: callback)
-            - [X] Implement a [data-loading] and [ready] attributes
+            - [X] Implement a [ce-loading] and [ce-defined] attributes
             - [X] How to start the transition right after the module is loaded, but the DOM
                   was not changed yet.
 
@@ -401,7 +401,7 @@
 				performance.mark(`define:${name}:start`);
 
 				el.removeAttribute('ce-loading');
-				el.setAttribute('ce-ready', "");
+				el.setAttribute('ce-defined', "");
 
 				if (el.getAttribute('view-transition')) {
 					el.style.viewTransitionName = 'match-element';

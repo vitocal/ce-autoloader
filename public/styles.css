@@ -195,14 +195,14 @@
         }
     }
 
-    [ce-ready] {
+    [ce-defined] {
         contain: paint;
         border-radius: 0.5em;
         overflow: clip;
         visibility: visible;
     }
 
-    [ce-ready][ce-outline-highlight] {
+    [ce-defined][ce-outline-highlight] {
         outline: 2px dashed transparent;
         outline-offset: 0px;
 
