@@ -59,6 +59,7 @@
 
     body>*+* {
         margin-top: 1em;
+        content-visibility: auto;
     }
 
     .container {

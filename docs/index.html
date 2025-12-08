@@ -8,12 +8,19 @@
 
 	<link rel="preconnect" href="https://nordcdn.net" />
 
+	<style>
+		/** To avoid FOUC (Flash of Unstyled Content) or Layout Shifts,
+			we should style early our components, before the first render of page.
+
+			I like to just match the size/aspect ratio, aligning before/after to avoid layout shifts.
+			See `:not(:defined)` for more info on how to style every component at once.
+		*/
+		hero-example {
+			width: 100%;
+			min-height: 320px;
+		}
+	</style>
 	<link rel="stylesheet" href="styles.css">
-	<!-- <link rel="preload" href="styles.css" as="style" onload="this.rel='stylesheet'">
-	<noscript>
-	</noscript> -->
-
-
 	<link rel="preload" href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css"
 		as="style" onload="this.rel='stylesheet'">
 	<noscript>
@@ -24,25 +31,26 @@
 
 
 
-	<style>
-		/** The first render of our components (undefined) */
-		hero-example {
-			width: 100%;
-			min-height: 320px;
-		}
-	</style>
 
 
 	<script type="importmap">
-    {
-        "imports": {
+	{
+		"imports": {
+			"lit": "/assets/vendor.js",
+			"lit/decorators.js": "/assets/vendor.js",
+			"lit/directives/ref.js": "/assets/vendor.js",
+			"lit/directives/if-defined.js": "/assets/vendor.js",
+			"lit-element": "/assets/vendor.js",
+			"lit-html": "/assets/vendor.js",
+			"lit/directives/unsafe-html.js": "/assets/vendor.js",
+			"lit/directives/style-map.js": "/assets/vendor.js",
             "syntax-highlight": "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm"
         }
     }
     </script>
-  <script type="module" crossorigin src="/ce-autoloader/assets/main-C7jksfHC.js"></script>
-  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/index-sJ7gVsGJ.js">
-  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/lit-Dijj46i9.js">
+  <script type="module" crossorigin src="/ce-autoloader/assets/main-DRCJA1km.js"></script>
+  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/index-Cm2yFaKC.js">
+  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/lit-element-OgMYHPKI.js">
 </head>
 
 <body class="container n-reset">
@@ -64,8 +72,6 @@
 
 	<h1> Usage </h1>
 
-	<error-fallback error="Teste"></error-fallback>
-
 	<p>Import <code>ce-autoloader</code> and declare your component registry. Call <code>discover()</code>
 		when you're ready, generally after <strong>load</strong>.
 	</p>
@@ -77,9 +83,9 @@
 
 	<h1>Examples</h1>
 
-	<!-- That's heavy, almost 8mb with several duplicated dependencies
-    <playground-ide editable-file-system line-numbers resizable on="visible" style="height: 300px">
-        <script type="sample/html" filename="index.html">
+	<!-- That's heavy, almost 8mb with several duplicated dependencies on different versions
+	<playground-ide editable-file-system line-numbers resizable on="visible" style="height: 300px">
+		<script type="sample/html" filename="index.html">
             <!doctype html>
             <body>
             Hello
@@ -87,11 +93,11 @@
             </body>
         </script>
 
-        <script type="sample/ts" filename="index.ts">
+		<script type="sample/ts" filename="index.ts">
             document.body.appendChild(document.createTextNode("World!"))
         </script>
-    </playground-ide>
-    -->
+	</playground-ide>
+	-->
 
 	<h1>Examples - <code>on</code> attribute</h1>
 

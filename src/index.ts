@@ -311,11 +311,6 @@ class CEAutoLoader {
 			performance.mark(`load:${name}:start`);
 			el.setAttribute('ce-loading', "");
 
-			// TODO: Remove this
-			// if (name == "nord-icon" || name == "nord-button") {
-			// 	// await new Promise((resolve) => setTimeout(resolve, 60000));
-			// }
-
 			if (typeof asset === "string") {
 				module = await import(/* @vite-ignore */ asset);
 			} else if (typeof asset === "function") {
@@ -323,6 +318,8 @@ class CEAutoLoader {
 			} else {
 				throw new CEError(`Loader of ${name} is invalid! Should be a url or a function`, { name, el, module })
 			}
+		} catch (error) {
+			throw new CEError(`${name} - ${error.message}`, { name, el, module, error });
 		} finally {
 			el.removeAttribute('ce-loading');
 			performance.mark(`load:${name}:end`);

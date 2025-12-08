@@ -1,0 +1,71 @@
+{
+  "_if-defined-Dgx0RWXe.js": {
+    "file": "assets/if-defined-Dgx0RWXe.js",
+    "name": "if-defined",
+    "imports": [
+      "_lit-element-OgMYHPKI.js"
+    ]
+  },
+  "_index-Cm2yFaKC.js": {
+    "file": "assets/index-Cm2yFaKC.js",
+    "name": "index"
+  },
+  "_lit-element-OgMYHPKI.js": {
+    "file": "assets/lit-element-OgMYHPKI.js",
+    "name": "lit-element"
+  },
+  "assets/observability.jpg": {
+    "file": "assets/observability-D7OwlOYm.jpg",
+    "src": "assets/observability.jpg"
+  },
+  "index.html": {
+    "file": "assets/main-DRCJA1km.js",
+    "name": "main",
+    "src": "index.html",
+    "isEntry": true,
+    "imports": [
+      "_index-Cm2yFaKC.js",
+      "_lit-element-OgMYHPKI.js"
+    ],
+    "dynamicImports": [
+      "src/components/confetti-button.ts",
+      "src/components/three-cube.js"
+    ],
+    "assets": [
+      "assets/observability-D7OwlOYm.jpg"
+    ]
+  },
+  "single.html": {
+    "file": "assets/single-DAKJtIz2.js",
+    "name": "single",
+    "src": "single.html",
+    "isEntry": true,
+    "imports": [
+      "_index-Cm2yFaKC.js",
+      "_lit-element-OgMYHPKI.js",
+      "_if-defined-Dgx0RWXe.js"
+    ]
+  },
+  "src/components/confetti-button.ts": {
+    "file": "assets/confetti-button-Bw2NmyCW.js",
+    "name": "confetti-button",
+    "src": "src/components/confetti-button.ts",
+    "isDynamicEntry": true
+  },
+  "src/components/three-cube.js": {
+    "file": "assets/three-cube-8HBqYzGh.js",
+    "name": "three-cube",
+    "src": "src/components/three-cube.js",
+    "isDynamicEntry": true
+  },
+  "src/vendor.js": {
+    "file": "assets/vendor.js",
+    "name": "vendor",
+    "src": "src/vendor.js",
+    "isEntry": true,
+    "imports": [
+      "_lit-element-OgMYHPKI.js",
+      "_if-defined-Dgx0RWXe.js"
+    ]
+  }
+}

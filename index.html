@@ -29,17 +29,22 @@
 	</noscript>
 
 	<script type="importmap">
-    {
-        "imports": {
+	{
+		"imports": {
+			"lit": "/assets/vendor.js",
+			"lit/decorators.js": "/assets/vendor.js",
+			"lit/directives/ref.js": "/assets/vendor.js",
+			"lit/directives/if-defined.js": "/assets/vendor.js",
+			"lit-element": "/assets/vendor.js",
+			"lit-html": "/assets/vendor.js",
+			"lit/directives/unsafe-html.js": "/assets/vendor.js",
+			"lit/directives/style-map.js": "/assets/vendor.js",
             "syntax-highlight": "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm"
         }
     }
     </script>
 
-
-
 	<script type="module" src="src/pages/index.js"></script>
-
 </head>
 
 <body class="container n-reset">
@@ -65,16 +70,13 @@
 		when you're ready, generally after <strong>load</strong>.
 	</p>
 
-	<br><br><br>
-
 	<hero-example></hero-example>
-
 
 	<h1>Examples</h1>
 
-	<!-- That's heavy, almost 8mb with several duplicated dependencies
-    <playground-ide editable-file-system line-numbers resizable on="visible" style="height: 300px">
-        <script type="sample/html" filename="index.html">
+	<!-- That's heavy, almost 8mb with several duplicated dependencies on different versions
+	<playground-ide editable-file-system line-numbers resizable on="visible" style="height: 300px">
+		<script type="sample/html" filename="index.html">
             <!doctype html>
             <body>
             Hello
@@ -82,11 +84,11 @@
             </body>
         </script>
 
-        <script type="sample/ts" filename="index.ts">
+		<script type="sample/ts" filename="index.ts">
             document.body.appendChild(document.createTextNode("World!"))
         </script>
-    </playground-ide>
-    -->
+	</playground-ide>
+	-->
 
 	<h1>Examples - <code>on</code> attribute</h1>
 

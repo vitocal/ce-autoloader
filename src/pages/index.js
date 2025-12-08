@@ -1,6 +1,5 @@
 import ErrorFallback from '/src/components/error-fallback.js';
 import "/src/components/hero-example.js";
-import "lit";
 
 import CERegistry from '/src/index.js';
 
@@ -22,7 +21,8 @@ const catalog = {
      */
     "nord-*": async (full_name) => {
         const [, namespace, name] = full_name.match(/^([a-z]+)-(.*)/);
-        const module = await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/${capitalize(name)}.js?external=lit`);
+        const external = ((process.env.NODE_ENV === 'production') ? ['lit'] : ['lit']).join(',');
+        const module = await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/${capitalize(name)}.js?external=${external}`);
         if (!customElements.get(full_name)) {
             customElements.define(full_name, module.default);
         }

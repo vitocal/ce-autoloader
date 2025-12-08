@@ -13,6 +13,11 @@ export default defineConfig({
       treeShaking: true
     }
   },
+  resolve: {
+    alias: {
+      '/assets/vendor.js': resolve(__dirname, 'src/vendor.js'),
+    }
+  },
   build: {
     lib: {
       entry: 'src/index.ts',
@@ -21,6 +26,13 @@ export default defineConfig({
     },
     rollupOptions: {
       external: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element'],
+      output: {
+        inlineDynamicImports: false,
+        format: 'esm',
+        manualChunks: {
+          lit: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element'],
+        }
+      }
     },
     emptyOutDir: false,
   },
