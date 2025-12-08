@@ -21,12 +21,6 @@
 		}
 	</style>
 	<link rel="stylesheet" href="styles.css">
-	<link rel="preload" href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css"
-		as="style" onload="this.rel='stylesheet'">
-	<noscript>
-		<link rel="stylesheet"
-			href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css">
-	</noscript>
 
 	<script type="importmap">
 	{
@@ -45,6 +39,10 @@
     </script>
 
 	<script type="module" src="src/pages/index.js"></script>
+	<script type="module" defer>
+		import { loadCSSLayer } from './src/utils.ts'
+		loadCSSLayer('shared.css', 'ds');
+	</script>
 </head>
 
 <body class="container n-reset">

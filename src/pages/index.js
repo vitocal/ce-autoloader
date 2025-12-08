@@ -1,17 +1,25 @@
+/** We import it before the registry, so it's
+ * loaded before the first discover.
+ */
 import ErrorFallback from '/src/components/error-fallback.js';
-import "/src/components/hero-example.js";
 
 import CERegistry from '/src/index.js';
+import { loadCSSLayer } from '../utils.ts'
 
 const capitalize = (str) =>
     str.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('');
 
 const catalog = {
+    "hero-example": () => import("/src/components/hero-example.js"),
 
-    "syntax-highlight": "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm",
     "playground-ide": "https://cdn.jsdelivr.net/npm/playground-elements@0.18.1/+esm",
     "json-viewer": "https://esm.sh/@alenaksu/json-viewer",
     "wc-markdown": "https://cdn.skypack.dev/@vanillawc/wc-markdown",
+
+    "syntax-highlight": async () => {
+        loadCSSLayer('https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css', 'scoped');
+        return import("https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm");
+    },
 
     "confetti-button": () => import("/src/components/confetti-button.ts"),
     "three-cube": () => import("/src/components/three-cube.js"),
@@ -22,6 +30,7 @@ const catalog = {
     "nord-*": async (full_name) => {
         const [, namespace, name] = full_name.match(/^([a-z]+)-(.*)/);
         const external = ((process.env.NODE_ENV === 'production') ? ['lit'] : ['lit']).join(',');
+        loadCSSLayer('https://nordcdn.net/ds/css/4.2.0/nord.min.css', 'ds');
         const module = await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/${capitalize(name)}.js?external=${external}`);
         if (!customElements.get(full_name)) {
             customElements.define(full_name, module.default);
@@ -85,10 +94,3 @@ async function metrics() {
         })
     );
 }
-
-
-import { loadCSSLayer } from '../utils.ts'
-
-loadCSSLayer('shared.css', 'ds');
-loadCSSLayer('https://nordcdn.net/ds/css/4.2.0/nord.min.css', 'ds');
-
