@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>《❰ce-autoloader❱》 - nested components</title>
+
+    <link rel="preconnect" href="https://nordcdn.net" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Redacted+Script&display=swap" rel="stylesheet">
+
+    <style>
+        /** To avoid FOUC (Flash of Unstyled Content) or Layout Shifts,
+			we should style early our components, before the first render of page.
+
+			I like to just match the size/aspect ratio, aligning before/after to avoid layout shifts.
+			See `:not(:defined)` for more info on how to style every component at once.
+		*/
+        hero-example {
+            width: 100%;
+            min-height: 320px;
+
+            view-transition-name: hero-example;
+        }
+
+        /* ::view-transition-old(*) {
+			animation: 90ms ease-out both fade-out;
+		}
+
+		::view-transition-new(*) {
+			animation: 210ms ease-in both fade-in;
+		} */
+    </style>
+    <link rel="stylesheet" href="styles.css">
+
+    <script type="importmap">
+	{
+		"imports": {
+			"lit": "/assets/vendor.js",
+			"lit/decorators.js": "/assets/vendor.js",
+			"lit/directives/ref.js": "/assets/vendor.js",
+			"lit/directives/if-defined.js": "/assets/vendor.js",
+			"lit-element": "/assets/vendor.js",
+			"lit-html": "/assets/vendor.js",
+			"lit/directives/unsafe-html.js": "/assets/vendor.js",
+			"lit/directives/style-map.js": "/assets/vendor.js",
+            "syntax-highlight": "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm"
+        }
+    }
+    </script>
+
+    <script type="module" src="src/pages/index.js"></script>
+    <script type="module" defer>
+        import { loadCSSLayer } from './src/utils.ts'
+        loadCSSLayer('shared.css', 'ds');
+        loadCSSLayer('https://nordcdn.net/ds/css/4.2.0/nord.min.css', 'ds');
+        loadCSSLayer('https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css', 'scoped');
+    </script>
+</head>
+
+<body class="container n-reset">
+    <hero-example ce-loading debug-imports bundled>
+        Lorem ipsum dolor sit amet consectetur adipisicing elit. Nisi eum ea neque unde officia exercitationem eaque
+        autem blanditiis beatae voluptas sequi incidunt tenetur corporis, dolores minus officiis optio maxime quidem.
+    </hero-example>
+</body>
+
+</html>

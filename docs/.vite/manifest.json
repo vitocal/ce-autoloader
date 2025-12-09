@@ -1,33 +1,33 @@
 {
-  "_if-defined-Dgx0RWXe.js": {
-    "file": "assets/if-defined-Dgx0RWXe.js",
+  "_if-defined-BoKxvNe6.js": {
+    "file": "assets/if-defined-BoKxvNe6.js",
     "name": "if-defined",
     "imports": [
-      "_lit-element-OgMYHPKI.js"
+      "_lit-html-Dbe4NQd5.js"
     ]
   },
-  "_index-Cm2yFaKC.js": {
-    "file": "assets/index-Cm2yFaKC.js",
-    "name": "index"
+  "_lit-html-Dbe4NQd5.js": {
+    "file": "assets/lit-html-Dbe4NQd5.js",
+    "name": "lit-html"
   },
-  "_lit-element-OgMYHPKI.js": {
-    "file": "assets/lit-element-OgMYHPKI.js",
-    "name": "lit-element"
+  "_preload-helper-G58Zr4m6.js": {
+    "file": "assets/preload-helper-G58Zr4m6.js",
+    "name": "preload-helper"
   },
   "assets/observability.jpg": {
     "file": "assets/observability-D7OwlOYm.jpg",
     "src": "assets/observability.jpg"
   },
   "index.html": {
-    "file": "assets/main-DRCJA1km.js",
+    "file": "assets/main-BlMSiCY6.js",
     "name": "main",
     "src": "index.html",
     "isEntry": true,
     "imports": [
-      "_index-Cm2yFaKC.js",
-      "_lit-element-OgMYHPKI.js"
+      "_preload-helper-G58Zr4m6.js"
     ],
     "dynamicImports": [
+      "src/components/hero-example.js",
       "src/components/confetti-button.ts",
       "src/components/three-cube.js"
     ],
@@ -36,14 +36,14 @@
     ]
   },
   "single.html": {
-    "file": "assets/single-DAKJtIz2.js",
+    "file": "assets/single-DK2OsEOO.js",
     "name": "single",
     "src": "single.html",
     "isEntry": true,
     "imports": [
-      "_index-Cm2yFaKC.js",
-      "_lit-element-OgMYHPKI.js",
-      "_if-defined-Dgx0RWXe.js"
+      "_preload-helper-G58Zr4m6.js",
+      "_if-defined-BoKxvNe6.js",
+      "_lit-html-Dbe4NQd5.js"
     ]
   },
   "src/components/confetti-button.ts": {
@@ -51,6 +51,15 @@
     "name": "confetti-button",
     "src": "src/components/confetti-button.ts",
     "isDynamicEntry": true
+  },
+  "src/components/hero-example.js": {
+    "file": "assets/hero-example-SyCdIdsw.js",
+    "name": "hero-example",
+    "src": "src/components/hero-example.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_lit-html-Dbe4NQd5.js"
+    ]
   },
   "src/components/three-cube.js": {
     "file": "assets/three-cube-8HBqYzGh.js",
@@ -64,8 +73,8 @@
     "src": "src/vendor.js",
     "isEntry": true,
     "imports": [
-      "_lit-element-OgMYHPKI.js",
-      "_if-defined-Dgx0RWXe.js"
+      "_if-defined-BoKxvNe6.js",
+      "_lit-html-Dbe4NQd5.js"
     ]
   }
 }

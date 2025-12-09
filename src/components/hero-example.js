@@ -1,6 +1,10 @@
 import { LitElement, css, adoptStyles } from "lit";
 import { html, unsafeStatic } from 'lit/static-html.js';
 
+import SyntaxHighlight from "syntax-highlight-element";
+// import ThreeCube from "three-cube";
+// import NordButton from "@nord-ui/button";
+
 export default class HeroExample extends LitElement {
 	static styles = css`
     @layer component {
@@ -79,8 +83,6 @@ export default class HeroExample extends LitElement {
 			document.adoptedStyleSheets.push(this.constructor.styles.styleSheet);
 		}
 	}
-
-
 
 	js_template() {
 		return `import CERegistry from 'ce-autoloader';

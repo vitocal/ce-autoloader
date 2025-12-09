@@ -20,6 +20,9 @@ export type CEAutoLoaderOptions = {
 	defaultDirective?: CEAutoLoaderDirectives;
 	/** Interval to flush batches */
 	// batchInterval?: number;
+
+	/** Use View Transitions API to animate the component upgrade */
+	transition?: boolean;
 }
 
 class CEError extends Error {
@@ -37,11 +40,17 @@ function isCustomElement(element: Element) {
 	return element instanceof HTMLElement && element.tagName.includes("-")
 }
 
-function debounce(fn, delay = 300) {
-	let timer;
-	return function (...args) {
+function debounceMutations(fn, delay = 300) {
+	let timer: ReturnType<typeof setTimeout>;
+	let accumulated: MutationRecord[] = [];
+
+	return function (mutations: MutationRecord[], observer: MutationObserver) {
+		accumulated.push(...mutations);
 		clearTimeout(timer);
-		timer = setTimeout(() => fn.apply(this, args), delay);
+		timer = setTimeout(() => {
+			fn.call(this, accumulated, observer);
+			accumulated = [];
+		}, delay);
 	};
 }
 
@@ -101,6 +110,7 @@ class CEAutoLoader {
 			root: document.body,
 			directives: ["eager", "visible", "interaction"],
 			defaultDirective: "eager",
+			transition: false,
 			...options
 		};
 		this.catalog = options.catalog;
@@ -114,7 +124,7 @@ class CEAutoLoader {
 
 
 	watch() {
-		const observer = new MutationObserver(debounce(this.watcher.bind(this), 100));
+		const observer = new MutationObserver(debounceMutations(this.watcher.bind(this), 100));
 
 		observer.observe(this.options.root || document.body, {
 			childList: true,
@@ -287,10 +297,20 @@ class CEAutoLoader {
 			}))
 		}
 
-		await Promise.allSettled([
-			...load_success.map((result) => this.define(result.value)),
-			this.flushDefine()
-		])
+		const defineComponents = async () => {
+			await Promise.allSettled([
+				...load_success.map((result) => this.define(result.value)),
+				// add behaviour mode, before or after define
+				this.flushDefine()
+			])
+		}
+
+		if (this.options.transition && document.startViewTransition) {
+			const transition = document.startViewTransition(defineComponents);
+			await transition.updateCallbackDone;
+		} else {
+			await defineComponents();
+		}
 
 		return load_result;
 	}
@@ -307,10 +327,13 @@ class CEAutoLoader {
 		}
 
 		let module;
+		let before_imports = { ...customElements.waiting };
+
 		try {
 			performance.mark(`load:${name}:start`);
 			el.setAttribute('ce-loading', "");
 
+			// await new Promise((resolve) => setTimeout(resolve, 120000));
 			if (typeof asset === "string") {
 				module = await import(/* @vite-ignore */ asset);
 			} else if (typeof asset === "function") {
@@ -326,6 +349,19 @@ class CEAutoLoader {
 			performance.measure(`load:${name}`, `load:${name}:start`, `load:${name}:end`);
 		}
 
+		let after_imports = customElements.waiting;
+		let diff_imports = Object.keys(after_imports)
+			.filter((key) => !Object.keys(before_imports).includes(key))
+			.filter((key) => key !== name);
+
+		if (el.hasAttribute('bundled')) {
+			console.log("🩻 diff_imports", diff_imports)
+			// So, a bundled component must define element dependencies upfront
+			// Otherwise, it will be loaded after the component is defined
+			for (const element of diff_imports) {
+				DEFINE(element, customElements.waiting[element]['ctor'], {})
+			}
+		}
 
 		return { name, module, asset, el }
 	}
@@ -340,6 +376,7 @@ class CEAutoLoader {
 			return;
 		}
 
+		console.log("defining", name)
 		if (customElements.waiting[name]) {
 			module = customElements.waiting[name]['ctor']
 		} else {

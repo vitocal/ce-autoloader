@@ -119,7 +119,7 @@
 
         &:has(code, syntax-highlight) {
             white-space: pre-wrap;
-            word-break: break-all;
+            word-break: normal;
 
             tab-size: 2;
         }
@@ -131,7 +131,7 @@
             width: 100%;
             position: relative;
             border-radius: .5rem;
-            overflow: auto;
+            /* overflow: clip; */
         }
     }
 
@@ -182,6 +182,8 @@
         overflow-clip-margin: 0px;
         contain: paint;
 
+        font-family: "Redacted Script", cursive;
+
         &::after {
             pointer-events: none;
             content: " ";
@@ -203,10 +205,14 @@
 
             animation: shimmer 1s;
             animation-iteration-count: infinite;
-            animation-timing-function: linear;
+            animation-timing-function: ease-in-out;
+            animation-fill-mode: both;
             background: linear-gradient(to right, transparent 10%, #0006 50%, transparent 90%);
-            background-size: 200% 100%;
+            background-size: 100% 100%;
+            transform-origin: center;
 
+            contain: paint;
+            overflow: hidden;
         }
 
         /** Disable nested loading */
@@ -243,18 +249,17 @@
 
 
 /**
-         * Animations
-         */
-/* ::view-transition-group(*) {
-            animation: none;
-        } */
+ * Animations
+ */
+::view-transition-group(*) {
+    /* animation: none; */
+}
 
+::view-transition-group(*) {
+    animation: none;
+    /* animation-duration: 5s; */
+}
 
-/* ::view-transition-group(*) {
-            animation: none;
-            animation-duration: 1s;
-        }
-*/
 ::view-transition-old(*) {
     width: fit-content;
     height: 100%;
@@ -262,6 +267,8 @@
 
     /* But maintain it within the image itself */
     object-fit: none;
+
+    animation: none;
 }
 
 ::view-transition-new(*) {
@@ -269,6 +276,7 @@
     object-position: left;
 
     /* But maintain it within the image itself */
+    animation: none;
     object-fit: none;
 }
 
@@ -282,8 +290,8 @@
 
 /* */
 ::view-transition-group(*.three-cube) {
-    /* animation-timing-function: var(--spring-easing); */
-    /* animation-duration: 1s; */
+    animation-timing-function: var(--spring-easing);
+    animation-duration: 1s;
 }
 
 

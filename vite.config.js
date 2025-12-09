@@ -1,11 +1,16 @@
 import { dirname, resolve } from 'node:path'
-
 import { fileURLToPath } from 'node:url'
+
 import { defineConfig } from 'vite'
+
+import CECatalogLoader from './src/vite-plugin/ce-catalog-loader.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
+  plugins: [
+    CECatalogLoader({ catalog: './src/components/catalog.js' })
+  ],
   optimizeDeps: {
     include: ['@nordhealth/components/lib/*.js'],
     exclude: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element'],
@@ -15,7 +20,11 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@': resolve(__dirname, 'src/'),
       '/assets/vendor.js': resolve(__dirname, 'src/vendor.js'),
+      'three-cube': resolve(__dirname, 'src/components/three-cube.js'),
+      'syntax-highlight': 'https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm',
+      '@nord-ui/button': 'https://esm.sh/@nordhealth/components/lib/Button.js?external=lit',
     }
   },
   build: {
@@ -25,7 +34,12 @@ export default defineConfig({
       fileName: 'ce-autoloader'
     },
     rollupOptions: {
-      external: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element'],
+      external: [
+        'lit', 'lit-html', 'lit-element', '@lit/reactive-element',
+      ],
+      input: {
+        catalog: resolve(__dirname, 'src/components/catalog.js')
+      },
       output: {
         inlineDynamicImports: false,
         format: 'esm',

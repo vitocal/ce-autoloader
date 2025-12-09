@@ -7,6 +7,8 @@
 	<title>《❰ce-autoloader❱》 Test</title>
 
 	<link rel="preconnect" href="https://nordcdn.net" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Redacted+Script&display=swap" rel="stylesheet">
 
 	<style>
 		/** To avoid FOUC (Flash of Unstyled Content) or Layout Shifts,
@@ -18,7 +20,17 @@
 		hero-example {
 			width: 100%;
 			min-height: 320px;
+
+			view-transition-name: hero-example;
 		}
+
+		/* ::view-transition-old(*) {
+			animation: 90ms ease-out both fade-out;
+		}
+
+		::view-transition-new(*) {
+			animation: 210ms ease-in both fade-in;
+		} */
 	</style>
 	<link rel="stylesheet" href="styles.css">
 
@@ -68,7 +80,7 @@
 		when you're ready, generally after <strong>load</strong>.
 	</p>
 
-	<hero-example></hero-example>
+	<hero-example ce-loading></hero-example>
 
 	<h1>Examples</h1>
 

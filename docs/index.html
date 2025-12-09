@@ -18,18 +18,19 @@
 		hero-example {
 			width: 100%;
 			min-height: 320px;
+
+			view-transition-name: hero-example;
 		}
+
+		/* ::view-transition-old(*) {
+			animation: 90ms ease-out both fade-out;
+		}
+
+		::view-transition-new(*) {
+			animation: 210ms ease-in both fade-in;
+		} */
 	</style>
 	<link rel="stylesheet" href="styles.css">
-	<link rel="preload" href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css"
-		as="style" onload="this.rel='stylesheet'">
-	<noscript>
-		<link rel="stylesheet"
-			href="https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css">
-	</noscript>
-
-
-
 
 
 
@@ -48,9 +49,8 @@
         }
     }
     </script>
-  <script type="module" crossorigin src="/ce-autoloader/assets/main-DRCJA1km.js"></script>
-  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/index-Cm2yFaKC.js">
-  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/lit-element-OgMYHPKI.js">
+  <script type="module" crossorigin src="/ce-autoloader/assets/main-BlMSiCY6.js"></script>
+  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/preload-helper-G58Zr4m6.js">
 </head>
 
 <body class="container n-reset">
@@ -76,10 +76,7 @@
 		when you're ready, generally after <strong>load</strong>.
 	</p>
 
-	<br><br><br>
-
-	<hero-example></hero-example>
-
+	<hero-example ce-loading></hero-example>
 
 	<h1>Examples</h1>
 
