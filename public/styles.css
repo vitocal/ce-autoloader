@@ -19,7 +19,7 @@
     }
 }
 
-@layer ds {
+@layer page {
     :root {
         --color-primary: #e31;
         --color-secondary: rgba(148, 163, 184, 0.55);
@@ -33,8 +33,16 @@
         --color-warning: rgb(255, 243, 72);
         --color-danger: #e31;
 
+        --font-serif: "Cormorant Garamond", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
         --n-font-family: 'Nordhealth Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
         --n-line-height: 1.5;
+        --n-font-size-xs: 0.75rem;
+        --n-font-size-s: 0.875rem;
+        --n-font-size-m: 1rem;
+        --n-font-size-l: 1.125rem;
+        --n-font-size-xl: 1.25rem;
+        --n-font-size-xxl: 1.5rem;
+        --n-font-size-xxxl: 2rem;
 
         --radius: 0.5rem;
         --space-xs: 0.25rem;
@@ -55,6 +63,8 @@
     body {
         max-width: 90%;
         margin: 0 auto;
+        text-wrap: balance;
+        font-size: 16px;
     }
 
     body>*+* {
@@ -62,7 +72,7 @@
         content-visibility: auto;
     }
 
-    .container {
+    .grid-3 {
         display: grid;
         grid-template-columns:
             [left-start] 1fr [center-start] 1fr [center-end right-start] 1fr [right-end];
@@ -82,7 +92,6 @@
         /* Optional placement areas */
         .left {
             grid-column: left-start / center-start;
-            justify-self: start;
         }
 
         .center {
@@ -111,27 +120,26 @@
 
     pre {
         box-sizing: border-box;
-        display: block;
+        display: flex;
         max-width: 100%;
-        height: 100%;
 
         font-size: 12px;
 
         &:has(code, syntax-highlight) {
-            white-space: pre-wrap;
-            word-break: normal;
-
             tab-size: 2;
         }
 
         syntax-highlight {
-            padding: .5rem 1rem 1rem;
-            display: inline-block;
+            white-space: pre-wrap;
+            word-break: normal;
+            padding: .5rem 0.5rem;
+            display: flex;
+            align-items: center;
             max-inline-size: 100%;
             width: 100%;
             position: relative;
-            border-radius: .5rem;
-            /* overflow: clip; */
+
+            /* box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5); */
         }
     }
 
@@ -149,6 +157,7 @@
 
     figure {
         margin: 0;
+        padding: 1em;
 
         figcaption {
             text-align: center;
@@ -161,88 +170,98 @@
     :not(:defined) {
         visibility: visible;
         display: inline-block;
+
+        --color: color-mix(in srgb, var(--color-fg) 40%, transparent);
         color: var(--color-fg);
-        outline: 1px dashed var(--color-secondary);
+
+        outline: none;
+        border: 1px solid var(--color);
+        background-image: repeating-linear-gradient(315deg, var(--color) 0 1px, #0000 0 50%);
+        background-size: 8px 8px;
+        background-position: 0 0;
+        box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 0px 0px inset;
 
         width: fit-content;
         min-height: 24px;
         padding: 0.35em;
         border-radius: 0.5em;
         overflow: clip;
-        overflow-clip-margin: 0.5em;
-        font-family: "Redacted Script", cursive;
 
         position: relative;
         contain: paint;
+    }
+
+    [redacted] {
+        font-family: "Redacted Script", cursive;
     }
 
     [ce-loading] {
-        outline: 1px dashed var(--color-secondary);
         position: relative;
         overflow: clip;
-        overflow-clip-margin: 0px;
+
+        animation: line-shadow 1.5s infinite linear;
         contain: paint;
 
-        &::after {
+        /* &::after {
             pointer-events: none;
             content: " ";
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            /* box-shadow: 0 0 100px 50px rgba(0, 0, 0, 0.5) inset; */
-            /* Large blur, negative spread for vignette */
-            /* background: linear-gradient(90deg,
-                    transparent,
-                    #0006 20%,
-                    #0005 60%,
-                    transparent); */
-            /* animation: shimmer 1s ease-in-out infinite; */
-
             z-index: 0;
 
-            animation: shimmer 3s;
-            animation-iteration-count: infinite;
-            animation-timing-function: ease-out;
-            animation-fill-mode: both;
-            background: linear-gradient(to right, transparent 10%, #0006 50%, transparent 90%);
-            background-size: 100% 100%;
-            transform-origin: center;
+            inset: 0;
+            /* transform: translateX(-150%) rotate(-45deg); */
 
-            contain: paint;
-            overflow: hidden;
+        /* background: linear-gradient(to right, transparent 10%, #000a 50%, transparent 90%);
+            background-size: 200% 200%; */
+        animation: line-shadow 15s linear infinite;
+        background-image: repeating-linear-gradient(315deg, var(--color) 0 1px, #0000 0 50%);
+        background-size: 8px 8px;
+        background-position: 0 0;
+
+        box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 0px 0px inset;
+
+        contain: paint;
+        overflow: hidden;
+    }
+
+    /** Disable nested loading */
+    & [ce-loading] {
+        &::after {
+            animation: none;
+            background: transparent;
         }
-
-        /** Disable nested loading */
-        & [ce-loading] {
-            &::after {
-                animation: none;
-                background: transparent;
-            }
-        }
     }
+}
 
-    [ce-defined] {
-        border-radius: 0.5em;
-        overflow-clip-margin: 0.5em;
+[ce-defined] {
+    background-image: none;
+    overflow-clip-margin: 1em;
 
-        overflow: clip;
-        visibility: visible;
-    }
+    overflow: clip;
+    visibility: visible;
+}
 
-    [ce-defined][ce-outline-highlight] {
-        outline: 2px dashed transparent;
-        outline-offset: 0px;
+[ce-defined][ce-outline-highlight] {
+    outline: 2px dashed transparent;
+    outline-offset: 0px;
 
-        animation: outline-highlight 0.7s ease-in-out 4 alternate;
-    }
+    animation: outline-highlight 0.7s ease-in-out 4 alternate;
+}
 
 }
 
 @layer hotfix {
     nord-table {
         all: revert-layer !important;
+    }
+
+    .n-dl {
+        align-items: center;
+
+        dd {
+            margin-block-end: 0;
+            margin: 1em 0;
+        }
     }
 }
 
@@ -251,7 +270,7 @@
  * Animations
  */
 ::view-transition-group(*) {
-    /* animation: none; */
+    animation: none;
 }
 
 ::view-transition-group(*) {
@@ -267,7 +286,7 @@
     /* But maintain it within the image itself */
     object-fit: none;
 
-    animation: none;
+    /* animation: none; */
 }
 
 ::view-transition-new(*) {
@@ -281,10 +300,14 @@
 
 
 /* disable view transition root animation */
-::view-transition-group(root) {}
+::view-transition-group(root) {
+    animation: none;
+}
 
 ::view-transition-new(root),
-::view-transition-old(root) {}
+::view-transition-old(root) {
+    animation: none;
+}
 
 
 /* */
@@ -367,25 +390,6 @@
     }
 }
 
-@keyframes fade-in {
-    0% {
-        opacity: 0;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
-
-@keyframes fade-out {
-    0% {
-        opacity: 0;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
 
 @keyframes blur-out {
     0% {
@@ -413,5 +417,29 @@
     100% {
         outline-color: transparent;
         outline-offset: 0px;
+    }
+}
+
+@keyframes appear-above-in {
+    0% {
+        opacity: 0;
+        transform: translateZ(500px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateZ(0);
+    }
+}
+
+@keyframes appear-below-in {
+    0% {
+        opacity: 0;
+        transform: translateZ(-500px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateZ(0);
     }
 }

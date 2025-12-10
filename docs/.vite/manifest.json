@@ -10,38 +10,47 @@
     "file": "assets/lit-html-Dbe4NQd5.js",
     "name": "lit-html"
   },
-  "_preload-helper-G58Zr4m6.js": {
-    "file": "assets/preload-helper-G58Zr4m6.js",
+  "_preload-helper-B59X3BGe.js": {
+    "file": "assets/preload-helper-B59X3BGe.js",
     "name": "preload-helper"
+  },
+  "_syntax-highlight-element-CxIAthIL.js": {
+    "file": "assets/syntax-highlight-element-CxIAthIL.js",
+    "name": "syntax-highlight-element",
+    "imports": [
+      "_lit-html-Dbe4NQd5.js"
+    ]
   },
   "assets/observability.jpg": {
     "file": "assets/observability-D7OwlOYm.jpg",
     "src": "assets/observability.jpg"
   },
   "index.html": {
-    "file": "assets/main-BlMSiCY6.js",
+    "file": "assets/main-Yj4wzcGD.js",
     "name": "main",
     "src": "index.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-G58Zr4m6.js"
+      "_preload-helper-B59X3BGe.js"
     ],
     "dynamicImports": [
       "src/components/hero-example.js",
+      "src/components/vi-example.js",
       "src/components/confetti-button.ts",
-      "src/components/three-cube.js"
+      "src/components/three-cube.js",
+      "src/components/observable-plot-wrapper.js"
     ],
     "assets": [
       "assets/observability-D7OwlOYm.jpg"
     ]
   },
   "single.html": {
-    "file": "assets/single-DK2OsEOO.js",
+    "file": "assets/single-BFGI424N.js",
     "name": "single",
     "src": "single.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-G58Zr4m6.js",
+      "_preload-helper-B59X3BGe.js",
       "_if-defined-BoKxvNe6.js",
       "_lit-html-Dbe4NQd5.js"
     ]
@@ -53,19 +62,36 @@
     "isDynamicEntry": true
   },
   "src/components/hero-example.js": {
-    "file": "assets/hero-example-SyCdIdsw.js",
+    "file": "assets/hero-example-BvhBjY8c.js",
     "name": "hero-example",
     "src": "src/components/hero-example.js",
     "isDynamicEntry": true,
     "imports": [
+      "_syntax-highlight-element-CxIAthIL.js",
       "_lit-html-Dbe4NQd5.js"
     ]
   },
+  "src/components/observable-plot-wrapper.js": {
+    "file": "assets/observable-plot-wrapper-DTTmTyl7.js",
+    "name": "observable-plot-wrapper",
+    "src": "src/components/observable-plot-wrapper.js",
+    "isDynamicEntry": true
+  },
   "src/components/three-cube.js": {
-    "file": "assets/three-cube-8HBqYzGh.js",
+    "file": "assets/three-cube-X0r6WzKj.js",
     "name": "three-cube",
     "src": "src/components/three-cube.js",
     "isDynamicEntry": true
+  },
+  "src/components/vi-example.js": {
+    "file": "assets/vi-example-sVJHPXea.js",
+    "name": "vi-example",
+    "src": "src/components/vi-example.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_syntax-highlight-element-CxIAthIL.js",
+      "_lit-html-Dbe4NQd5.js"
+    ]
   },
   "src/vendor.js": {
     "file": "assets/vendor.js",

@@ -1,13 +1,4 @@
-import { LitElement, css, adoptStyles } from "lit";
-import { html, unsafeStatic } from 'lit/static-html.js';
-
-import SyntaxHighlight from "syntax-highlight-element";
-import "model-viewer";
-import NordButton from "@nord-ui/button";
-import NordIcon from "@nord-ui/icon";
-
-export default class HeroExample extends LitElement {
-	static styles = css`
+import{LitElement as r,css as o}from"lit";import{s as t,u as e}from"./syntax-highlight-element-CxIAthIL.js";import"https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js";import"https://esm.sh/@nordhealth/components/lib/Button.js?external=lit";import"https://esm.sh/@nordhealth/components/lib/Icon.js?external=lit";import"./lit-html-Dbe4NQd5.js";class s extends r{static styles=o`
     @layer components {
 		hero-example {
 			display: grid;
@@ -76,29 +67,7 @@ export default class HeroExample extends LitElement {
 
 	::view-transition-new(hero-example) {
 		animation: var(--spring-duration) var(--spring-easing) both appear-below-in;
-	}`
-
-	static properties = {
-		mode: { state: true },
-	};
-
-	createRenderRoot() {
-		return this;
-	}
-
-	constructor() {
-		super();
-		this.mode = "code";
-
-		// In light-dom mode, we need to adopt the styles
-		if (this.constructor.styles.styleSheet &&
-			!document.adoptedStyleSheets.includes(this.constructor.styles.styleSheet)) {
-			document.adoptedStyleSheets.push(this.constructor.styles.styleSheet);
-		}
-	}
-
-	js_template() {
-		return `import CERegistry from 'ce-autoloader';
+	}`;static properties={mode:{state:!0}};createRenderRoot(){return this}constructor(){super(),this.mode="code",this.constructor.styles.styleSheet&&!document.adoptedStyleSheets.includes(this.constructor.styles.styleSheet)&&document.adoptedStyleSheets.push(this.constructor.styles.styleSheet)}js_template(){return`import CERegistry from 'ce-autoloader';
 
 const registry = new CERegistry({
 	/* A central registry for all our components 😘 */
@@ -108,28 +77,11 @@ const registry = new CERegistry({
 	}
 });
 
-await registry.discover();`;
-	}
-
-	html_template() {
-		return `&lt;!-- Anywhere in my HTML page -->
+await registry.discover();`}html_template(){return`&lt;!-- Anywhere in my HTML page -->
 &lt;model-viewer camera-controls touch-action="pan-y" auto-rotate tone-mapping="aces"
 shadow-intensity="1" alt="A 3D model of a shishkebab"
 src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" >&lt;/model-viewer>
-		`
-	}
-
-	onClick() {
-		this.mode = (this.mode === "code") ? "preview" : "code";
-	}
-
-
-	render() {
-		let preview = this.mode === "code"
-			? html`<pre><syntax-highlight language="html">${unsafeStatic(this.html_template())}</syntax-highlight></pre>`
-			: html`<model-viewer camera-controls touch-action="pan-y" auto-rotate poster="https://modelviewer.dev/assets/poster-shishkebab.webp" tone-mapping="aces" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" shadow-intensity="1" alt="A 3D model of a shishkebab" ></model-viewer>`;
-
-		return html`
+		`}onClick(){this.mode=this.mode==="code"?"preview":"code"}render(){let i=this.mode==="code"?e`<pre><syntax-highlight language="html">${t(this.html_template())}</syntax-highlight></pre>`:e`<model-viewer camera-controls touch-action="pan-y" auto-rotate poster="https://modelviewer.dev/assets/poster-shishkebab.webp" tone-mapping="aces" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" shadow-intensity="1" alt="A 3D model of a shishkebab" ></model-viewer>`;return e`
 			<div class="left flex-y window" >
         		<h4 class="flex-x">
 					Javascript
@@ -137,15 +89,11 @@ src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" >&lt;/model-vi
 					  <nord-icon name="interface-play" label="Play" size="m"></nord-icon>
 					</nord-button>
 				</h4>
-        		<pre><syntax-highlight language="js">${unsafeStatic(this.js_template())}</syntax-highlight></pre>
+        		<pre><syntax-highlight language="js">${t(this.js_template())}</syntax-highlight></pre>
     		</div>
 
 			<div class="preview right window flex-y" mode=${this.mode}>
 				<h4 class="flex-x">Preview</h4>
-				${preview}
+				${i}
 			</div>
-		`
-	}
-}
-
-customElements.define('hero-example', HeroExample)
+		`}}customElements.define("hero-example",s);export{s as default};

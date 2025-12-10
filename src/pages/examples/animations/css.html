@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script type="importmap">
+	{
+		"imports": {
+			"lit": "/assets/vendor.js",
+			"lit/decorators.js": "/assets/vendor.js",
+			"lit/directives/ref.js": "/assets/vendor.js",
+			"lit/directives/if-defined.js": "/assets/vendor.js",
+			"lit-element": "/assets/vendor.js",
+			"lit-html": "/assets/vendor.js",
+			"lit/directives/unsafe-html.js": "/assets/vendor.js",
+			"lit/directives/style-map.js": "/assets/vendor.js",
+            "syntax-highlight": "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm"
+        }
+    }
+    </script>
+    <style>
+        @layer normalize, ds, shared, page, components, scoped, hotfix;
+
+        body {
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+        }
+
+        :not(:defined) {
+            min-width: fit-content;
+            min-height: 24px;
+            display: block;
+            visibility: visible;
+            outline: 2px dashed teal;
+        }
+
+        /* 2. Loading State: maybe a skeleton or a spinner? */
+        [ce-loading] {
+            display: block;
+            position: relative;
+            overflow: clip;
+
+            &::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                animation: shimmer 1s ease-out infinite;
+                background: linear-gradient(to right, transparent 10%, #0006 50%, transparent 90%);
+                background-size: 100% 100%;
+            }
+        }
+
+        /* 3. Final State: fade in */
+        [ce-defined] {
+            display: block;
+            animation: fade-in 3s ease-out 1;
+        }
+    </style>
+
+    <script type="module" src="/src/pages/index.js" defer></script>
+    <script type="module" defer>
+        import { loadCSSLayer } from "/src/utils.ts"
+
+        loadCSSLayer('/shared.css', 'ds');
+        loadCSSLayer('https://nordcdn.net/ds/css/4.2.0/nord.min.css', 'ds');
+
+        globalThis.catalog["nord-button"] = async () => {
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            const module = await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/Button.js`);
+        }
+
+        await registry.discover();
+    </script>
+</head>
+
+<body>
+    <nord-button>nord-button</nord-button>
+</body>
+
+</html>

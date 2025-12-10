@@ -65,7 +65,7 @@ function matchCustomElement(root: Element) {
 
 class CEAutoLoader {
 	options: CEAutoLoaderOptions;
-	_catalog: CEAutoLoaderCatalog = {};
+	catalog: CEAutoLoaderCatalog = {};
 
 	// Namespaced components(prefix-*) are stored separatedly from the registry
 	_namespaces: Record<string, CEAutoLoaderModule> = {};
@@ -86,17 +86,17 @@ class CEAutoLoader {
 	 * just a public catalog.
 	 * should refactor _namespaces thought
 	 */
-	public get catalog() {
-		return this._catalog;
-	}
-	public set catalog(value: CEAutoLoaderCatalog) {
-		this._catalog = value;
-		this._namespaces = Object.fromEntries(
-			Object.entries(this._catalog)
-				.filter(([key]) => key.endsWith('-*'))
-				.map(([key, value]) => [key.split('-')[0], value])
-		)
-	}
+	// public get catalog() {
+	// 	return this._catalog;
+	// }
+	// public set catalog(value: CEAutoLoaderCatalog) {
+	// 	this._catalog = value;
+	// 	this._namespaces = Object.fromEntries(
+	// 		Object.entries(this._catalog)
+	// 			.filter(([key]) => key.endsWith('-*'))
+	// 			.map(([key, value]) => [key.split('-')[0], value])
+	// 	)
+	// }
 
 
 	constructor(options: CEAutoLoaderOptions) {
@@ -109,7 +109,7 @@ class CEAutoLoader {
 			live: true,
 			root: document.body,
 			directives: ["eager", "visible", "interaction"],
-			defaultDirective: "eager",
+			defaultDirective: "visible",
 			transition: false,
 			...options
 		};
@@ -232,13 +232,10 @@ class CEAutoLoader {
 	async upgrade(directive?: CEAutoLoaderDirectives) {
 
 		const ce_elements = matchCustomElement(this.options.root || document.body)
-		const filtered = this.filterByDirective(ce_elements, directive)
-		const elements = filtered;
+		const elements = this.filterByDirective(ce_elements, directive)
+		console.log(`upgrading ${directive}`, elements)
 
-		// console.log("CEAutoLoader: Registering", elements, "with directive", directive)
-		// Directives apply special conditions to when the component is loaded
-		if (directive === "visible" || this.options.defaultDirective === "visible") {
-
+		const visible = () => {
 			// Create observer if it doesn't exist
 			if (!this.#observers['intersection']) {
 				this.#observers['intersection'] = new IntersectionObserver((entries) => {
@@ -250,22 +247,31 @@ class CEAutoLoader {
 			}
 
 			// TODO: Must check if elements are already observed
-			console.log("observing intersection of", elements)
-			elements.map((el) => this.#observers['intersection'].observe(el))
+			return elements.map((el) => this.#observers['intersection'].observe(el))
+		}
 
-			return elements;
-
-		} else if (directive === "interaction" || this.options.defaultDirective === "interaction") {
+		const interaction = () => {
 			return elements.map((el) => {
-				return el.addEventListener("pointerdown", () => {
-					this.loadAndDefine([el], "interaction")
+				return el.addEventListener("pointerdown", async () => {
+					await this.loadAndDefine([el], "interaction")
 				}, { once: true });
 			})
-		} else if (directive === "eager" || this.options.defaultDirective === "eager") {
+		}
+
+		// console.log("CEAutoLoader: Registering", elements, "with directive", directive)
+		// Directives apply special conditions to when the component is loaded
+		if (directive === "visible") {
+			return visible();
+		} else if (directive === "interaction") {
+			return interaction();
+		} else if (directive === "eager") {
 			return await this.loadAndDefine(elements, "eager")
+		} else if (directive === undefined || directive === null) {
+			// Use defaultDirective if it's not specified
+			return await this.loadAndDefine(elements, this.options.defaultDirective || "manual")
+			return;
 		} else {
-			// Load right away everyone else (eager)
-			return await this.loadAndDefine(elements, "default")
+			return await this.loadAndDefine(elements, "manual")
 		}
 	}
 
@@ -277,9 +283,14 @@ class CEAutoLoader {
 	*/
 	async loadAndDefine(comps: HTMLElement[], source: string) {
 
-		console.log(`registering from ${source}`, comps.map((el) => el.tagName.toLowerCase()));
+		let elements = comps.filter((el) => {
+			const on = el.getAttribute("on")
+			return (on === source || on === null)
+		})
 
-		const load_result = await Promise.allSettled(comps.map((el) => this.load(el)))
+		const load_result = await Promise.allSettled(elements.map((el) => this.load(el)))
+		console.log(`registering from ${source}`, elements.map((el) => el.tagName.toLowerCase()));
+
 		const load_success = load_result.filter((result) => result.status === "fulfilled")
 		const load_fail = load_result.filter((result) => result.status === "rejected")
 
@@ -287,6 +298,7 @@ class CEAutoLoader {
 		if (this.options.fallback) {
 			await Promise.allSettled(load_fail.map((result) => {
 				const origin = result.reason.details;
+				console.error(result.reason.message);
 
 				// We must clone, because browsers don't allow to define the same class with the same name
 				let fallback_cloned = class ClonedFallback extends this.options.fallback!{ }
@@ -299,15 +311,31 @@ class CEAutoLoader {
 
 		const defineComponents = async () => {
 			await Promise.allSettled([
-				...load_success.map((result) => this.define(result.value)),
-				// add behaviour mode, before or after define
+				...load_success.map(async (result) => this.define(result.value)),
 				this.flushDefine()
 			])
 		}
 
 		if (this.options.transition && document.startViewTransition) {
+			load_success.map((result) => result.value)
+				.map((result) => {
+					const { el } = result;
+					const transitionName = el.getAttribute('view-transition-name');
+					const transitionClass = el.getAttribute('view-transition-class');
+					if (transitionName) {
+						el.style.viewTransitionName = transitionName;
+					} else if (transitionClass) {
+						el.style.viewTransitionClass = transitionClass;
+					}
+				})
 			const transition = document.startViewTransition(defineComponents);
 			await transition.updateCallbackDone;
+			load_success.map((result) => result.value)
+				.map((result) => {
+					const { el } = result;
+					el.style.viewTransitionName = "";
+					el.style.viewTransitionClass = "";
+				})
 		} else {
 			await defineComponents();
 		}
@@ -321,7 +349,7 @@ class CEAutoLoader {
 	async load(el: Element) {
 		const name = el.tagName.toLowerCase()
 
-		let asset = this._catalog[name] || this.getNamespace(name)
+		let asset = this.catalog[name] || this.getNamespace(name)
 		if (!asset) {
 			throw new CEError(`Component ${name} not found in catalog`, { name, el })
 		}
@@ -333,7 +361,7 @@ class CEAutoLoader {
 			performance.mark(`load:${name}:start`);
 			el.setAttribute('ce-loading', "");
 
-			// await new Promise((resolve) => setTimeout(resolve, 120000));
+			await new Promise((resolve) => setTimeout(resolve, 1000));
 			if (typeof asset === "string") {
 				module = await import(/* @vite-ignore */ asset);
 			} else if (typeof asset === "function") {
@@ -349,6 +377,7 @@ class CEAutoLoader {
 			performance.measure(`load:${name}`, `load:${name}:start`, `load:${name}:end`);
 		}
 
+		// eager mode must define dependencies upfront
 		let after_imports = customElements.waiting;
 		let diff_imports = Object.keys(after_imports)
 			.filter((key) => !Object.keys(before_imports).includes(key))
@@ -397,7 +426,7 @@ class CEAutoLoader {
 			performance.measure(`define:${name}`, `define:${name}:start`, `define:${name}:end`);
 		}
 
-		return { name, module }
+		return { name, module, el }
 	}
 
 	/**
@@ -405,7 +434,7 @@ class CEAutoLoader {
 	 */
 	getNamespace(name: string): CEAutoLoaderModule | null {
 		const [prefix, _comp_name] = name.split('-');
-		return this._namespaces[prefix];
+		return this.catalog[`${prefix}-*`];
 	}
 
 	/**

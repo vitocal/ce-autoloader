@@ -25,8 +25,10 @@ export default defineConfig({
       '@': resolve(__dirname, 'src'),
       '/assets/vendor.js': resolve(__dirname, 'src/vendor.js'),
       'three-cube': resolve(__dirname, 'src/components/three-cube.js'),
+      'model-viewer': 'https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js',
       'syntax-highlight': 'https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm',
       '@nord-ui/button': 'https://esm.sh/@nordhealth/components/lib/Button.js?external=lit',
+      '@nord-ui/icon': 'https://esm.sh/@nordhealth/components/lib/Icon.js?external=lit',
     }
   },
   build: {

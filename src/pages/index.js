@@ -6,30 +6,29 @@ import ErrorFallback from '/src/components/error-fallback.js';
 import CERegistry from '/src/index.js';
 import catalog from '/src/components/catalog.js';
 
-const capitalize = (str) =>
-    str.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('');
+globalThis.catalog = catalog;
 
 globalThis.registry = new CERegistry({
-    catalog,
+    catalog: globalThis.catalog,
     root: document.body,
     live: false,
-    fallback: ErrorFallback,
+    // fallback: ErrorFallback,
     defaultDirective: 'visible',
     transition: true,
 });
 console.log('Discovered on first run:', await registry.discover());
 
 
-async function metrics() {
-    await Promise.allSettled(
-        Object.keys(catalog).map(async (name) => {
-            await customElements.whenDefined(name)
-            await new Promise(requestAnimationFrame)
+// async function metrics() {
+//     await Promise.allSettled(
+//         Object.keys(catalog).map(async (name) => {
+//             await customElements.whenDefined(name)
+//             await new Promise(requestAnimationFrame)
 
-            const loaded = performance.getEntriesByName(`load:${name}`);
-            const duration = loaded[0].duration;
+//             const loaded = performance.getEntriesByName(`load:${name}`);
+//             const duration = loaded[0].duration;
 
-            console.log(`${name} loaded in ${duration.toFixed(2)}ms`);
-        })
-    );
-}
+//             console.log(`${name} loaded in ${duration.toFixed(2)}ms`);
+//         })
+//     );
+// }

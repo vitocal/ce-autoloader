@@ -3,12 +3,6 @@
 /**
  * Shared styles between all components
  */
-.card {
-    background-color: var(--color-bg);
-    border-radius: var(--radius);
-    padding: var(--space-sm);
-}
-
 
 /* flex utilities */
 .flex-x {
@@ -40,26 +34,82 @@
     width: 100%;
 }
 
-/* Shimmer/skeleton */
+.font-serif {
+    font-family: var(--font-serif);
+    font-size-adjust: 0.52;
+}
 
-@keyframes shimmer {
-    from {
-        transform: translateX(-100%);
+/** Component utilities */
+.card {
+    background-color: var(--color-bg);
+    border-radius: var(--radius);
+    padding: var(--space-sm);
+}
+
+.window {
+    background-color: var(--color-bg-dark);
+    border-radius: var(--radius);
+    gap: 0;
+    overflow: hidden;
+
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 0px 0px inset;
+    filter: drop-shadow(0 0 0.25rem rgba(0, 0, 0, 0.2));
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        padding: var(--space-sm);
+        margin: 0;
     }
 
-    to {
-        transform: translateX(100%);
+    pre,
+    syntax-highlight {
+        border-radius: 0;
+        margin: 0;
     }
 }
 
-@keyframes zoom-load {
+
+/* Shimmer/skeleton */
+@keyframes shimmer {
+    to {
+        transform: translateX(150%) rotate(-45deg);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+    }
+
+    70% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(0.95);
+    }
+}
+
+@keyframes fade-in {
     0% {
         opacity: 0;
-        transform: scale(1.15);
     }
 
     100% {
         opacity: 1;
-        transform: scale(1);
+    }
+}
+
+@keyframes fade-out {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
     }
 }
