@@ -32,23 +32,15 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: 'src/index.ts',
-      name: 'ce-autoloader',
-      fileName: 'ce-autoloader'
+      entry: resolve(__dirname, 'src/index.ts'),
+      name: 'CEAutoLoader',
+      fileName: (format) => `ce-autoloader.${format === 'es' ? 'js' : 'umd.cjs'}`,
+      formats: ['es', 'umd']
     },
     rollupOptions: {
-      external: [
-        'lit', 'lit-html', 'lit-element', '@lit/reactive-element',
-      ],
-      input: {
-        catalog: resolve(__dirname, 'src/components/catalog.js')
-      },
       output: {
-        inlineDynamicImports: false,
-        format: 'esm',
-        manualChunks: {
-          lit: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element'],
-        }
+        // Preserve the catalog and other chunks
+        preserveModules: false,
       }
     },
     emptyOutDir: false,
