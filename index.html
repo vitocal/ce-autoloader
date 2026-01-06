@@ -10,7 +10,7 @@
 
 	<link rel="preconnect" href="https://nordcdn.net" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://cdn.jsdelivr.net">
 
 	<style>
 		/** To avoid FOUC (Flash of Unstyled Content) or Layout Shifts,
@@ -52,8 +52,6 @@
 
 	<link rel="stylesheet" href="styles.css">
 	<link rel="stylesheet" href="shared.css">
-	<link rel="stylesheet" href="https://nordcdn.net/ds/fonts/3.0.3/fonts.css"
-		integrity="sha384-dkSLlcNlq50O3Ils6+x72v07BbSaUb10p9/GEuuIJBcR1d0Nn+lDdvUQoXYz2Dq9" crossorigin="anonymous" />
 
 	<script type="importmap">
 	{
@@ -81,7 +79,7 @@
 </head>
 
 <body class="n-reset n-typeset">
-	<div class="body-container">
+	<main class="body-container">
 		<div class="fold">
 			<div class="fold-header">
 				<h1 class="font-serif" style="font-size: 3em; margin-top: 1em; display: flex; align-items: center;">
@@ -102,7 +100,7 @@
 
 		</div>
 
-		<div class="card" variant="primary">
+		<div class="card" variant="primary" border>
 
 			<h1>About</h1>
 
@@ -350,7 +348,7 @@
 			You can access the metrics at <code>performance.getEntriesByName('load:my-component')</code> or
 			<code>performance.getEntriesByType('measure')</code>
 		</p>
-	</div>
+	</main>
 
 	<footer>
 		<div class="container">

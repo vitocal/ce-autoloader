@@ -44,17 +44,26 @@
 
 /** Component utilities */
 .card {
-    background-color: var(--color-bg);
+    background-color: var(--color-bg-light);
     border-radius: var(--radius);
     padding: var(--space-sm);
 
+    --bg-color: var(--color-bg);
+    background-color: var(--bg-color);
+
     &[variant="primary"] {
-        background-color: var(--color-primary);
+        --bg-color: var(--color-primary);
+    }
+
+    &[border] {
+        --color: oklch(from var(--bg-color) calc(l - 0.2) calc(c + 0.1) h);
+        /* border: 1px solid color-mix(in oklch, var(--color-primary), black 20%); */
+        border: 1px solid var(--color);
     }
 }
 
 .window {
-    background-color: var(--color-bg-dark);
+    background-color: var(--color-bg-light);
     border-radius: var(--radius);
     gap: 0;
     overflow: hidden;
