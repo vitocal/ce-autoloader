@@ -10,13 +10,13 @@
     "file": "assets/lit-html-Dbe4NQd5.js",
     "name": "lit-html"
   },
-  "_preload-helper-BgU6HOsp.js": {
-    "file": "assets/preload-helper-BgU6HOsp.js",
+  "_preload-helper-Ba1EsNmT.js": {
+    "file": "assets/preload-helper-Ba1EsNmT.js",
     "name": "preload-helper"
   },
-  "_syntax-highlight-element-CxIAthIL.js": {
-    "file": "assets/syntax-highlight-element-CxIAthIL.js",
-    "name": "syntax-highlight-element",
+  "_static-D4Ns-GM0.js": {
+    "file": "assets/static-D4Ns-GM0.js",
+    "name": "static",
     "imports": [
       "_lit-html-Dbe4NQd5.js"
     ]
@@ -26,12 +26,12 @@
     "src": "assets/observability.jpg"
   },
   "index.html": {
-    "file": "assets/main-Cw_dgkAv.js",
+    "file": "assets/main-DlUiYij4.js",
     "name": "main",
     "src": "index.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-BgU6HOsp.js"
+      "_preload-helper-Ba1EsNmT.js"
     ],
     "dynamicImports": [
       "src/components/hero-example.js",
@@ -45,29 +45,29 @@
     ]
   },
   "single.html": {
-    "file": "assets/single-hBsfOofj.js",
+    "file": "assets/single-BZ58fKMS.js",
     "name": "single",
     "src": "single.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-BgU6HOsp.js",
+      "_preload-helper-Ba1EsNmT.js",
       "_if-defined-BoKxvNe6.js",
       "_lit-html-Dbe4NQd5.js"
     ]
   },
   "src/components/confetti-button.ts": {
-    "file": "assets/confetti-button-Bw2NmyCW.js",
+    "file": "assets/confetti-button-7A__TEGy.js",
     "name": "confetti-button",
     "src": "src/components/confetti-button.ts",
     "isDynamicEntry": true
   },
   "src/components/hero-example.js": {
-    "file": "assets/hero-example-CcT6eIK4.js",
+    "file": "assets/hero-example-Cc_J2Z9g.js",
     "name": "hero-example",
     "src": "src/components/hero-example.js",
     "isDynamicEntry": true,
     "imports": [
-      "_syntax-highlight-element-CxIAthIL.js",
+      "_static-D4Ns-GM0.js",
       "_lit-html-Dbe4NQd5.js"
     ]
   },
@@ -84,12 +84,12 @@
     "isDynamicEntry": true
   },
   "src/components/vi-example.js": {
-    "file": "assets/vi-example-sVJHPXea.js",
+    "file": "assets/vi-example-DHF8sUqB.js",
     "name": "vi-example",
     "src": "src/components/vi-example.js",
     "isDynamicEntry": true,
     "imports": [
-      "_syntax-highlight-element-CxIAthIL.js",
+      "_static-D4Ns-GM0.js",
       "_lit-html-Dbe4NQd5.js"
     ]
   },

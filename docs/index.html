@@ -10,7 +10,7 @@
 
 	<link rel="preconnect" href="https://nordcdn.net" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://cdn.jsdelivr.net">
 
 	<style>
 		/** To avoid FOUC (Flash of Unstyled Content) or Layout Shifts,
@@ -20,17 +20,15 @@
 			See `:not(:defined)` for more info on how to style every component at once.
 		*/
 		.fold {
-			height: 70svh;
+			min-height: 70svh;
+			max-height: 70svh;
 		}
 
 		hero-example {
 			width: 100%;
 			height: 70%;
-			margin: 2em 0;
-		}
-
-		vi-example {
-			width: 100%;
+			margin: 4em 0;
+			overflow: hidden;
 		}
 
 		observable-plot-wrapper {
@@ -51,7 +49,9 @@
 			animation: var(--spring-duration) var(--spring-easing) both appear-below-in;
 		}
 	</style>
+
 	<link rel="stylesheet" href="styles.css">
+	<link rel="stylesheet" href="shared.css">
 
 
 
@@ -70,12 +70,12 @@
         }
     }
     </script>
-  <script type="module" crossorigin src="/ce-autoloader/assets/main-Cw_dgkAv.js"></script>
-  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/preload-helper-BgU6HOsp.js">
+  <script type="module" crossorigin src="/ce-autoloader/assets/main-DlUiYij4.js"></script>
+  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/preload-helper-Ba1EsNmT.js">
 </head>
 
 <body class="n-reset n-typeset">
-	<div class="body-container">
+	<main class="body-container">
 		<div class="fold">
 			<div class="fold-header">
 				<h1 class="font-serif" style="font-size: 3em; margin-top: 1em; display: flex; align-items: center;">
@@ -92,37 +92,41 @@
 
 
 			<h1 class="hidden">Demo</h1>
-			<hero-example view-transition-name="hero-example"></hero-example>
+			<hero-example view-transition-name="hero-example" on="eager"></hero-example>
 
 		</div>
 
-		<div class="card" variant="primary">
+		<div class="card" variant="primary" border>
 
 			<h1>About</h1>
 
-			<ol>
-				<li>A centralized catalog for your web components</li>
-				<li>That automatically load any web component on demand (lazyload), <mark>if and when</mark> they're
-					used in
-					the page.</li>
-				<li>Customize <b>when</b> components are loaded with with on attribute: <code>on="visible"</code> or
-					<code>on="interaction"</code>
-				</li>
-				<li>Customize <b>how</b> components appear on the page, with <a
+			<p>
+				This library acts as a <strong>centralized catalog</strong> for your web components, designed to
+				maximize performance by automatically <strong>lazy-loading components</strong> <mark>only when and
+					if</mark> they are
+				actually needed on a page.
+
+				It's remarkably lightweight (just 5kb gzipped) and completely framework-independent, making it an ideal
+				choice for enhancing static sites or adding interactivity to backend-driven and SSR applications.
+			</p>
+
+			<ul>
+				<li><strong>Universal</strong>: Anything that exports web components will work (React, Vue, Svelte, Lit,
+					etc.)</li>
+				<li><strong>Smart Loading</strong>: Use the on attribute to trigger loading based on specific events,
+					such as <code>on="visible"</code>
+					for scroll-triggered loading or <code>on="interaction"</code> for user clicks.</li>
+
+				<li><strong>Polished UI</strong>: Seamlessly manage how elements enter the page using standard <a
 						href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Animations/Using_CSS_animations">CSS
-						Animations</a> or <a
-						href="https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API">view-transition
+						Animations</a> or the modern <a
+						href="https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API">View Transition
 						API</a>
 				</li>
-				<!--
-		<li>Customize <b>what</b> components are loaded with your catalog, it accepts <mark>URL's, namespaces and
-				functions</mark>!
-		</li>
--->
-				<li>Simple and ergonomic: No dependencies, framework-independent, just a library, performant, 5kb gziped
-				</li>
-				<li>Perfect for static sites, even better with backend/SSR.</li>
-			</ol>
+
+				<li><strong>Zero Friction</strong>: The library is highly ergonomic with no dependencies, ensuring it
+					stays fast and easy to integrate into any existing workflow.</li>
+			</ul>
 
 		</div>
 
@@ -171,13 +175,13 @@
 		</dl>
 
 		<vi-example>
-			<nord-stack gap="m" slot="example" on="eager">
-				<nord-banner variant="success">Nord-banner was loaded.</nord-banner>
+			<div slot="example" class="flex-y">
+				<nord-banner variant="success" on="eager">Nord-banner was loaded.</nord-banner>
 				<three-cube on="interaction">Click me to load</three-cube>
 				<confetti-button on="manual" id="confetti" onClick="registry.upgrade('manual')">
 					🎉 Click me to throw confetti 🎉
 				</confetti-button>
-			</nord-stack>
+			</div>
 		</vi-example>
 
 		<hr />
@@ -238,15 +242,15 @@
 			<h3>Component discovery lifecycle</h3>
 			<dl class="n-dl">
 				<dt>:not(:defined)</dt>
-				<dd><nord-badge variant="primary" on="manual">:not(:defined)</nord-badge></dd>
+				<!-- <dd><nord-badge variant="primary" on="manual">:not(:defined)</nord-badge></dd> -->
 				<dd>Initial state. The component is in the DOM but not defined yet.</dd>
 
 				<dt>[ce-loading]</dt>
-				<dd><nord-badge variant="primary" on="manual" ce-loading>[ce-loading]</nord-badge></dd>
+				<!-- <dd><nord-badge variant="primary" on="manual" ce-loading>[ce-loading]</nord-badge></dd> -->
 				<dd>Loading state. We are currently fetching/importing the module.</dd>
 
 				<dt>[ce-defined]</dt>
-				<dd><nord-badge variant="primary" on="manual" ce-defined>[ce-defined]</nord-badge></dd>
+				<!-- <dd><nord-badge variant="primary" on="manual" ce-defined>[ce-defined]</nord-badge></dd> -->
 				<dd>Final state. The component has been defined and upgraded.</dd>
 			</dl>
 
@@ -340,7 +344,7 @@
 			You can access the metrics at <code>performance.getEntriesByName('load:my-component')</code> or
 			<code>performance.getEntriesByType('measure')</code>
 		</p>
-	</div>
+	</main>
 
 	<footer>
 		<div class="container">
