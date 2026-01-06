@@ -3,12 +3,9 @@
 /**
  * Shared styles between all components
  */
-.card {
-    background-color: var(--color-bg);
-    border-radius: var(--radius);
-    padding: var(--space-sm);
+.hidden {
+    display: none;
 }
-
 
 /* flex utilities */
 .flex-x {
@@ -40,34 +37,106 @@
     width: 100%;
 }
 
+.font-serif {
+    font-family: var(--font-serif);
+    font-size-adjust: 0.52;
+}
+
+/** Component utilities */
+.card {
+    background-color: var(--color-bg-light);
+    border-radius: var(--radius);
+    padding: var(--space-sm);
+
+    --bg-color: var(--color-bg);
+    background-color: var(--bg-color);
+
+    &[variant="primary"] {
+        --bg-color: var(--color-primary);
+    }
+
+    &[border] {
+        --color: oklch(from var(--bg-color) calc(l - 0.2) calc(c + 0.1) h);
+        /* border: 1px solid color-mix(in oklch, var(--color-primary), black 20%); */
+        border: 1px solid var(--color);
+    }
+}
+
+.window {
+    background-color: var(--color-bg-light);
+    border-radius: var(--radius);
+    gap: 0;
+    overflow: hidden;
+
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 0px 0px inset;
+    filter: drop-shadow(0 0 0.25rem rgba(0, 0, 0, 0.2));
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        padding: var(--space-sm);
+        margin: 0;
+    }
+
+    pre,
+    syntax-highlight {
+        border-radius: 0;
+        margin: 0;
+    }
+}
+
+
 /* Shimmer/skeleton */
-.shimmer {
-    animation: shimmer 3s;
-    animation-iteration-count: infinite;
-    animation-timing-function: linear;
-    background: linear-gradient(to right, transparent 10%, #0006 50%, transparent 90%);
-    background-size: 200% 100%;
-    transform-origin: center;
-}
-
 @keyframes shimmer {
-    from {
-        transform: translateX(0px);
-    }
-
     to {
-        transform: translateX(200%);
+        /* transform: translateX(100%) rotate(-45deg); */
+        transform: translateX(100%) translateY(-40%) rotate(215deg);
     }
 }
 
-@keyframes zoom-load {
+@keyframes line-shadow {
+    0% {
+        background-position: 0;
+    }
+
+    100% {
+        background-position: 100% 100%;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+    }
+
+    70% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(0.95);
+    }
+}
+
+@keyframes fade-in {
     0% {
         opacity: 0;
-        transform: scale(1.15);
     }
 
     100% {
         opacity: 1;
-        transform: scale(1);
+    }
+}
+
+@keyframes fade-out {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
     }
 }

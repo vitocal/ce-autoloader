@@ -23,7 +23,7 @@
     "prebuild:docs": "cp -R dist/components public/ docs/",
     "watch:vi-components": "vite build --config vite.vi-components.config.js --watch",
     "watch:docs": "vite build --config vite.docs.js --watch",
-    "serve": "npm run build:vi-components && vite",
+    "serve": "npm run build:vi-components && npm run build:docs && vite",
     "build": "npm run build:vi-components && vite build",
     "test": "npm run test:headless",
     "test:headless": "node scripts/run-integration-tests.js",

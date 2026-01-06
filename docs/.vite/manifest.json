@@ -1,0 +1,106 @@
+{
+  "_if-defined-BoKxvNe6.js": {
+    "file": "assets/if-defined-BoKxvNe6.js",
+    "name": "if-defined",
+    "imports": [
+      "_lit-html-Dbe4NQd5.js"
+    ]
+  },
+  "_lit-html-Dbe4NQd5.js": {
+    "file": "assets/lit-html-Dbe4NQd5.js",
+    "name": "lit-html"
+  },
+  "_preload-helper-jQNcvZ6f.js": {
+    "file": "assets/preload-helper-jQNcvZ6f.js",
+    "name": "preload-helper"
+  },
+  "_static-D4Ns-GM0.js": {
+    "file": "assets/static-D4Ns-GM0.js",
+    "name": "static",
+    "imports": [
+      "_lit-html-Dbe4NQd5.js"
+    ]
+  },
+  "assets/observability.jpg": {
+    "file": "assets/observability-D7OwlOYm.jpg",
+    "src": "assets/observability.jpg"
+  },
+  "index.html": {
+    "file": "assets/main-BJ07V4ns.js",
+    "name": "main",
+    "src": "index.html",
+    "isEntry": true,
+    "imports": [
+      "_preload-helper-jQNcvZ6f.js"
+    ],
+    "dynamicImports": [
+      "src/components/hero-example.js",
+      "src/components/vi-example.js",
+      "src/components/confetti-button.ts",
+      "src/components/three-cube.js",
+      "src/components/observable-plot-wrapper.js"
+    ],
+    "assets": [
+      "assets/observability-D7OwlOYm.jpg"
+    ]
+  },
+  "single.html": {
+    "file": "assets/single-OvdWlMGX.js",
+    "name": "single",
+    "src": "single.html",
+    "isEntry": true,
+    "imports": [
+      "_preload-helper-jQNcvZ6f.js",
+      "_if-defined-BoKxvNe6.js",
+      "_lit-html-Dbe4NQd5.js"
+    ]
+  },
+  "src/components/confetti-button.ts": {
+    "file": "assets/confetti-button-7A__TEGy.js",
+    "name": "confetti-button",
+    "src": "src/components/confetti-button.ts",
+    "isDynamicEntry": true
+  },
+  "src/components/hero-example.js": {
+    "file": "assets/hero-example-B0gEIjxE.js",
+    "name": "hero-example",
+    "src": "src/components/hero-example.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_static-D4Ns-GM0.js",
+      "_lit-html-Dbe4NQd5.js"
+    ]
+  },
+  "src/components/observable-plot-wrapper.js": {
+    "file": "assets/observable-plot-wrapper-DTTmTyl7.js",
+    "name": "observable-plot-wrapper",
+    "src": "src/components/observable-plot-wrapper.js",
+    "isDynamicEntry": true
+  },
+  "src/components/three-cube.js": {
+    "file": "assets/three-cube-X0r6WzKj.js",
+    "name": "three-cube",
+    "src": "src/components/three-cube.js",
+    "isDynamicEntry": true
+  },
+  "src/components/vi-example.js": {
+    "file": "assets/vi-example-DHF8sUqB.js",
+    "name": "vi-example",
+    "src": "src/components/vi-example.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_static-D4Ns-GM0.js",
+      "_lit-html-Dbe4NQd5.js"
+    ]
+  },
+  "src/vendor.js": {
+    "file": "assets/vendor.js",
+    "name": "vendor",
+    "src": "src/vendor.js",
+    "isEntry": true,
+    "imports": [
+      "_if-defined-BoKxvNe6.js",
+      "_lit-html-Dbe4NQd5.js"
+    ]
+  }
+}

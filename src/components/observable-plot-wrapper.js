@@ -7,7 +7,7 @@ export default class ObservablePlotWrapper extends HTMLElement {
             style: {
                 background: "transparent",
                 fontFamily: "Times New Roman, serif",
-                fontSize: "12px"
+                fontSize: "18px"
             },
             grid: true,
             y: {
@@ -17,8 +17,8 @@ export default class ObservablePlotWrapper extends HTMLElement {
                 label: "Time →"
             },
             marks: [
-                Plot.lineY(data, {x: "x", y: "y", stroke: "steelblue"}),
-                Plot.dot(data, {x: "x", y: "y", stroke: "steelblue", fill: "white"}),
+                Plot.lineY(data, { x: "x", y: "y", stroke: "steelblue" }),
+                Plot.dot(data, { x: "x", y: "y", stroke: "steelblue", fill: "white" }),
                 Plot.ruleY([0])
             ],
             caption: "Fig 2.1: The exponential growth of node_modules over time."

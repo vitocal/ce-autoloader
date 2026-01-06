@@ -1,16 +1,4 @@
-import { LitElement, css, adoptStyles } from "lit";
-import { html, unsafeStatic } from 'lit/static-html.js';
-
-import nordSelect from "@nord-ui/select";
-import syntaxHighlight from "syntax-highlight";
-
-const demos = {
-	"model-viewer": html`<model-viewer on="eager" camera-controls touch-action="pan-y" auto-rotate poster="https://modelviewer.dev/assets/poster-shishkebab.webp" tone-mapping="aces" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" shadow-intensity="1" alt="A 3D model of a shishkebab" ></model-viewer>`,
-	"confetti-button": html`<confetti-button on="eager"><div class="card">🎉 Click me to throw confetti 🎉</div></confetti-button>`
-}
-
-export default class HeroExample extends LitElement {
-	static styles = css`
+import{LitElement as o,css as i}from"lit";import{s as r,u as t}from"./static-D4Ns-GM0.js";import"https://esm.sh/@nordhealth/components/lib/Select.js?external=lit";import"syntax-highlight";import"./lit-html-Dbe4NQd5.js";const s={"model-viewer":t`<model-viewer on="eager" camera-controls touch-action="pan-y" auto-rotate poster="https://modelviewer.dev/assets/poster-shishkebab.webp" tone-mapping="aces" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" shadow-intensity="1" alt="A 3D model of a shishkebab" ></model-viewer>`,"confetti-button":t`<confetti-button on="eager"><div class="card">🎉 Click me to throw confetti 🎉</div></confetti-button>`};class a extends o{static styles=i`
     @layer components {
 		hero-example {
 			display: grid;
@@ -88,29 +76,7 @@ export default class HeroExample extends LitElement {
 
 	::view-transition-new(hero-example) {
 		animation: var(--spring-duration) var(--spring-easing) both appear-below-in;
-	}`
-
-	static properties = {
-		demo: { state: true }
-	};
-
-	createRenderRoot() {
-		return this;
-	}
-
-	constructor() {
-		super();
-		this.demo = "model-viewer";
-
-		// In light-dom mode, we need to adopt the styles
-		if (this.constructor.styles.styleSheet &&
-			!document.adoptedStyleSheets.includes(this.constructor.styles.styleSheet)) {
-			document.adoptedStyleSheets.push(this.constructor.styles.styleSheet);
-		}
-	}
-
-	js_template() {
-		return `import CERegistry from 'ce-autoloader';
+	}`;static properties={demo:{state:!0}};createRenderRoot(){return this}constructor(){super(),this.demo="model-viewer",this.constructor.styles.styleSheet&&!document.adoptedStyleSheets.includes(this.constructor.styles.styleSheet)&&document.adoptedStyleSheets.push(this.constructor.styles.styleSheet)}js_template(){return`import CERegistry from 'ce-autoloader';
 
 /* A central registry for all our components 😘 */
 const registry = new CERegistry({
@@ -126,30 +92,9 @@ const registry = new CERegistry({
 // And load only the components used in the page
 document.addEventListener('load', () => registry.discover());
 
-`;
-	}
-
-	html_template() {
-		return `&lt;!-- Use it like any other HTML element -->
+`}html_template(){return`&lt;!-- Use it like any other HTML element -->
 &lt;model-viewer camera-controls auto-rotate src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" >&lt;/model-viewer>
-		`
-	}
-
-	onClick() {
-		this.mode = (this.mode === "code") ? "preview" : "code";
-	}
-
-	onDemoSelect(ev) {
-		this.demo = ev.target.value;
-	}
-
-	render() {
-		// let preview = this.mode === "code"
-		// 	? html`<pre><syntax-highlight language="html">${unsafeStatic(this.html_template())}</syntax-highlight></pre>`
-		// 	: html`<model-viewer camera-controls touch-action="pan-y" auto-rotate poster="https://modelviewer.dev/assets/poster-shishkebab.webp" tone-mapping="aces" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" shadow-intensity="1" alt="A 3D model of a shishkebab" ></model-viewer>`;
-		let preview = demos[this.demo];
-
-		return html`
+		`}onClick(){this.mode=this.mode==="code"?"preview":"code"}onDemoSelect(e){this.demo=e.target.value}render(){let e=s[this.demo];return t`
 			<div class="left window flex-y" >
         		<h4 class="flex-x">
 					Demo
@@ -159,7 +104,7 @@ document.addEventListener('load', () => registry.discover());
 						<option value="confetti-button">confetti-button</option>
 					</nord-select>
 				</h4>
-        		<pre><syntax-highlight language="js" on="eager" view-transition-name="hero-demo-code">${unsafeStatic(this.js_template())}</syntax-highlight></pre>
+        		<pre><syntax-highlight language="js" on="eager" view-transition-name="hero-demo-code">${r(this.js_template())}</syntax-highlight></pre>
     		</div>
 
 			<div class="right preview flex-y" mode=${this.mode}>
@@ -170,10 +115,6 @@ document.addEventListener('load', () => registry.discover());
 					</nord-button>
 				</h4>
 				-->
-				${preview}
+				${e}
 			</div>
-		`
-	}
-}
-
-customElements.define('hero-example', HeroExample)
+		`}}customElements.define("hero-example",a);export{a as default};
