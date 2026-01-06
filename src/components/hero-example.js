@@ -1,10 +1,10 @@
 import { LitElement, css, adoptStyles } from "lit";
 import { html, unsafeStatic } from 'lit/static-html.js';
 
-import SyntaxHighlight from "syntax-highlight-element";
-import "model-viewer";
-import NordButton from "@nord-ui/button";
-import NordIcon from "@nord-ui/icon";
+const demos = {
+	"model-viewer": html`<model-viewer on="eager" camera-controls touch-action="pan-y" auto-rotate poster="https://modelviewer.dev/assets/poster-shishkebab.webp" tone-mapping="aces" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" shadow-intensity="1" alt="A 3D model of a shishkebab" ></model-viewer>`,
+	"confetti-button": html`<confetti-button on="eager"><div class="card">🎉 Click me to throw confetti 🎉</div></confetti-button>`
+}
 
 export default class HeroExample extends LitElement {
 	static styles = css`
@@ -14,7 +14,7 @@ export default class HeroExample extends LitElement {
 			grid-template-columns: 2fr 1fr;
 			grid-gap: 1rem;
 			position: relative;
-			align-items: center;
+			align-items: stretch;
 			perspective: 1000px;
 
 			.left {
@@ -24,20 +24,22 @@ export default class HeroExample extends LitElement {
 				grid-column: 2 / 3;
 			}
 
+			pre {
+				height: 100%;
+			}
+
 			.preview {
-				opacity: 0;
-				animation: 100ms ease both fade-in;
-				animation-delay: var(--spring-duration);
+				opacity: 1;
+				/* animation: 1000ms ease both fade-in;
+				animation-delay: var(--spring-duration); */
+				position: relative;
 			}
-			.preview[mode="code"] {
-				min-height: 160px;
-			}
-			.preview[mode="preview"] {
-				height: auto;
-				width: 100%;
-				overflow: hidden;
+
+			.left nord-select {
+				max-width: auto;
 			}
 		}
+
 		syntax-highlight {
 			height: 100%; width: 100%;
   			white-space: pre-wrap;
@@ -45,8 +47,7 @@ export default class HeroExample extends LitElement {
 
 		model-viewer {
 			width: 100%;
-			height: 160px;
-			background-color: tan;
+			height: 100%;
 		}
 
 		@media (max-width: 60ch) {
@@ -79,7 +80,7 @@ export default class HeroExample extends LitElement {
 	}`
 
 	static properties = {
-		mode: { state: true },
+		demo: { state: true }
 	};
 
 	createRenderRoot() {
@@ -88,7 +89,7 @@ export default class HeroExample extends LitElement {
 
 	constructor() {
 		super();
-		this.mode = "code";
+		this.demo = "model-viewer";
 
 		// In light-dom mode, we need to adopt the styles
 		if (this.constructor.styles.styleSheet &&
@@ -100,22 +101,26 @@ export default class HeroExample extends LitElement {
 	js_template() {
 		return `import CERegistry from 'ce-autoloader';
 
+/* A central registry for all our components 😘 */
 const registry = new CERegistry({
-	/* A central registry for all our components 😘 */
 	catalog: {
-		"model-viewer": "https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js",
-		"nord-button": "https://unpkg.com/@nord-ui/button@1.0.0/dist/nord-button.js",
+		"model-viewer": "https://unpkg.com/@google/model-viewer",
+		"confetti-button": () => import('./confetti-button.ts'),
 	}
 });
 
-await registry.discover();`;
+// Use the component in your HTML, just like any other element
+// &lt;model-viewer camera-controls auto-rotate src="https://modelviewer.dev/shared-assets/models/shishkebab.glb">&lt;/model-viewer>
+
+// And load only the components used in the page
+document.addEventListener('load', () => registry.discover());
+
+`;
 	}
 
 	html_template() {
-		return `&lt;!-- Anywhere in my HTML page -->
-&lt;model-viewer camera-controls touch-action="pan-y" auto-rotate tone-mapping="aces"
-shadow-intensity="1" alt="A 3D model of a shishkebab"
-src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" >&lt;/model-viewer>
+		return `&lt;!-- Use it like any other HTML element -->
+&lt;model-viewer camera-controls auto-rotate src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" >&lt;/model-viewer>
 		`
 	}
 
@@ -123,25 +128,37 @@ src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" >&lt;/model-vi
 		this.mode = (this.mode === "code") ? "preview" : "code";
 	}
 
+	onDemoSelect(ev) {
+		this.demo = ev.target.value;
+	}
 
 	render() {
-		let preview = this.mode === "code"
-			? html`<pre><syntax-highlight language="html">${unsafeStatic(this.html_template())}</syntax-highlight></pre>`
-			: html`<model-viewer camera-controls touch-action="pan-y" auto-rotate poster="https://modelviewer.dev/assets/poster-shishkebab.webp" tone-mapping="aces" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" shadow-intensity="1" alt="A 3D model of a shishkebab" ></model-viewer>`;
+		// let preview = this.mode === "code"
+		// 	? html`<pre><syntax-highlight language="html">${unsafeStatic(this.html_template())}</syntax-highlight></pre>`
+		// 	: html`<model-viewer camera-controls touch-action="pan-y" auto-rotate poster="https://modelviewer.dev/assets/poster-shishkebab.webp" tone-mapping="aces" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" shadow-intensity="1" alt="A 3D model of a shishkebab" ></model-viewer>`;
+		let preview = demos[this.demo];
 
 		return html`
-			<div class="left flex-y window" >
+			<div class="left window flex-y" >
         		<h4 class="flex-x">
-					Javascript
-					<nord-button @click=${this.onClick} class="ml-auto" variant="primary" size="m" square>
-					  <nord-icon name="interface-play" label="Play" size="m"></nord-icon>
-					</nord-button>
+					Demo
+
+					<nord-select on="eager" name="demo" value="model-viewer" hide-label class="ml-auto" @change=${this.onDemoSelect}>
+						<option value="model-viewer">model-viewer</option>
+						<option value="confetti-button">confetti-button</option>
+					</nord-select>
 				</h4>
-        		<pre><syntax-highlight language="js">${unsafeStatic(this.js_template())}</syntax-highlight></pre>
+        		<pre><syntax-highlight language="js" on="eager">${unsafeStatic(this.js_template())}</syntax-highlight></pre>
     		</div>
 
-			<div class="preview right window flex-y" mode=${this.mode}>
-				<h4 class="flex-x">Preview</h4>
+			<div class="right preview flex-y" mode=${this.mode}>
+				<!--
+				<h4 class="flex-x"> Preview
+					<nord-button @click=${this.onClick} class="ml-auto" variant="primary" size="m" square>
+						<nord-icon name="interface-play" label="Play" size="m"></nord-icon>
+					</nord-button>
+				</h4>
+				-->
 				${preview}
 			</div>
 		`

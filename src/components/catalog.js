@@ -29,6 +29,7 @@ let catalog = {
         const [, namespace, name] = full_name.match(/^([a-z]+)-(.*)/);
         const external = ((process.env.NODE_ENV === 'production') ? ['lit'] : ['lit']).join(',');
         loadCSSLayer('https://nordcdn.net/ds/css/4.2.0/nord.min.css', 'ds');
+
         const module = await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/${capitalize(name)}.js?external=${external}`);
         if (!customElements.get(full_name)) {
             customElements.define(full_name, module.default);

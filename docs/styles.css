@@ -21,7 +21,7 @@
 
 @layer page {
     :root {
-        --color-primary: #e31;
+        --color-primary: #fac089;
         --color-secondary: rgba(148, 163, 184, 0.55);
         --color-accent: #333;
         --color-bg-dark: #ddd;
@@ -60,17 +60,37 @@
 }
 
 @layer page {
-    body {
-        max-width: 90%;
+    .container {
+        max-width: 94%;
+        margin: 0 auto;
+    }
+
+    .body-container {
+        max-width: 94%;
         margin: 0 auto;
         text-wrap: balance;
         font-size: 16px;
+
+        &>*+* {
+            margin-top: 1em;
+            content-visibility: auto;
+        }
+
+        &>h1 {
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--color-bg);
+        }
     }
 
-    body>*+* {
-        margin-top: 1em;
-        content-visibility: auto;
+    .fold {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        height: 100svh;
     }
+
 
     .grid-3 {
         display: grid;
@@ -164,19 +184,30 @@
             font-style: italic;
         }
     }
+
+
+    footer {
+        background-color: var(--color-bg-dark);
+        min-height: 300px;
+    }
 }
 
 @layer components {
     :not(:defined) {
         visibility: visible;
         display: inline-block;
+        position: relative;
+        overflow: clip;
+        contain: layout paint;
+        isolation: isolate;
 
         --color: color-mix(in srgb, var(--color-fg) 40%, transparent);
-        color: var(--color-fg);
+        --bg: repeating-linear-gradient(315deg, var(--color) 0 1px, #0000 0 50%);
 
         outline: none;
+        color: var(--color-fg);
         border: 1px solid var(--color);
-        background-image: repeating-linear-gradient(315deg, var(--color) 0 1px, #0000 0 50%);
+        background-image: var(--bg);
         background-size: 8px 8px;
         background-position: 0 0;
         box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 0px 0px inset;
@@ -185,10 +216,12 @@
         min-height: 24px;
         padding: 0.35em;
         border-radius: 0.5em;
-        overflow: clip;
 
-        position: relative;
-        contain: paint;
+
+        /** Nested components are hidden */
+        & :not(:defined) {
+            visibility: hidden;
+        }
     }
 
     [redacted] {
@@ -196,30 +229,29 @@
     }
 
     [ce-loading] {
-        position: relative;
-        overflow: clip;
-        contain: paint;
-
         &::after {
             pointer-events: none;
             content: " ";
             position: absolute;
-            z-index: 0;
-
             inset: 0;
-            transform: translateX(-150%) rotate(-45deg);
+
+            /* transform: translateX(-80%) rotate(-45deg); */
+            transform: translateX(-100%) translateY(-40%) rotate(215deg);
             width: 200%;
+            height: 200%;
+            /* aspect-ratio: 1; */
 
             background: linear-gradient(to right, transparent 10%, #000a 50%, transparent 90%);
-            background-size: 200% 200%;
-            animation: shimmer 1.5s infinite;
-            animation-iteration-count: infinite;
-            animation-timing-function: ease-out;
-            animation-fill-mode: both;
 
-            contain: paint;
-            overflow: hidden;
+            /* animation: shimmer 3s ease infinite; */
+            will-change: transform;
         }
+
+        /* animation: line-shadow 15s linear infinite; */
+        /* background-image: repeating-linear-gradient(315deg, var(--color) 0 1px, #0000 0 50%);
+        background-size: 8px 8px;
+        background-position: 0 0; */
+
 
         /** Disable nested loading */
         & [ce-loading] {

@@ -21,7 +21,7 @@
 
 @layer page {
     :root {
-        --color-primary: #e31;
+        --color-primary: #ffd7b3;
         --color-secondary: rgba(148, 163, 184, 0.55);
         --color-accent: #333;
         --color-bg-dark: #ddd;
@@ -53,24 +53,44 @@
         --space-xxl: 2.0rem;
 
         --spring-easing: linear(0, 0.0092, 0.0345, 0.0726, 0.1205, 0.1757, 0.2358, 0.299, 0.3635, 0.428, 0.4913, 0.5525, 0.6109, 0.6659, 0.7172, 0.7644, 0.8075, 0.8465, 0.8812, 0.912, 0.9389, 0.9621, 0.9819, 0.9985, 1.0122, 1.0233, 1.032, 1.0386, 1.0433, 1.0464, 1.0482, 1.0487, 1.0483, 1.0471, 1.0453, 1.043, 1.0403, 1.0374, 1.0343, 1.0312, 1.028, 1.025, 1.022, 1.0191, 1.0164, 1.0139, 1.0116, 1.0095, 1.0076, 1.0059, 1.0044, 1.003, 1.0019, 1.0009, 1.0001, 0.9994, 0.9989, 0.9985, 0.9981, 0.9979, 0.9977, 0.9977, 0.9976, 0.9976, 0.9977, 0.9978, 0.9979, 0.998, 0.9982, 0.9983, 0.9985, 0.9986, 0.9988, 0.9989, 0.9991, 0.9992, 0.9993, 0.9994, 0.9995, 0.9996, 0.9997, 0.9998, 0.9998, 0.9999, 1, 1, 1, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1.0001, 1);
-        --spring-duration: 0.73s;
+        --spring-duration: 1.73s;
 
         --sm-breakpoint: 420px;
     }
 }
 
 @layer page {
-    body {
-        max-width: 90%;
+    .container {
+        max-width: 94%;
+        margin: 0 auto;
+    }
+
+    .body-container {
+        max-width: 94%;
         margin: 0 auto;
         text-wrap: balance;
         font-size: 16px;
+
+        &>*+* {
+            margin-top: 1em;
+            content-visibility: auto;
+        }
+
+        &>h1 {
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--color-bg);
+        }
     }
 
-    body>*+* {
-        margin-top: 1em;
-        content-visibility: auto;
+    .fold {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        height: 100svh;
     }
+
 
     .grid-3 {
         display: grid;
@@ -164,31 +184,44 @@
             font-style: italic;
         }
     }
+
+
+    footer {
+        background-color: var(--color-bg-dark);
+        min-height: 300px;
+    }
 }
 
 @layer components {
-    :not(:defined) {
+    :where(:not(:defined)) {
         visibility: visible;
         display: inline-block;
+        position: relative;
+        overflow: clip;
+        contain: layout paint;
+        isolation: isolate;
 
         --color: color-mix(in srgb, var(--color-fg) 40%, transparent);
-        color: var(--color-fg);
+        --bg: repeating-linear-gradient(315deg, var(--color) 0 1px, #0000 0 50%);
 
         outline: none;
+        color: var(--color-fg);
         border: 1px solid var(--color);
-        background-image: repeating-linear-gradient(315deg, var(--color) 0 1px, #0000 0 50%);
+        background-image: var(--bg);
         background-size: 8px 8px;
         background-position: 0 0;
         box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 0px 0px inset;
 
-        width: fit-content;
+        width: 100%;
         min-height: 24px;
         padding: 0.35em;
         border-radius: 0.5em;
-        overflow: clip;
 
-        position: relative;
-        contain: paint;
+
+        /** Nested components are hidden */
+        & :not(:defined) {
+            visibility: hidden;
+        }
     }
 
     [redacted] {
@@ -196,57 +229,58 @@
     }
 
     [ce-loading] {
-        position: relative;
-        overflow: clip;
 
-        animation: line-shadow 1.5s infinite linear;
-        contain: paint;
 
-        /* &::after {
+        &::after {
             pointer-events: none;
             content: " ";
             position: absolute;
-            z-index: 0;
-
             inset: 0;
-            /* transform: translateX(-150%) rotate(-45deg); */
 
-        /* background: linear-gradient(to right, transparent 10%, #000a 50%, transparent 90%);
-            background-size: 200% 200%; */
-        animation: line-shadow 15s linear infinite;
+            /* transform: translateX(-80%) rotate(-45deg); */
+            transform: translateX(-100%) translateY(-40%) rotate(215deg);
+            width: 200svw;
+            height: 200svh;
+            /* aspect-ratio: 1; */
+
+            background: linear-gradient(to right, transparent 10%, #000a 50%, transparent 90%);
+
+            animation: shimmer 3s ease-in-out infinite;
+            will-change: transform;
+        }
+
+        /* animation: line-shadow 35s linear infinite; */
         background-image: repeating-linear-gradient(315deg, var(--color) 0 1px, #0000 0 50%);
         background-size: 8px 8px;
         background-position: 0 0;
 
-        box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 0px 0px inset;
+        overflow: clip;
+        contain: layout paint;
+        isolation: isolate;
 
-        contain: paint;
-        overflow: hidden;
-    }
-
-    /** Disable nested loading */
-    & [ce-loading] {
-        &::after {
-            animation: none;
-            background: transparent;
+        /** Disable nested loading */
+        & [ce-loading] {
+            &::after {
+                animation: none;
+                background: transparent;
+            }
         }
     }
-}
 
-[ce-defined] {
-    background-image: none;
-    overflow-clip-margin: 1em;
+    [ce-defined] {
+        background-image: none;
+        overflow-clip-margin: 1em;
 
-    overflow: clip;
-    visibility: visible;
-}
+        overflow: clip;
+        visibility: visible;
+    }
 
-[ce-defined][ce-outline-highlight] {
-    outline: 2px dashed transparent;
-    outline-offset: 0px;
+    [ce-defined][ce-outline-highlight] {
+        outline: 2px dashed transparent;
+        outline-offset: 0px;
 
-    animation: outline-highlight 0.7s ease-in-out 4 alternate;
-}
+        animation: outline-highlight 0.7s ease-in-out 4 alternate;
+    }
 
 }
 

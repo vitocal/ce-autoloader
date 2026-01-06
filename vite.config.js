@@ -27,6 +27,7 @@ export default defineConfig({
       'syntax-highlight': 'https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm',
       '@nord-ui/button': 'https://esm.sh/@nordhealth/components/lib/Button.js?external=lit',
       '@nord-ui/icon': 'https://esm.sh/@nordhealth/components/lib/Icon.js?external=lit',
+      '@nord-ui/select': 'https://esm.sh/@nordhealth/components/lib/Select.js?external=lit',
     }
   },
   build: {

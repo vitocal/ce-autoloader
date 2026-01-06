@@ -3,6 +3,9 @@
 /**
  * Shared styles between all components
  */
+.hidden {
+    display: none;
+}
 
 /* flex utilities */
 .flex-x {
@@ -44,6 +47,10 @@
     background-color: var(--color-bg);
     border-radius: var(--radius);
     padding: var(--space-sm);
+
+    &[variant="primary"] {
+        background-color: var(--color-primary);
+    }
 }
 
 .window {
@@ -76,7 +83,8 @@
 /* Shimmer/skeleton */
 @keyframes shimmer {
     to {
-        transform: translateX(150%) rotate(-45deg);
+        /* transform: translateX(100%) rotate(-45deg); */
+        transform: translateX(100%) translateY(-40%) rotate(215deg);
     }
 }
 

@@ -6,6 +6,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>《❰ce-autoloader❱》 Test</title>
 
+	<link rel="icon" type="image/svg+xml" href="/logo.svg">
+
 	<link rel="preconnect" href="https://nordcdn.net" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,13 +19,16 @@
 			I like to just match the size/aspect ratio, aligning before/after to avoid layout shifts.
 			See `:not(:defined)` for more info on how to style every component at once.
 		*/
-		hero-example {
-			width: 100%;
-			height: 348px;
+		.fold {
+			min-height: 70svh;
+			max-height: 70svh;
 		}
 
-		vi-example {
+		hero-example {
 			width: 100%;
+			height: 70%;
+			margin: 4em 0;
+			overflow: hidden;
 		}
 
 		observable-plot-wrapper {
@@ -44,7 +49,11 @@
 			animation: var(--spring-duration) var(--spring-easing) both appear-below-in;
 		}
 	</style>
+
 	<link rel="stylesheet" href="styles.css">
+	<link rel="stylesheet" href="shared.css">
+	<link rel="stylesheet" href="https://nordcdn.net/ds/fonts/3.0.3/fonts.css"
+		integrity="sha384-dkSLlcNlq50O3Ils6+x72v07BbSaUb10p9/GEuuIJBcR1d0Nn+lDdvUQoXYz2Dq9" crossorigin="anonymous" />
 
 	<script type="importmap">
 	{
@@ -63,56 +72,81 @@
     </script>
 
 	<script type="module" src="src/pages/index.js"></script>
-	<script type="module" defer>
+	<script type="module" async>
 		import { loadCSSLayer } from './src/utils.ts'
 
-		loadCSSLayer('shared.css', 'ds');
 		loadCSSLayer('https://fonts.googleapis.com/css2?family=Redacted+Script&family=Cormorant+Garamond:ital@1&display=swap', 'ds');
 		loadCSSLayer('https://nordcdn.net/ds/css/4.2.0/nord.min.css', 'ds');
-		loadCSSLayer('https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css', 'ds');
 	</script>
 </head>
 
 <body class="n-reset n-typeset">
-	<h1 class="font-serif" style="font-size: 3em; margin-top: 1em;">ce-autoloader</h1>
-	<!-- <h1 class="font-serif" style="font-size: 4em; margin-top: 1em;">ce-autoloader </h1> -->
-	<span class="font-serif n-color-text-weaker n-font-size-xl"><i>Load web-components on demand, <mark>if and when
-				they're
-				used in the page.</mark></i>
-	</span>
+	<div class="body-container">
+		<div class="fold">
+			<div class="fold-header">
+				<h1 class="font-serif" style="font-size: 3em; margin-top: 1em; display: flex; align-items: center;">
+					<img src="/logo.svg" style="width: 64px; height: 64px; display: inline; margin: 8px;" />
+					ce-autoloader
+				</h1>
+				<!-- <h1 class="font-serif" style="font-size: 4em; margin-top: 1em;">ce-autoloader </h1> -->
+				<span class="font-serif n-color-text-weaker n-font-size-xl"><i>Load web components on demand, <mark>if
+							and
+							when</mark>
+						they're used in the page.</i>
+				</span>
+			</div>
 
-	<ol>
-		<li>A centralized catalog for your components</li>
-		<li>That automatically load any web-component on demand, if they're used in the page.</li>
-		<li>Customize <b>when</b> components are loaded with with on attribute: <code>on="visible"</code>,
-			<code>on="interaction"</code>
-		</li>
-		<li>Customize <b>how</b> components appear on the page, with <a
-				href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Animations/Using_CSS_animations">CSS
-				Animations</a> or <a
-				href="https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API">view-transition API</a>
-		</li>
-		<!--
-		<li>Customize <b>what</b> components are loaded with your catalog, it accepts <mark>URL's, namespaces and
-				functions</mark>!
-		</li>
--->
-		<li>Simple and ergonomic: No dependencies, framework-independent, just a library, performant, 5kb gziped</li>
-		<li>Perfect for static sites, even better with backend/SSR.</li>
-	</ol>
 
-	<h1> Usage </h1>
+			<h1 class="hidden">Demo</h1>
+			<hero-example view-transition-name="hero-example" on="eager"></hero-example>
 
-	<ol>
-		<li>Install <strong>ce-autoloader</strong> via npm/CDN</li>
-		<li>Declare your component catalog in javascript</li>
-		<li>Sprinkle your <code>&lt;components /></code> across your page, or multiple pages</li>
-		<li>Call <code>registry.discover()</code> when it's appropriate!</li>
-	</ol>
+		</div>
 
-	<hero-example view-transition-name="hero-example"></hero-example>
+		<div class="card" variant="primary">
 
-	<!-- That's heavy, almost 8mb with several duplicated dependencies on different versions
+			<h1>About</h1>
+
+			<p>
+				This library acts as a <strong>centralized catalog</strong> for your web components, designed to
+				maximize performance by automatically <strong>lazy-loading components</strong> <mark>only when and
+					if</mark> they are
+				actually needed on a page.
+
+				It's remarkably lightweight (just 5kb gzipped) and completely framework-independent, making it an ideal
+				choice for enhancing static sites or adding interactivity to backend-driven and SSR applications.
+			</p>
+
+			<ul>
+				<li><strong>Universal</strong>: Anything that exports web components will work (React, Vue, Svelte, Lit,
+					etc.)</li>
+				<li><strong>Smart Loading</strong>: Use the on attribute to trigger loading based on specific events,
+					such as <code>on="visible"</code>
+					for scroll-triggered loading or <code>on="interaction"</code> for user clicks.</li>
+
+				<li><strong>Polished UI</strong>: Seamlessly manage how elements enter the page using standard <a
+						href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Animations/Using_CSS_animations">CSS
+						Animations</a> or the modern <a
+						href="https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API">View Transition
+						API</a>
+				</li>
+
+				<li><strong>Zero Friction</strong>: The library is highly ergonomic with no dependencies, ensuring it
+					stays fast and easy to integrate into any existing workflow.</li>
+			</ul>
+
+		</div>
+
+		<h1> Get started </h1>
+
+		<ol>
+			<li>Install <strong>ce-autoloader</strong> via npm/CDN</li>
+			<li>Declare your component catalog in javascript</li>
+			<li>Sprinkle your <code>&lt;components /></code> across your page, or multiple pages</li>
+			<li>Call <code>registry.discover()</code> when it's appropriate!</li>
+		</ol>
+
+
+		<!-- That's heavy, almost 8mb with several duplicated dependencies on different versions
 	<h1>Examples</h1>
 	<playground-ide editable-file-system line-numbers resizable on="visible" style="height: 300px">
 		<script type="sample/html" filename="index.html">
@@ -129,47 +163,48 @@
 	</playground-ide>
 	-->
 
-	<h2>Controlling when components are loaded</h2>
+		<h2>Controlling when components are loaded</h2>
 
-	<p>The <code>on</code> attribute controls when the component is loaded. By default, it's <strong>visible</strong>.
-	</p>
+		<p>The <code>on</code> attribute controls when the component is loaded. By default, it's
+			<strong>visible</strong>.
+		</p>
 
-	<dl class="n-dl">
-		<dt>visible</dt>
-		<dd>Loaded when the element is visible in the viewport</dd>
-		<dt>interaction</dt>
-		<dd>Loaded when the element is interacted(clicked)</dd>
-		<dt>eager</dt>
-		<dd>Loaded when the element is encountered at DOM</dd>
-		<dt>*anything*</dt>
-		<dd>Manual mode, you should call <code>registry.upgrade('*anything*')</code></dd>
-	</dl>
+		<dl class="n-dl">
+			<dt>visible</dt>
+			<dd>Loaded when the element is visible in the viewport</dd>
+			<dt>interaction</dt>
+			<dd>Loaded when the element is interacted(clicked)</dd>
+			<dt>eager</dt>
+			<dd>Loaded when the element is encountered at DOM</dd>
+			<dt>*anything*</dt>
+			<dd>Manual mode, you should call <code>registry.upgrade('*anything*')</code></dd>
+		</dl>
 
-	<vi-example>
-		<nord-stack gap="m" slot="example" on="eager">
-			<nord-banner variant="success">Nord-banner was loaded.</nord-banner>
-			<three-cube on="interaction">Click me to load</three-cube>
-			<confetti-button on="manual" id="confetti" onClick="registry.upgrade('manual')">
-				🎉 Click me to throw confetti 🎉
-			</confetti-button>
-		</nord-stack>
-	</vi-example>
+		<vi-example>
+			<div slot="example" class="flex-y">
+				<nord-banner variant="success" on="eager">Nord-banner was loaded.</nord-banner>
+				<three-cube on="interaction">Click me to load</three-cube>
+				<confetti-button on="manual" id="confetti" onClick="registry.upgrade('manual')">
+					🎉 Click me to throw confetti 🎉
+				</confetti-button>
+			</div>
+		</vi-example>
 
-	<hr />
-	<h1>Namespaced Components</h1>
+		<hr />
+		<h1>Namespaced Components</h1>
 
-	<p>We can import a whole external library of components by using namespaced components</p>
-	<div class="grid-3">
-		<div class="leftcenter">
-			<p>
-				In this page, we registered everything under <code>nord-*</code> namespace, so any component like
-				<code>nord-qr-code</code> will automatically load! There's no need to declare/import each component
-				manually.
-			</p>
+		<p>We can import a whole external library of components by using namespaced components</p>
+		<div class="grid-3">
+			<div class="leftcenter">
+				<p>
+					In this page, we registered everything under <code>nord-*</code> namespace, so any component like
+					<code>nord-qr-code</code> will automatically load! There's no need to declare/import each component
+					manually.
+				</p>
 
-			<p> Heres the full loader for <a href="https://nordhealth.com">nord</a> design system</p>
+				<p> Heres the full loader for <a href="https://nordhealth.com">nord</a> design system</p>
 
-			<pre>
+				<pre>
 <syntax-highlight language="js">
 /**
  * Nord Health design system
@@ -184,66 +219,67 @@
 },</syntax-highlight>
 </pre>
 
+			</div>
+
+			<figure class="right flex-y ai-center">
+				<nord-qrcode value="https://ce-autoloader.com" on="visible"></nord-qrcode>
+				<figcaption>
+					Send me a ❤️ via pix
+				</figcaption>
+			</figure>
 		</div>
 
-		<figure class="right flex-y ai-center">
-			<nord-qrcode value="https://ce-autoloader.com" on="visible"></nord-qrcode>
-			<figcaption>
-				Send me a ❤️ via pix
-			</figcaption>
-		</figure>
-	</div>
+
+		<hr>
+
+		<section id="animation">
+			<h1>Animated components 💪🤩<span style="transform: rotateY(180deg); position: absolute;">💪</span></h1>
+
+			<p>Components doesn't just appear from nowhere, they are animated as they enter the DOM to have a smooth
+				loading
+				and avoid layout shifts.</p>
+			<p>
+				Each component goes through a lifecycle of <mark>not-defined</mark> → <mark>ce-loading</mark>
+				→ <mark>ce-defined</mark>, that can be customized in css.
+			</p>
+
+			<p>We can use these attributes in css to create a smooth loading with transitions.</p>
+
+			<h3>Component discovery lifecycle</h3>
+			<dl class="n-dl">
+				<dt>:not(:defined)</dt>
+				<!-- <dd><nord-badge variant="primary" on="manual">:not(:defined)</nord-badge></dd> -->
+				<dd>Initial state. The component is in the DOM but not defined yet.</dd>
+
+				<dt>[ce-loading]</dt>
+				<!-- <dd><nord-badge variant="primary" on="manual" ce-loading>[ce-loading]</nord-badge></dd> -->
+				<dd>Loading state. We are currently fetching/importing the module.</dd>
+
+				<dt>[ce-defined]</dt>
+				<!-- <dd><nord-badge variant="primary" on="manual" ce-defined>[ce-defined]</nord-badge></dd> -->
+				<dd>Final state. The component has been defined and upgraded.</dd>
+			</dl>
 
 
-	<hr>
+			<h2>Examples</h2>
 
-	<section id="animation">
-		<h1>Animated components 💪🤩<span style="transform: rotateY(180deg); position: absolute;">💪</span></h1>
+			<h3>View transitions</h3>
 
-		<p>Components doesn't just appear from nowhere, they are animated as they enter the DOM to have a smooth loading
-			and avoid layout shifts.</p>
-		<p>
-			Each component goes through a lifecycle of <mark>not-defined</mark> → <mark>ce-loading</mark>
-			→ <mark>ce-defined</mark>, that can be customized in css.
-		</p>
+			<p>Support for view transitions is built-in! You can use the <code>view-transition-name</code> attribute to
+				customize the transition</p>
 
-		<p>We can use these attributes in css to create a smooth loading with transitions.</p>
+			<div class="grid-3">
+				<observable-plot-wrapper on="interaction" view-transition-name="plot-example" class="left">
+					<strong>appear-below-in</strong> and <strong>fade-out</strong>
+				</observable-plot-wrapper>
+				<div class="card center">Center</div>
+				<div class="card right">Right</div>
+			</div>
 
-		<h3>Component discovery lifecycle</h3>
-		<dl class="n-dl">
-			<dt>:not(:defined)</dt>
-			<dd><nord-badge variant="primary" on="manual">:not(:defined)</nord-badge></dd>
-			<dd>Initial state. The component is in the DOM but not defined yet.</dd>
+			<h3>CSS Transitions</h3>
+			<p>Use the following css as a starting point:</p>
 
-			<dt>[ce-loading]</dt>
-			<dd><nord-badge variant="primary" on="manual" ce-loading>[ce-loading]</nord-badge></dd>
-			<dd>Loading state. We are currently fetching/importing the module.</dd>
-
-			<dt>[ce-defined]</dt>
-			<dd><nord-badge variant="primary" on="manual" ce-defined>[ce-defined]</nord-badge></dd>
-			<dd>Final state. The component has been defined and upgraded.</dd>
-		</dl>
-
-
-		<h2>Examples</h2>
-
-		<h3>View transitions</h3>
-
-		<p>Support for view transitions is built-in! You can use the <code>view-transition-name</code> attribute to
-			customize the transition</p>
-
-		<div class="grid-3">
-			<observable-plot-wrapper on="interaction" view-transition-name="plot-example" class="left">
-				<strong>appear-below-in</strong> and <strong>fade-out</strong>
-			</observable-plot-wrapper>
-			<div class="card center">Center</div>
-			<div class="card right">Right</div>
-		</div>
-
-		<h3>CSS Transitions</h3>
-		<p>Use the following css as a starting point:</p>
-
-		<pre>
+			<pre>
 <syntax-highlight language="css">
 /* 1. Initial State: hidden */
 :not(:defined) {
@@ -281,9 +317,9 @@
 </syntax-highlight>
 </pre>
 
-	</section>
+		</section>
 
-	<!--
+		<!--
 	<json-viewer id="json" expand="**">
 		{ "quiz": { "sport": { "q1": { "question": "Which one is correct team name in NBA?", "options": [ "New York
 		Bulls", "Los Angeles Kings", "Golden State Warriros", "Houston Rockets" ], "answer": "Houston Rockets" } },
@@ -299,28 +335,29 @@
 	</script>
 -->
 
-	<h1>Observability & Performance</h1>
+		<h1>Observability & Performance</h1>
 
-	<p>
-		Observability is already built-in to the registry, and allows measuring the time-to-load of each component.
-		With native `performance` integration, it shows in devtools performance panel and can be exported to your
-		observability metrics as usual.
-	</p>
+		<p>
+			Observability is already built-in to the registry, and allows measuring the time-to-load of each component.
+			With native `performance` integration, it shows in devtools performance panel and can be exported to your
+			observability metrics as usual.
+		</p>
 
-	<img src="assets/observability.jpg" alt="Observability has native integration into performance devtools"
-		width="1024" height="768" loading="lazy">
+		<img src="assets/observability.jpg" alt="Observability has native integration into performance devtools"
+			width="1024" height="768" loading="lazy">
 
-	<p>
-		You can access the metrics at <code>performance.getEntriesByName('load:my-component')</code> or
-		<code>performance.getEntriesByType('measure')</code>
-	</p>
+		<p>
+			You can access the metrics at <code>performance.getEntriesByName('load:my-component')</code> or
+			<code>performance.getEntriesByType('measure')</code>
+		</p>
+	</div>
 
 	<footer>
-		<p>Made in 🇧🇷 by <a href="https://github.com/vitocal">Vitor Calejuri</a></p>
+		<div class="container">
+			<span>Made in 🇧🇷 by <a href="https://github.com/vitocal">Vitor Calejuri</a> 123</span>
+		</div>
 	</footer>
-
-
-
 </body>
+
 
 </html>
