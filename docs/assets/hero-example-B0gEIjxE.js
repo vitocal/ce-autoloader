@@ -1,4 +1,4 @@
-import{LitElement as o,css as i}from"lit";import{s as r,u as t}from"./static-D4Ns-GM0.js";import"https://esm.sh/@nordhealth/components/lib/Button.js?external=lit";import"https://esm.sh/@nordhealth/components/lib/Select.js?external=lit";import"./lit-html-Dbe4NQd5.js";const s={"model-viewer":t`<model-viewer on="eager" camera-controls touch-action="pan-y" auto-rotate poster="https://modelviewer.dev/assets/poster-shishkebab.webp" tone-mapping="aces" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" shadow-intensity="1" alt="A 3D model of a shishkebab" ></model-viewer>`,"confetti-button":t`<confetti-button on="eager"><div class="card">🎉 Click me to throw confetti 🎉</div></confetti-button>`};class a extends o{static styles=i`
+import{LitElement as o,css as i}from"lit";import{s as r,u as t}from"./static-D4Ns-GM0.js";import"https://esm.sh/@nordhealth/components/lib/Select.js?external=lit";import"syntax-highlight";import"./lit-html-Dbe4NQd5.js";const s={"model-viewer":t`<model-viewer on="eager" camera-controls touch-action="pan-y" auto-rotate poster="https://modelviewer.dev/assets/poster-shishkebab.webp" tone-mapping="aces" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" shadow-intensity="1" alt="A 3D model of a shishkebab" ></model-viewer>`,"confetti-button":t`<confetti-button on="eager"><div class="card">🎉 Click me to throw confetti 🎉</div></confetti-button>`};class a extends o{static styles=i`
     @layer components {
 		hero-example {
 			display: grid;
@@ -27,7 +27,8 @@ import{LitElement as o,css as i}from"lit";import{s as r,u as t}from"./static-D4N
 			}
 
 			nord-select:not(:defined) {
-				width: 100%;
+				width: 148px;
+				height: 36px;
 			}
 		}
 
@@ -43,14 +44,21 @@ import{LitElement as o,css as i}from"lit";import{s as r,u as t}from"./static-D4N
 
 		@media (max-width: 60ch) {
 			hero-example {
-				display: flex;
+				/* display: flex;
 				flex-direction: column;
 				width: 100%;
 				flex-wrap: wrap;
 				align-items: stretch;
 
+				*/
+				grid-template-columns: 1fr;
+
 				.left,.right {
 					max-width: 100%;
+					grid-column: unset;
+				}
+				.right {
+					height: 100%;
 				}
 			}
 		}
