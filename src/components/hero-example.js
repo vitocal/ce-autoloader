@@ -1,6 +1,9 @@
 import { LitElement, css, adoptStyles } from "lit";
 import { html, unsafeStatic } from 'lit/static-html.js';
 
+import nordSelect from "@nord-ui/select";
+import syntaxHighlight from "syntax-highlight";
+
 const demos = {
 	"model-viewer": html`<model-viewer on="eager" camera-controls touch-action="pan-y" auto-rotate poster="https://modelviewer.dev/assets/poster-shishkebab.webp" tone-mapping="aces" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" shadow-intensity="1" alt="A 3D model of a shishkebab" ></model-viewer>`,
 	"confetti-button": html`<confetti-button on="eager"><div class="card">🎉 Click me to throw confetti 🎉</div></confetti-button>`
@@ -35,8 +38,9 @@ export default class HeroExample extends LitElement {
 				position: relative;
 			}
 
-			.left nord-select {
-				max-width: auto;
+			nord-select:not(:defined) {
+				width: 148px;
+				height: 36px;
 			}
 		}
 
@@ -52,14 +56,21 @@ export default class HeroExample extends LitElement {
 
 		@media (max-width: 60ch) {
 			hero-example {
-				display: flex;
+				/* display: flex;
 				flex-direction: column;
 				width: 100%;
 				flex-wrap: wrap;
 				align-items: stretch;
 
+				*/
+				grid-template-columns: 1fr;
+
 				.left,.right {
 					max-width: 100%;
+					grid-column: unset;
+				}
+				.right {
+					height: 100%;
 				}
 			}
 		}

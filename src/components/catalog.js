@@ -1,4 +1,4 @@
-import { loadCSSLayer } from '../utils.ts'
+// import { loadCSSLayer } from '../utils.ts'
 
 const capitalize = (str) =>
     str.split('-').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join('');
@@ -18,7 +18,7 @@ let catalog = {
     "model-viewer": "https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js",
 
     "syntax-highlight": async () => {
-        loadCSSLayer('https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css', 'scoped');
+        // loadCSSLayer('https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css', 'scoped');
         return import("https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm");
     },
 
@@ -28,7 +28,7 @@ let catalog = {
     "nord-*": async (full_name) => {
         const [, namespace, name] = full_name.match(/^([a-z]+)-(.*)/);
         const external = ((process.env.NODE_ENV === 'production') ? ['lit'] : ['lit']).join(',');
-        loadCSSLayer('https://nordcdn.net/ds/css/4.2.0/nord.min.css', 'ds');
+        // loadCSSLayer('https://nordcdn.net/ds/css/4.2.0/nord.min.css', 'ds');
 
         const module = await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/${capitalize(name)}.js?external=${external}`);
         if (!customElements.get(full_name)) {

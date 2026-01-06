@@ -234,48 +234,45 @@
         font-family: "Redacted Script", cursive;
     }
 
-    [ce-loading] {
+    [ce] {
         &::after {
             pointer-events: none;
             content: " ";
             position: absolute;
             inset: 0;
+            opacity: 0;
 
-            /* transform: translateX(-80%) rotate(-45deg); */
+            /* transform: translateX(-20%) translateY(-40%) rotate(215deg); */
             transform: translateX(-100%) translateY(-40%) rotate(215deg);
             width: 200svw;
             height: 200svh;
             /* aspect-ratio: 1; */
 
-            background: linear-gradient(to right, transparent 10%, #000a 50%, transparent 90%);
+            background: linear-gradient(to right, transparent 10%, var(--color-bg-dark) 50%, transparent 90%);
 
+            transition: opacity 0.3s ease-out;
             animation: shimmer 3s ease-in-out infinite;
             will-change: transform;
         }
 
+        /** Nested components are hidden */
+        & [ce] {
+            &::after {
+                animation: none;
+            }
+        }
+    }
+
+    [ce-loading] {
         font-family: "Redacted Script",
-        cursive;
-
-        background-color: var(--color-bg);
-
-        /*
-        animation: line-shadow 35s linear infinite;
-        background-image: repeating-linear-gradient(315deg, var(--color) 0 1px, #0000 0 50%);
-        background-size: 8px 8px;
-        background-position: 0 0;
-        */
-
+            cursive;
+        background-color: transparent;
         overflow: clip;
         contain: layout paint;
         isolation: isolate;
 
-
-        /** Disable nested loading */
-        & [ce-loading] {
-            &::after {
-                animation: none;
-                background: transparent;
-            }
+        &::after {
+            opacity: 1;
         }
     }
 
@@ -285,6 +282,14 @@
 
         overflow: clip;
         visibility: visible;
+
+        &::after {
+            opacity: 0;
+            visibility: hidden;
+            width: 100%;
+            height: 100%;
+            animation: none;
+        }
     }
 
     [ce-defined][ce-outline-highlight] {

@@ -1,4 +1,7 @@
 export * from "lit";
+export * from "@lit/reactive-element";
+export * from "lit-html/is-server.js";
+export * from "lit-element/lit-element.js";
 export * from "lit/decorators.js";
 export * from "lit/directives/ref.js";
 export * from "lit/directives/if-defined.js";

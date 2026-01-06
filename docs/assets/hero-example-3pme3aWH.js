@@ -1,4 +1,4 @@
-import{LitElement as o,css as i}from"lit";import{s as r,u as t}from"./static-D4Ns-GM0.js";import"./lit-html-Dbe4NQd5.js";const s={"model-viewer":t`<model-viewer on="eager" camera-controls touch-action="pan-y" auto-rotate poster="https://modelviewer.dev/assets/poster-shishkebab.webp" tone-mapping="aces" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" shadow-intensity="1" alt="A 3D model of a shishkebab" ></model-viewer>`,"confetti-button":t`<confetti-button on="eager"><div class="card">🎉 Click me to throw confetti 🎉</div></confetti-button>`};class a extends o{static styles=i`
+import{LitElement as o,css as i}from"lit";import{s as r,u as t}from"./static-D4Ns-GM0.js";import"https://esm.sh/@nordhealth/components/lib/Button.js?external=lit";import"https://esm.sh/@nordhealth/components/lib/Select.js?external=lit";import"./lit-html-Dbe4NQd5.js";const s={"model-viewer":t`<model-viewer on="eager" camera-controls touch-action="pan-y" auto-rotate poster="https://modelviewer.dev/assets/poster-shishkebab.webp" tone-mapping="aces" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" shadow-intensity="1" alt="A 3D model of a shishkebab" ></model-viewer>`,"confetti-button":t`<confetti-button on="eager"><div class="card">🎉 Click me to throw confetti 🎉</div></confetti-button>`};class a extends o{static styles=i`
     @layer components {
 		hero-example {
 			display: grid;
@@ -26,8 +26,8 @@ import{LitElement as o,css as i}from"lit";import{s as r,u as t}from"./static-D4N
 				position: relative;
 			}
 
-			.left nord-select {
-				max-width: auto;
+			nord-select:not(:defined) {
+				width: 100%;
 			}
 		}
 
@@ -63,7 +63,7 @@ import{LitElement as o,css as i}from"lit";import{s as r,u as t}from"./static-D4N
 	}
 
 	::view-transition-old(hero-example) {
-		animation: var(--spring-duration) ease-out both fade-out;
+		animation: calc(var(--spring-duration) * 0.5) ease-out both fade-out;
 	}
 
 	::view-transition-new(hero-example) {
@@ -91,12 +91,12 @@ document.addEventListener('load', () => registry.discover());
         		<h4 class="flex-x">
 					Demo
 
-					<nord-select on="eager" name="demo" value="model-viewer" hide-label class="ml-auto" @change=${this.onDemoSelect}>
+					<nord-select on="eager" name="demo" value="model-viewer" hide-label class="ml-auto" @change=${this.onDemoSelect} view-transition-name="hero-demo-select">
 						<option value="model-viewer">model-viewer</option>
 						<option value="confetti-button">confetti-button</option>
 					</nord-select>
 				</h4>
-        		<pre><syntax-highlight language="js" on="eager">${r(this.js_template())}</syntax-highlight></pre>
+        		<pre><syntax-highlight language="js" on="eager" view-transition-name="hero-demo-code">${r(this.js_template())}</syntax-highlight></pre>
     		</div>
 
 			<div class="right preview flex-y" mode=${this.mode}>

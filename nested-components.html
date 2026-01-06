@@ -20,7 +20,7 @@
 		*/
         hero-example {
             width: 100%;
-            height: 70svh;
+            height: 50svh;
             overflow: hidden;
         }
     </style>
@@ -33,7 +33,9 @@
 			"lit/decorators.js": "/assets/vendor.js",
 			"lit/directives/ref.js": "/assets/vendor.js",
 			"lit/directives/if-defined.js": "/assets/vendor.js",
+            "@lit/reactive-element": "/assets/vendor.js",
 			"lit-element": "/assets/vendor.js",
+            "lit-element/lit-element.js": "/assets/vendor.js",
 			"lit-html": "/assets/vendor.js",
 			"lit/directives/unsafe-html.js": "/assets/vendor.js",
 			"lit/directives/style-map.js": "/assets/vendor.js",
@@ -52,7 +54,7 @@
 </head>
 
 <body class="container n-reset">
-    <hero-example ce ce-loading debug-imports view-transition-name="hero-example" on="manual"></hero-example>
+    <hero-example ce debug-imports view-transition-name="hero-example" on="manual"></hero-example>
     <button onclick="registry.upgrade('manual')">Run</button>
 </body>
 

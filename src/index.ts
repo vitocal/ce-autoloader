@@ -326,7 +326,7 @@ class CEAutoLoader {
 		const defineComponents = async (source?: string) => {
 			await Promise.allSettled([
 				...load_success.map(async (result) => this.define(result.value)),
-				// this.flushDefine(source)
+				this.flushDefine(source)
 			])
 		}
 
@@ -336,9 +336,11 @@ class CEAutoLoader {
 					const { el } = result;
 					const transitionName = el.getAttribute('view-transition-name');
 					const transitionClass = el.getAttribute('view-transition-class');
+
 					if (transitionName) {
 						el.style.viewTransitionName = transitionName;
-					} else if (transitionClass) {
+					}
+					if (transitionClass) {
 						el.style.viewTransitionClass = transitionClass;
 					}
 				})
@@ -378,7 +380,7 @@ class CEAutoLoader {
 			performance.mark(`load:${name}:start`);
 			el.setAttribute('ce-loading', "");
 
-			await new Promise((resolve) => setTimeout(resolve, 700 + Math.random() * 1000));
+			// await new Promise((resolve) => setTimeout(resolve, 3000 + Math.random() * 1000));
 			if (typeof asset === "string") {
 				module = await import(/* @vite-ignore */ asset);
 			} else if (typeof asset === "function") {
@@ -436,7 +438,7 @@ class CEAutoLoader {
 			performance.mark(`define:${name}:start`);
 
 			el.setAttribute('ce-defined', '');
-			DEFINE(name, module, {});
+			requestAnimationFrame(() => DEFINE(name, module, {}));
 		} finally {
 			performance.mark(`define:${name}:end`);
 			performance.measure(`define:${name}`, `define:${name}:start`, `define:${name}:end`);
@@ -460,11 +462,13 @@ class CEAutoLoader {
 		console.log(`flushDefine(${source})`, Object.keys(customElements.waiting))
 		// Some components definitions can be still in waiting (they' have called customElements.define but they're not in DOM)
 		// Let's define them now
-		if (Object.keys(customElements.waiting).length > 0) {
-			Object.entries(customElements.waiting)
-				.filter(([name]) => !customElements.get(name))
-				.map(([name, { ctor, options }]) => DEFINE(name, ctor, options))
-		}
+		requestAnimationFrame(() => {
+			if (Object.keys(customElements.waiting).length > 0) {
+				Object.entries(customElements.waiting)
+					.filter(([name]) => !customElements.get(name))
+					.map(([name, { ctor, options }]) => DEFINE(name, ctor, options))
+			}
+		})
 	}
 
 }
