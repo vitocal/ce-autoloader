@@ -1,24 +1,24 @@
 {
-  "_if-defined-BoKxvNe6.js": {
-    "file": "assets/if-defined-BoKxvNe6.js",
+  "_if-defined-DoPXWJku.js": {
+    "file": "assets/if-defined-DoPXWJku.js",
     "name": "if-defined",
     "imports": [
-      "_lit-html-Dbe4NQd5.js"
+      "_lit-element-ByGizcHM.js"
     ]
   },
-  "_lit-html-Dbe4NQd5.js": {
-    "file": "assets/lit-html-Dbe4NQd5.js",
-    "name": "lit-html"
+  "_lit-element-ByGizcHM.js": {
+    "file": "assets/lit-element-ByGizcHM.js",
+    "name": "lit-element"
   },
   "_preload-helper-jQNcvZ6f.js": {
     "file": "assets/preload-helper-jQNcvZ6f.js",
     "name": "preload-helper"
   },
-  "_static-D4Ns-GM0.js": {
-    "file": "assets/static-D4Ns-GM0.js",
+  "_static-NgAOvnEo.js": {
+    "file": "assets/static-NgAOvnEo.js",
     "name": "static",
     "imports": [
-      "_lit-html-Dbe4NQd5.js"
+      "_lit-element-ByGizcHM.js"
     ]
   },
   "assets/observability.jpg": {
@@ -26,7 +26,7 @@
     "src": "assets/observability.jpg"
   },
   "index.html": {
-    "file": "assets/main-BJ07V4ns.js",
+    "file": "assets/main-BXM-hwax.js",
     "name": "main",
     "src": "index.html",
     "isEntry": true,
@@ -45,14 +45,14 @@
     ]
   },
   "single.html": {
-    "file": "assets/single-OvdWlMGX.js",
+    "file": "assets/single-hF5kxkmJ.js",
     "name": "single",
     "src": "single.html",
     "isEntry": true,
     "imports": [
       "_preload-helper-jQNcvZ6f.js",
-      "_if-defined-BoKxvNe6.js",
-      "_lit-html-Dbe4NQd5.js"
+      "_lit-element-ByGizcHM.js",
+      "_if-defined-DoPXWJku.js"
     ]
   },
   "src/components/confetti-button.ts": {
@@ -62,13 +62,13 @@
     "isDynamicEntry": true
   },
   "src/components/hero-example.js": {
-    "file": "assets/hero-example-B0gEIjxE.js",
+    "file": "assets/hero-example-CLp6mLi8.js",
     "name": "hero-example",
     "src": "src/components/hero-example.js",
     "isDynamicEntry": true,
     "imports": [
-      "_static-D4Ns-GM0.js",
-      "_lit-html-Dbe4NQd5.js"
+      "_lit-element-ByGizcHM.js",
+      "_static-NgAOvnEo.js"
     ]
   },
   "src/components/observable-plot-wrapper.js": {
@@ -84,13 +84,13 @@
     "isDynamicEntry": true
   },
   "src/components/vi-example.js": {
-    "file": "assets/vi-example-DHF8sUqB.js",
+    "file": "assets/vi-example-W_Y5uoxC.js",
     "name": "vi-example",
     "src": "src/components/vi-example.js",
     "isDynamicEntry": true,
     "imports": [
-      "_static-D4Ns-GM0.js",
-      "_lit-html-Dbe4NQd5.js"
+      "_lit-element-ByGizcHM.js",
+      "_static-NgAOvnEo.js"
     ]
   },
   "src/vendor.js": {
@@ -99,8 +99,8 @@
     "src": "src/vendor.js",
     "isEntry": true,
     "imports": [
-      "_if-defined-BoKxvNe6.js",
-      "_lit-html-Dbe4NQd5.js"
+      "_lit-element-ByGizcHM.js",
+      "_if-defined-DoPXWJku.js"
     ]
   }
 }

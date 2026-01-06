@@ -35,7 +35,6 @@ export default defineConfig({
   build: {
     rollupOptions: {
       external: [
-        'lit', 'lit-html', 'lit-element', '@lit/reactive-element',
         'syntax-highlight'
       ],
       input: {
