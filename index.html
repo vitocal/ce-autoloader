@@ -122,9 +122,18 @@
 
 		</div>
 
+		<nav class="sticky-nav">
+			<img src="/logo.svg" alt="ce-autoloader logo" class="nav-logo" />
+			<a href="#about" class="nav-link">About</a>
+			<a href="#get-started" class="nav-link">Get Started</a>
+			<a href="#namespaced" class="nav-link">Namespaced Components</a>
+			<a href="#animation" class="nav-link">Animation</a>
+			<a href="#observability" class="nav-link">Observability</a>
+		</nav>
+
 		<div class="card" variant="primary" border>
 
-			<h1>About</h1>
+			<h1 id="about">About</h1>
 
 			<p>
 				This library acts as a <strong>centralized catalog</strong> for your web components, designed to
@@ -156,7 +165,7 @@
 
 		</div>
 
-		<h1> Get started </h1>
+		<h1 id="get-started">Get started</h1>
 
 		<ol>
 			<li>Install <strong>ce-autoloader</strong> via npm/CDN</li>
@@ -213,7 +222,7 @@
 		</vi-example>
 
 		<hr />
-		<h1>Namespaced Components</h1>
+		<h1 id="namespaced">Namespaced Components</h1>
 
 		<p>We can import a whole external library of components by using namespaced components</p>
 		<div class="grid-3">
@@ -358,7 +367,7 @@
 	</script>
 -->
 
-		<h1>Observability & Performance</h1>
+		<h1 id="observability">Observability & Performance</h1>
 
 		<p>
 			Observability is already built-in to the registry, and allows measuring the time-to-load of each component.
@@ -376,8 +385,10 @@
 	</main>
 
 	<footer>
-		<div class="container">
-			<span>Made in 🇧🇷 by <a href="https://github.com/vitocal">Vitor Calejuri</a> 123</span>
+		<div class="footer-content">
+			<p class="footer-text">
+				Made in 🇧🇷
+			</p>
 		</div>
 	</footer>
 </body>
