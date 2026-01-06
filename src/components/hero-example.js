@@ -72,7 +72,7 @@ export default class HeroExample extends LitElement {
 	}
 
 	::view-transition-old(hero-example) {
-		animation: var(--spring-duration) ease-out both fade-out;
+		animation: calc(var(--spring-duration) * 0.5) ease-out both fade-out;
 	}
 
 	::view-transition-new(hero-example) {
@@ -143,12 +143,12 @@ document.addEventListener('load', () => registry.discover());
         		<h4 class="flex-x">
 					Demo
 
-					<nord-select on="eager" name="demo" value="model-viewer" hide-label class="ml-auto" @change=${this.onDemoSelect}>
+					<nord-select on="eager" name="demo" value="model-viewer" hide-label class="ml-auto" @change=${this.onDemoSelect} view-transition-name="hero-demo-select">
 						<option value="model-viewer">model-viewer</option>
 						<option value="confetti-button">confetti-button</option>
 					</nord-select>
 				</h4>
-        		<pre><syntax-highlight language="js" on="eager">${unsafeStatic(this.js_template())}</syntax-highlight></pre>
+        		<pre><syntax-highlight language="js" on="eager" view-transition-name="hero-demo-code">${unsafeStatic(this.js_template())}</syntax-highlight></pre>
     		</div>
 
 			<div class="right preview flex-y" mode=${this.mode}>

@@ -20,9 +20,8 @@
 		*/
         hero-example {
             width: 100%;
-            height: 348px;
-
-            view-transition-name: hero-example;
+            height: 70svh;
+            overflow: hidden;
         }
     </style>
     <link rel="stylesheet" href="styles.css">
@@ -48,12 +47,13 @@
         import { loadCSSLayer } from './src/utils.ts'
         loadCSSLayer('shared.css', 'ds');
         loadCSSLayer('https://nordcdn.net/ds/css/4.2.0/nord.min.css', 'ds');
-        loadCSSLayer('https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css', 'scoped');
+        loadCSSLayer('https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css', 'ds');
     </script>
 </head>
 
 <body class="container n-reset">
-    <hero-example ce-loading debug-imports bundled></hero-example>
+    <hero-example ce ce-loading debug-imports view-transition-name="hero-example" on="manual"></hero-example>
+    <button onclick="registry.upgrade('manual')">Run</button>
 </body>
 
 </html>

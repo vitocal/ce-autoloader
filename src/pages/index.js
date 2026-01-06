@@ -11,7 +11,7 @@ globalThis.catalog = catalog;
 globalThis.registry = new CERegistry({
     catalog: globalThis.catalog,
     root: document.body,
-    live: true,
+    live: false,
     // fallback: ErrorFallback,
     defaultDirective: 'visible',
     transition: true,

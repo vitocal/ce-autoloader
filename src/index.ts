@@ -236,6 +236,7 @@ class CEAutoLoader {
 		const ce_elements = matchCustomElement(this.options.root || document.body)
 		const elements = this.filterByDirective(ce_elements, directive)
 		console.log(`upgrading ${directive}`, elements)
+		elements.forEach((el) => el.setAttribute("ce", ""))
 
 		const visible = (elements: HTMLElement[]) => {
 			// Create observer if it doesn't exist
@@ -325,7 +326,7 @@ class CEAutoLoader {
 		const defineComponents = async (source?: string) => {
 			await Promise.allSettled([
 				...load_success.map(async (result) => this.define(result.value)),
-				this.flushDefine(source)
+				// this.flushDefine(source)
 			])
 		}
 
@@ -377,7 +378,7 @@ class CEAutoLoader {
 			performance.mark(`load:${name}:start`);
 			el.setAttribute('ce-loading', "");
 
-			// await new Promise((resolve) => setTimeout(resolve, 1000 + Math.random() * 1000));
+			await new Promise((resolve) => setTimeout(resolve, 700 + Math.random() * 1000));
 			if (typeof asset === "string") {
 				module = await import(/* @vite-ignore */ asset);
 			} else if (typeof asset === "function") {
