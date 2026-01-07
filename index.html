@@ -137,7 +137,7 @@
 			<a href="#activation-triggers" class="nav-link">Activation Triggers</a>
 			<a href="#dynamic-resolvers" class="nav-link">Dynamic Resolvers</a>
 			<a href="#lifecycle" class="nav-link">Transitions & Lifecycle</a>
-			<a href="#observability" class="nav-link">Observability</a>
+			<a href="#telemetry" class="nav-link">Native Telemetry</a>
 		</nav>
 
 		<div class="card" variant="primary" border>
@@ -421,21 +421,46 @@
 	</script>
 -->
 
-		<h1 id="observability">Observability & Performance</h1>
+		<h1 id="telemetry">Native Telemetry <span class="n-color-text-weaker">& Insights</span></h1>
 
 		<p>
-			Observability is already built-in to the registry, and allows measuring the time-to-load of each component.
-			With native `performance` integration, it shows in devtools performance panel and can be exported to your
-			observability metrics as usual.
+			Performance is built into the core. <code>ce-autoloader</code> uses the native <strong>User Timing
+				API</strong>
+			to provide granular metrics for every stage of your components' lifecycle. This allows you to quantify the
+			exact impact of your loading strategies on <strong>Core Web Vitals</strong>.
 		</p>
 
 		<img src="assets/observability.jpg" alt="Observability has native integration into performance devtools"
 			width="1024" height="768" loading="lazy">
 
-		<p>
-			You can access the metrics at <code>performance.getEntriesByName('load:my-component')</code> or
-			<code>performance.getEntriesByType('measure')</code>
-		</p>
+		<div class="grid-3">
+			<div class="leftcenter">
+				<h3>Built-in Performance Marks</h3>
+				<p>
+					Every component activation generates high-resolution timestamps visible in the
+					<strong>Performance Tab</strong> of your browser's DevTools.
+				</p>
+				<ul>
+					<li><strong>load:tag-name</strong>: Total time spent fetching the module.</li>
+					<li><strong>define:tag-name</strong>: Time taken to register with <code>customElements</code>.</li>
+					<li><strong>transition</strong>: Time spent during the view transition animation.</li>
+				</ul>
+			</div>
+			<div class="right">
+				<h3>Integration Ready</h3>
+				<p>
+					Because we use standard browser APIs, you can programmatically access these metrics and pipe them
+					to your existing APM tools (Datadog, New Relic, etc.).
+				</p>
+				<pre>
+<syntax-highlight language="js">
+// Export all component load times to your analytics
+const metrics = performance.getEntriesByType('measure')
+    .filter(e => e.name.startsWith('load:'));
+</syntax-highlight>
+</pre>
+			</div>
+		</div>
 	</main>
 
 	<footer>
