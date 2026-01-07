@@ -27,7 +27,7 @@ export default class PixQRCode extends LitElement {
             transactionId: '***',
             message: 'Teste de QR Code',
             value: 1.00,
-            guid: '***',
+            guid: '***'
         }
         this.generateQRCode();
     }
@@ -40,8 +40,7 @@ export default class PixQRCode extends LitElement {
     }
 
     render() {
-        return html`<section style="display: flex; flex-direction: column; align-items: center; height: 300px;" >
-            <h1>Look, a PIX QR Code</h1>
+        return html`<section style="display: flex; flex-direction: column; align-items: center;" >
             ${this.pix ?
                 html`
                     <img src=${this.qrCodeB64} alt='QR Code PIX'/>

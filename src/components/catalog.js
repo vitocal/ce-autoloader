@@ -10,6 +10,7 @@ let catalog = {
     "confetti-button": () => import("./confetti-button.ts"),
     "three-cube": () => import("./three-cube.js"),
     "observable-plot-wrapper": () => import("./observable-plot-wrapper.js"),
+    "pix-qrcode": () => import("./pix/qrcode.ts"),
 
     "playground-ide": "https://cdn.jsdelivr.net/npm/playground-elements@0.18.1/+esm",
     "json-viewer": "https://esm.sh/@alenaksu/json-viewer",
