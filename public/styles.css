@@ -139,6 +139,14 @@
         .centerright {
             grid-column: center-start / right-end;
         }
+
+        @media (max-width: 60ch) {
+            grid-template-columns: 1fr;
+
+            &>* {
+                grid-column: 1 / -1 !important;
+            }
+        }
     }
 
     img {
@@ -378,6 +386,7 @@
             position: absolute;
             inset: 0;
             opacity: 0;
+            z-index: 1;
 
             transform: translateX(-100%) translateY(-40%) rotate(215deg);
             width: 200svw;

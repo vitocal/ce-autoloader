@@ -37,8 +37,7 @@
 		}
 
 		nord-qrcode {
-			width: 128px;
-			height: 128px;
+			aspect-ratio: 1;
 		}
 
 
@@ -56,6 +55,7 @@
 				height: 100%;
 				margin: 0;
 			}
+
 		}
 
 
@@ -240,10 +240,19 @@
 					<code>nord-qr-code</code> will automatically load! There's no need to declare/import each component
 					manually.
 				</p>
+			</div>
 
-				<p> Heres the full loader for <a href="https://nordhealth.com">nord</a> design system</p>
+			<figure class="right flex-y ai-center">
+				<nord-qrcode value="https://ce-autoloader.com" view-transition-name="qr-code"></nord-qrcode>
+				<figcaption>
+					Send me a ❤️ via pix
+				</figcaption>
+			</figure>
+		</div>
 
-				<pre>
+		<p> Heres the full loader for <a href="https://nordhealth.com">nord</a> design system</p>
+
+		<pre>
 <syntax-highlight language="js">/**
  * Nord Health design system
  */
@@ -256,18 +265,6 @@
     return module
 },</syntax-highlight>
 </pre>
-
-			</div>
-
-			<figure class="right flex-y ai-center">
-				<nord-qrcode value="https://ce-autoloader.com" view-transition-name="qr-code" ce
-					ce-loading></nord-qrcode>
-				<figcaption>
-					Send me a ❤️ via pix
-				</figcaption>
-			</figure>
-		</div>
-
 
 		<hr>
 
