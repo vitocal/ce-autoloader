@@ -4,7 +4,8 @@ A webcomponent lazy loader and registry for the web.
 The missing parts of `customElements` API.
 
 - Automatically Load any web-component on demand, if and when they're used in the page.
-- Interactive islands with customizable behaviour `on="visible"` , `on="interaction"`, etc.
+- **Activation Triggers**: Native support for loading strategies like `on="visible"`, `on="interaction"`, or eager loading.
+- **Dynamic Resolvers**: Effortlessly resolve entire component libraries (e.g., `nord-*`) using pattern-based loaders.
 - Supports for animations with view-transitions!
 - Framework-independent: React, Lit, Svelte, Vue, Angular...
 - No dependencies, <10kb gzip, and fast!
@@ -32,30 +33,27 @@ Import ce-autoloader in your primary bundle and add a components registry:
 ```js
 import CERegistry from "ce-autoloader";
 
+### Powerful Resolvers (Wildcard Loading)
+
+For large design systems, you can use **Dynamic Resolvers** to avoid manual registration:
+
+```js
 const catalog = {
-    // Shoelace (whole library)
+    // 1. Dynamic Resolver for Shoelace
     "sl-*": "https://cdn.jsdelivr.net/npm/shoelace@2.20.1/",
 
-    // Material design - only the components used
+    // 2. Pattern-based Resolver for Material Design
     "md-*": async (full_name) => {
         const [namespace, name] = full_name.split('-');
-        import(`https://esm.run/@material/web/${name}`);
+        return import(`https://esm.run/@material/web/${name}`);
     },
-    // My own components
+
+    // 3. Explicit component registration
     "x-counter": () => import("./components/x-counter.js"),
 }
-
-var registry = new CERegistry({
-    catalog,
-    observe: document.body
-})
-
-// Start loading wherever you're ready
-document.addEventListener("load", () => registry.discover())
 ```
 
-Now you can use any component from the library, anywhere. They're only loaded
-if they're used in the page.
+Now you can use any component from these libraries, and they will be activated only when used.
 
 ```html
 <body>

@@ -134,8 +134,9 @@
 			<img src="/logo.svg" alt="ce-autoloader logo" class="nav-logo" />
 			<a href="#about" class="nav-link">About</a>
 			<a href="#get-started" class="nav-link">Get Started</a>
-			<a href="#namespaced" class="nav-link">Namespaced Components</a>
-			<a href="#animation" class="nav-link">Animation</a>
+			<a href="#activation-triggers" class="nav-link">Activation Triggers</a>
+			<a href="#dynamic-resolvers" class="nav-link">Dynamic Resolvers</a>
+			<a href="#lifecycle" class="nav-link">Transitions & Lifecycle</a>
 			<a href="#observability" class="nav-link">Observability</a>
 		</nav>
 
@@ -200,21 +201,41 @@
 	</playground-ide>
 	-->
 
-		<h2>Controlling when components are loaded</h2>
+		<h1 id="activation-triggers">Activation Triggers <span class="n-color-text-weaker">(Loading Strategies)</span>
+		</h1>
 
-		<p>The <code>on</code> attribute controls when the component is loaded. By default, it's
-			<strong>visible</strong>.
+		<p>The <code>on</code> attribute defines the <strong>strategy</strong> for when a component is activated.
+			By default, components use the <code>visible</code> strategy to maximize initial performance.
 		</p>
 
 		<dl class="n-dl">
-			<dt>visible</dt>
-			<dd>Loaded when the element is visible in the viewport</dd>
+			<dt>visible <span class="n-color-text-weaker">(Default)</span></dt>
+			<dd>
+				<strong>Lazy-loading via Intersection Observer.</strong>
+				Components are downloaded and defined only when they enter the viewport.
+				Perfect for content "below the fold" to keep initial page weight low.
+			</dd>
+
 			<dt>interaction</dt>
-			<dd>Loaded when the element is interacted(clicked)</dd>
+			<dd>
+				<strong>Hydrate on demand.</strong>
+				The module is fetched when a user clicks or touches the element.
+				Ideal for heavy UI widgets like maps, complex editors, or modal content.
+			</dd>
+
 			<dt>eager</dt>
-			<dd>Loaded when the element is encountered at DOM</dd>
-			<dt>*anything*</dt>
-			<dd>Manual mode, you should call <code>registry.upgrade('*anything*')</code></dd>
+			<dd>
+				<strong>Immediate activation.</strong>
+				Downloads the module as soon as the loader discovery starts.
+				Use this for critical "above the fold" components like navigation headers or hero sections.
+			</dd>
+
+			<dt>*custom*</dt>
+			<dd>
+				<strong>Manual/Programmatic mode.</strong>
+				You can specify any custom string (e.g., <code>on="lazy-load"</code>) and trigger it
+				manually via <code>registry.upgrade('lazy-load')</code>.
+			</dd>
 		</dl>
 
 		<vi-example>
@@ -230,35 +251,57 @@
 		</vi-example>
 
 		<hr />
-		<h1 id="namespaced">Namespaced Components</h1>
+		<h1 id="dynamic-resolvers">Dynamic Resolvers <span class="n-color-text-weaker">(Wildcard Loaders)</span></h1>
 
-		<p>We can import a whole external library of components by using namespaced components</p>
+		<p>
+			For large-scale design systems like <a href="https://nordhealth.com">Nord Health</a>, <a
+				href="https://shoelace.style">Shoelace</a>, or <a href="https://ui.shadcn.com">Shadcn</a>,
+			manually registering dozens of components is tedious and error-prone.
+		</p>
+
+		<p>
+			<strong>Dynamic Resolvers</strong> (or Wildcard Loaders) solve this by allowing you to register a function
+			that "resolves" any tag matching a specific pattern.
+		</p>
+
 		<div class="grid-3">
 			<div class="leftcenter">
 				<p>
-					In this page, we registered everything under <code>nord-*</code> namespace, so any component like
-					<code>nord-qr-code</code> will automatically load! There's no need to declare/import each component
-					manually.
+					In this example, we registered a resolver for the <code>nord-*</code> namespace.
+					When the browser encounters <code>&lt;nord-qrcode&gt;</code>, the loader automatically fetches the
+					correct module from the CDN.
 				</p>
+				<ul>
+					<li><strong>No Monolithic Bundles</strong>: Only the components used are ever downloaded.</li>
+					<li><strong>Automatic Discovery</strong>: New components added to the HTML are resolved instantly
+						without updating JS.</li>
+					<li><strong>Industry Standard</strong>: Follows the same "Resolver" pattern used by modern build
+						tools and auto-import plugins.</li>
+				</ul>
 			</div>
 
 			<figure class="right flex-y ai-center">
 				<nord-qrcode value="https://ce-autoloader.com" view-transition-name="qr-code"></nord-qrcode>
 				<figcaption>
-					Send me a ❤️ via pix
+					Scan to learn more
 				</figcaption>
 			</figure>
 		</div>
 
-		<p> Heres the full loader for <a href="https://nordhealth.com">nord</a> design system</p>
+		<p>Here is an example of a <strong>Wildcard Resolver</strong> for the Nord design system:</p>
 
 		<pre>
 <syntax-highlight language="js">/**
- * Nord Health design system
+ * Pattern-based Resolver for Nord Health components
  */
 "nord-*": async (full_name) => {
+    // 1. Extract the specific component name (e.g., 'qrcode' from 'nord-qrcode')
     const [, namespace, name] = full_name.match(/^([a-z]+)-(.*)/);
+
+    // 2. Resolve the module URL (dynamic import)
     const module = await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/${capitalize(name)}.js`);
+
+    // 3. Define the component if not already registered
     if (!customElements.get(full_name)) {
         customElements.define(full_name, module.default);
     }
@@ -268,32 +311,39 @@
 
 		<hr>
 
-		<section id="animation">
-			<h1>Animated components 💪🤩<span style="transform: rotateY(180deg); position: absolute;">💪</span></h1>
+		<section id="lifecycle">
+			<h1>Entrance Lifecycle <span class="n-color-text-weaker">& Transitions</span></h1>
 
-			<p>Components doesn't just appear from nowhere, they are animated as they enter the DOM to have a smooth
-				loading
-				and avoid layout shifts.</p>
-			<p>
-				Each component goes through a lifecycle of <mark>not-defined</mark> → <mark>ce-loading</mark>
-				→ <mark>ce-defined</mark>, that can be customized in css.
+			<p>Web components shouldn't just "pop" into existence. <code>ce-autoloader</code> provides a robust
+				<strong>lifecycle state machine</strong> that allows you to style components as they transition from
+				placeholders to interactive elements, effectively eliminating <strong>Cumulative Layout Shift
+					(CLS)</strong>.
 			</p>
 
-			<p>We can use these attributes in css to create a smooth loading with transitions.</p>
+			<h3>The Discovery Lifecycle</h3>
+			<p>Every component managed by the registry moves through three distinct visual states:</p>
 
-			<h3>Component discovery lifecycle</h3>
 			<dl class="n-dl">
 				<dt>:not(:defined)</dt>
-				<!-- <dd><nord-badge variant="primary" on="manual">:not(:defined)</nord-badge></dd> -->
-				<dd>Initial state. The component is in the DOM but not defined yet.</dd>
+				<dd>
+					<strong>Placeholder State.</strong>
+					The custom element is in the DOM but the browser doesn't know its behavior yet.
+					Use this to set <code>min-height</code> or <code>aspect-ratio</code> to reserve space on the page.
+				</dd>
 
 				<dt>[ce-loading]</dt>
-				<!-- <dd><nord-badge variant="primary" on="manual" ce-loading>[ce-loading]</nord-badge></dd> -->
-				<dd>Loading state. We are currently fetching/importing the module.</dd>
+				<dd>
+					<strong>Activation State.</strong>
+					Triggered when the library begins fetching the module.
+					This is the perfect time to show a <strong>Skeleton Loader</strong> or a progress indicator.
+				</dd>
 
 				<dt>[ce-defined]</dt>
-				<!-- <dd><nord-badge variant="primary" on="manual" ce-defined>[ce-defined]</nord-badge></dd> -->
-				<dd>Final state. The component has been defined and upgraded.</dd>
+				<dd>
+					<strong>interactive State.</strong>
+					The component is defined and upgraded.
+					Use this to trigger a final "fade-in" or entrance animation.
+				</dd>
 			</dl>
 
 

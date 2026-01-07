@@ -40,11 +40,11 @@ function isCustomElement(element: Element) {
 	return element instanceof HTMLElement && element.tagName.includes("-")
 }
 
-function debounceMutations(fn, delay = 300) {
+function debounceMutations(fn: (mutations: MutationRecord[], observer: MutationObserver) => void, delay = 300) {
 	let timer: ReturnType<typeof setTimeout>;
 	let accumulated: MutationRecord[] = [];
 
-	return function (mutations: MutationRecord[], observer: MutationObserver) {
+	return function (this: any, mutations: MutationRecord[], observer: MutationObserver) {
 		accumulated.push(...mutations);
 		clearTimeout(timer);
 		timer = setTimeout(() => {
@@ -67,8 +67,8 @@ class CEAutoLoader {
 	options: CEAutoLoaderOptions;
 	catalog: CEAutoLoaderCatalog = {};
 
-	// Namespaced components(prefix-*) are stored separatedly from the registry
-	_namespaces: Record<string, CEAutoLoaderModule> = {};
+	// Wildcard resolvers (prefix-*) matched against tags at runtime.
+	_resolvers: Record<string, CEAutoLoaderModule> = {};
 
 	// Mutation and Interaction Observers
 	#observers: Record<string, MutationObserver | IntersectionObserver> = {};
@@ -136,7 +136,7 @@ class CEAutoLoader {
 
 		return;
 	}
-	async watcher(mutations: MutationRecord[]) {
+	async watcher(_mutations: MutationRecord[]) {
 		performance.mark("mutation-start");
 		await this.discover();
 		// for (const mutation of mutations) {
@@ -171,17 +171,17 @@ class CEAutoLoader {
 
 	private uniqueByTag(elements: HTMLElement[]) {
 		const seen = new Set();
-		const uniqueByTag = [];
+		const unique = [];
 
 		for (const el of elements) {
 			const tag = el.tagName;
 			if (!seen.has(tag)) {
 				seen.add(tag);
-				uniqueByTag.push(el);
+				unique.push(el);
 			}
 		}
 
-		return uniqueByTag
+		return unique
 	}
 
 	/**
@@ -371,7 +371,7 @@ class CEAutoLoader {
 	async load(el: HTMLElement) {
 		const name = el.tagName.toLowerCase()
 
-		let asset = this.catalog[name] || this.getNamespace(name)
+		let asset = this.catalog[name] || this.getWildcardResolver(name)
 		if (!asset) {
 			throw new CEError(`Component ${name} not found in catalog`, { name, el })
 		}
@@ -391,7 +391,7 @@ class CEAutoLoader {
 			} else {
 				throw new CEError(`Loader of ${name} is invalid! Should be a url or a function`, { name, el, module })
 			}
-		} catch (error) {
+		} catch (error: any) {
 			throw new CEError(`${name} - ${error.message}`, { name, el, module, error });
 		} finally {
 			el.removeAttribute('ce-loading');
@@ -419,7 +419,7 @@ class CEAutoLoader {
 	/**
 	 * Define a single component
 	 */
-	async define({ name, el, module }) {
+	async define({ name, el, module }: { name: string, el: HTMLElement, module: any }) {
 		// Maybe it's already defined...
 		if (customElements.get(name)) {
 			return;
@@ -449,9 +449,10 @@ class CEAutoLoader {
 	}
 
 	/**
-	 * Matches a component name to a namespace (if exists)
+	 * Matches a component name to a wildcard resolver (if exists)
+	 * e.g. "nord-button" -> "nord-*"
 	 */
-	getNamespace(name: string): CEAutoLoaderModule | null {
+	getWildcardResolver(name: string): CEAutoLoaderModule | null {
 		const [prefix, _comp_name] = name.split('-');
 		return this.catalog[`${prefix}-*`];
 	}
