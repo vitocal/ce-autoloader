@@ -36,6 +36,12 @@
 			display: grid;
 		}
 
+		nord-qrcode {
+			width: 128px;
+			height: 128px;
+		}
+
+
 		@media (max-width: 60ch) {
 			.fold {
 				max-height: 100svh;
@@ -107,7 +113,7 @@
 		<div class="fold">
 			<div class="fold-header">
 				<h1 class="font-serif" style="font-size: 3em; display: flex; align-items: center;">
-					<img src="/logo.svg" style="width: 64px; height: 64px; display: inline; margin: 8px;" />
+					<img src="/logo.svg" alt="logo" style="width: 64px; height: 64px; display: inline; margin: 8px;" />
 					ce-autoloader
 				</h1>
 				<!-- <h1 class="font-serif" style="font-size: 4em; margin-top: 1em;">ce-autoloader </h1> -->
@@ -238,8 +244,7 @@
 				<p> Heres the full loader for <a href="https://nordhealth.com">nord</a> design system</p>
 
 				<pre>
-<syntax-highlight language="js">
-/**
+<syntax-highlight language="js">/**
  * Nord Health design system
  */
 "nord-*": async (full_name) => {
@@ -255,8 +260,8 @@
 			</div>
 
 			<figure class="right flex-y ai-center">
-				<nord-qrcode value="https://ce-autoloader.com" on="visible"
-					view-transition-name="qr-code"></nord-qrcode>
+				<nord-qrcode value="https://ce-autoloader.com" view-transition-name="qr-code" ce
+					ce-loading></nord-qrcode>
 				<figcaption>
 					Send me a ❤️ via pix
 				</figcaption>

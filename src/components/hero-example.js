@@ -1,8 +1,8 @@
 import { LitElement, css, adoptStyles } from "lit";
 import { html, unsafeStatic } from 'lit/static-html.js';
 
-import nordSelect from "@nord-ui/select";
-import syntaxHighlight from "syntax-highlight";
+import nordSelect from "@nordhealth/components/lib/Select.js";
+import nordButton from "@nordhealth/components/lib/Button.js";
 
 const demos = {
 	"model-viewer": html`<model-viewer on="eager" camera-controls touch-action="pan-y" auto-rotate poster="https://modelviewer.dev/assets/poster-shishkebab.webp" tone-mapping="aces" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" shadow-intensity="1" alt="A 3D model of a shishkebab" ></model-viewer>`,
@@ -100,7 +100,7 @@ export default class HeroExample extends LitElement {
 
 	constructor() {
 		super();
-		this.demo = "model-viewer";
+		this.demo = "initial";
 
 		// In light-dom mode, we need to adopt the styles
 		if (this.constructor.styles.styleSheet &&
@@ -144,10 +144,20 @@ document.addEventListener('load', () => registry.discover());
 	}
 
 	render() {
-		// let preview = this.mode === "code"
-		// 	? html`<pre><syntax-highlight language="html">${unsafeStatic(this.html_template())}</syntax-highlight></pre>`
-		// 	: html`<model-viewer camera-controls touch-action="pan-y" auto-rotate poster="https://modelviewer.dev/assets/poster-shishkebab.webp" tone-mapping="aces" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" shadow-intensity="1" alt="A 3D model of a shishkebab" ></model-viewer>`;
-		let preview = demos[this.demo];
+
+		let preview = html`<nord-empty-state>
+			<div class="text-center" style="display: flex;flex-direction: column;align-items: center;">
+				<h2>3D Model Demo</h2>
+				<p>Click to load the interactive 3D model (Heavy!)</p>
+				<nord-button variant="primary" @click=${() => this.demo = "model-viewer-loaded"}>Load 3D Model</nord-button>
+			</div>
+		</nord-empty-state>`;
+
+		if (this.demo === "model-viewer-loaded") {
+			preview = demos["model-viewer"];
+		} else if (demos[this.demo]) {
+			preview = demos[this.demo];
+		}
 
 		return html`
 			<div class="left window flex-y" >

@@ -3,9 +3,8 @@ import SlottedElement from "./vi/slotted-element.js";
 
 import { html, unsafeStatic } from 'lit/static-html.js';
 
-import SyntaxHighlight from "syntax-highlight-element";
-import NordButton from "@nord-ui/button";
-import NordIcon from "@nord-ui/icon";
+import NordButton from "@nordhealth/components/lib/Button.js"
+import NordIcon from "@nordhealth/components/lib/Icon.js"
 
 /**
  * A component to showcase examples

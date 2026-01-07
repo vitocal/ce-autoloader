@@ -281,11 +281,12 @@ class CEAutoLoader {
 				return interaction(elements)
 			} else if (this.options.defaultDirective === 'eager') {
 				return await this.loadAndDefine(elements, "eager")
-			} else {
-				return await this.loadAndDefine(elements, "manual");
 			}
+			// else {
+			// 	return await this.loadAndDefine(elements, "manual");
+			// }
 		} else {
-			return await this.loadAndDefine(elements, "manual")
+			return await this.loadAndDefine(elements, directive)
 		}
 	}
 
@@ -344,11 +345,13 @@ class CEAutoLoader {
 						el.style.viewTransitionClass = transitionClass;
 					}
 				})
+
 			performance.mark("transition-start");
 			const transition = document.startViewTransition(async () => await defineComponents(source));
 			await transition.updateCallbackDone;
 			performance.mark("transition-end");
 			performance.measure("transition", "transition-start", "transition-end")
+
 			load_success.map((result) => result.value)
 				.map((result) => {
 					const { el } = result;
@@ -396,7 +399,7 @@ class CEAutoLoader {
 			performance.measure(`load:${name}`, `load:${name}:start`, `load:${name}:end`);
 		}
 
-		// eager mode must define dependencies upfront
+		// bundled mode must define dependencies upfront
 		let after_imports = customElements.waiting;
 		let diff_imports = Object.keys(after_imports)
 			.filter((key) => !Object.keys(before_imports).includes(key))
@@ -404,8 +407,6 @@ class CEAutoLoader {
 
 		if (el.hasAttribute('bundled')) {
 			console.log("🩻 diff_imports", diff_imports)
-			// So, a bundled component must define element dependencies upfront
-			// Otherwise, it will be loaded after the component is defined
 			for (const element of diff_imports) {
 				DEFINE(element, customElements.waiting[element]['ctor'], {})
 			}
@@ -491,6 +492,8 @@ class CEAutoLoader {
 function monkeyPatchDefine() {
 	globalThis._DEFINE = customElements.define.bind(customElements);
 	globalThis.DEFINE = (name, ctor, options) => {
+		if (customElements.get(name)) return;
+
 		globalThis._DEFINE(name, ctor, options);
 		customElements.registered[name] = { ctor, options };
 		delete customElements.waiting[name];

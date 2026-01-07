@@ -19,7 +19,7 @@
   "scripts": {
     "dev": "vite build --mode development --watch",
     "build:vi-components": "vite build --config vite.vi-components.config.js",
-    "build:docs": "vite build --config vite.docs.js",
+    "build:docs": "vite build --config vite.docs.js && vite build --config vite.vendor.config.js",
     "prebuild:docs": "cp -R dist/components public/ docs/",
     "watch:vi-components": "vite build --config vite.vi-components.config.js --watch",
     "watch:docs": "vite build --config vite.docs.js --watch",

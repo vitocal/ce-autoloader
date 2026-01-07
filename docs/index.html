@@ -33,6 +33,7 @@
 			height: 70%;
 			margin: 4em 0;
 			overflow: clip;
+			display: grid;
 		}
 
 		@media (max-width: 60ch) {
@@ -92,8 +93,8 @@
         }
     }
     </script>
-  <script type="module" crossorigin src="/ce-autoloader/assets/main-BXM-hwax.js"></script>
-  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/preload-helper-jQNcvZ6f.js">
+  <script type="module" crossorigin src="/ce-autoloader/assets/main-Bx7PT-_p.js"></script>
+  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/preload-helper-DcrpyqX9.js">
 </head>
 
 <body class="n-reset n-typeset">
@@ -101,7 +102,7 @@
 		<div class="fold">
 			<div class="fold-header">
 				<h1 class="font-serif" style="font-size: 3em; display: flex; align-items: center;">
-					<img src="/ce-autoloader/logo.svg" style="width: 64px; height: 64px; display: inline; margin: 8px;" />
+					<img src="/ce-autoloader/logo.svg" alt="logo" style="width: 64px; height: 64px; display: inline; margin: 8px;" />
 					ce-autoloader
 				</h1>
 				<!-- <h1 class="font-serif" style="font-size: 4em; margin-top: 1em;">ce-autoloader </h1> -->
@@ -114,7 +115,7 @@
 
 
 			<h1 class="hidden">Demo</h1>
-			<hero-example view-transition-name="hero-example" on="eager" bundled></hero-example>
+			<hero-example view-transition-name="hero-example" on="visible" bundled></hero-example>
 
 		</div>
 
@@ -207,7 +208,7 @@
 
 		<vi-example>
 			<div slot="example" class="flex-y">
-				<nord-banner variant="success" on="eager">Nord-banner was loaded.</nord-banner>
+				<nord-banner variant="success" on="visible">Nord-banner was loaded.</nord-banner>
 
 				<three-cube on="interaction" view-transition->Click me to load</three-cube>
 
@@ -249,10 +250,11 @@
 			</div>
 
 			<figure class="right flex-y ai-center">
-				<nord-qrcode value="https://ce-autoloader.com" on="visible"
+				<nord-qrcode value="https://ce-autoloader.com" on="manual-qrcode"
 					view-transition-name="qr-code"></nord-qrcode>
 				<figcaption>
 					Send me a ❤️ via pix
+					<button onclick="registry.upgrade('manual-qrcode')">Load</button>
 				</figcaption>
 			</figure>
 		</div>
