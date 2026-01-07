@@ -10,8 +10,7 @@
 
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link
-		href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Outfit:wght@100..900&display=swap"
+	<link href="https://fonts.googleapis.com/css2?family=Redacted+Script&family=Cormorant+Garamond:ital@1&display=swap"
 		rel="stylesheet">
 
 	<link rel="preconnect" href="https://nordcdn.net" />
@@ -26,7 +25,8 @@
 		*/
 		.fold {
 			min-height: 70svh;
-			max-height: 70svh;
+			display: flex;
+			flex-direction: column;
 		}
 
 		.fold-header {
@@ -35,8 +35,7 @@
 
 		hero-example {
 			width: 100%;
-			height: 70%;
-			margin: 4em 0;
+			height: 50svh;
 			overflow: clip;
 			display: grid;
 		}
@@ -48,7 +47,7 @@
 
 		@media (max-width: 60ch) {
 			.fold {
-				max-height: 100svh;
+				min-height: 100svh;
 				gap: 1em;
 			}
 
@@ -57,10 +56,10 @@
 			}
 
 			hero-example {
-				height: 100%;
+				height: auto;
+				min-height: 100%;
 				margin: 0;
 			}
-
 		}
 
 
@@ -121,19 +120,17 @@
 					<img src="/logo.svg" alt="logo" style="width: 80px; height: 80px;" />
 					ce-autoloader
 				</h1>
-				<p class="font-serif n-color-text-weaker"
+				<p class="font-display n-color-text-weaker"
 					style="font-size: 1.5rem; max-width: 600px; margin-top: 1rem; line-height: 1.3;">
 					Load web components on demand, <mark>if and when</mark> they're actually needed.
 				</p>
 			</div>
 
-			<div style="margin-top: 4rem;">
-				<hero-example view-transition-name="hero-example" on="visible" bundled></hero-example>
-			</div>
+			<hero-example view-transition-name="hero-example" on="visible" bundled></hero-example>
 		</div>
 
-		<div class="">
-			<h1 id="about" style="display: none;">About</h1>
+		<div class="" id="about">
+			<h1 style="display: none;">About</h1>
 			<!--
 			<p>
 				Modern frontend is a bit of a circus. You install 500MB of <code>node_modules</code> to render a button,
@@ -187,10 +184,9 @@
 			<img src="/logo.svg" alt="ce-autoloader logo" class="nav-logo" />
 			<a href="#about" class="nav-link">About</a>
 			<a href="#get-started" class="nav-link">Get Started</a>
-			<a href="#activation-triggers" class="nav-link">Activation Triggers</a>
-			<a href="#dynamic-resolvers" class="nav-link">Dynamic Resolvers</a>
-			<a href="#lifecycle" class="nav-link">Transitions & Lifecycle</a>
-			<a href="#telemetry" class="nav-link">Native Telemetry</a>
+			<a href="#docs" class="nav-link">Docs</a>
+			<a href="#examples" class="nav-link">Examples</a>
+			<a href="#faq" class="nav-link">FAQ</a>
 			<a href="https://github.com/vitocal/ce-autoloader" target="_blank" class="nav-link icon-only"
 				aria-label="GitHub Repository">
 				<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"
@@ -203,154 +199,130 @@
 
 		</nav>
 
-		<h1 id="get-started">Get started</h1>
-
-		<div class="grid-3" style="margin-top: 2rem;">
-			<div class="leftcenter">
-				<p>It's just 3 steps. No build tools required (but recommended).</p>
-				<ol style="margin-top: 1rem; margin-left: 1rem; display: grid; gap: 0.5rem;">
-					<li><strong>Install</strong> via npm or CDN</li>
-					<li><strong>Define</strong> your catalog</li>
-					<li><strong>Enjoy</strong> automatic loading</li>
-				</ol>
-			</div>
-			<div class="right">
-				<pre>
-<syntax-highlight language="bash">npm install ce-autoloader</syntax-highlight>
-</pre>
-				<pre style="margin-top: 0.5rem;">
-<syntax-highlight language="javascript">
-import CERegistry from 'ce-autoloader';
-
-const registry = new CERegistry({
-    catalog: {
-        'my-component': () => import('./my-component.js')
-    }
-});
-
-// Start the magic 🪄
-registry.discover();
-</syntax-highlight>
-</pre>
-			</div>
-		</div>
-
-
-		<div class="brazilian-card" style="margin: 4rem 0;">
-			<h2>Hello World</h2>
-			<p>Just write HTML. If the component is in your catalog, it loads.</p>
-
-			<div class="grid-3" style="margin-top: 1rem;">
-				<div class="leftcenter">
-					<pre>
-<syntax-highlight language="html">
-<!-- The browser sees this... -->
-<nord-banner variant="success" on="visible">
-    I was lazy loaded!
-</nord-banner>
-</syntax-highlight>
-</pre>
-				</div>
-				<div class="right"
-					style="display: flex; align-items: center; justify-content: center; background: var(--color-bg); border-radius: var(--radius-md);">
-					<!-- ...and renders this! -->
-					<nord-banner variant="success" on="visible">
-						I was lazy loaded!
-					</nord-banner>
-				</div>
-			</div>
-		</div>
-
-
-
-		<div class="">
-			<h1 id="activation-triggers">Activation Triggers <span class="n-color-text-weaker">(Loading
-					Strategies)</span>
-			</h1>
-
-			<p>The <code>on</code> attribute defines the <strong>strategy</strong> for when a component is activated.
-				By default, components use the <code>visible</code> strategy to maximize initial performance.
-			</p>
-
-			<dl class="n-dl">
-				<dt>visible <span class="n-color-text-weaker">(Default)</span></dt>
-				<dd>
-					<strong>Lazy-loading via Intersection Observer.</strong>
-					Components are downloaded and defined only when they enter the viewport.
-					Perfect for content "below the fold" to keep initial page weight low.
-				</dd>
-
-				<dt>interaction</dt>
-				<dd>
-					<strong>Hydrate on demand.</strong>
-					The module is fetched when a user clicks or touches the element.
-					Ideal for heavy UI widgets like maps, complex editors, or modal content.
-				</dd>
-
-				<dt>eager</dt>
-				<dd>
-					<strong>Immediate activation.</strong>
-					Downloads the module as soon as the loader discovery starts.
-					Use this for critical "above the fold" components like navigation headers or hero sections.
-				</dd>
-
-				<dt>*custom*</dt>
-				<dd>
-					<strong>Manual/Programmatic mode.</strong>
-					You can specify any custom string (e.g., <code>on="lazy-load"</code>) and trigger it
-					manually via <code>registry.upgrade('lazy-load')</code>.
-				</dd>
-			</dl>
-		</div>
-
-		<vi-example>
-			<div slot="example" class="flex-y">
-				<nord-banner variant="success" on="visible">Nord-banner was loaded.</nord-banner>
-
-				<three-cube on="interaction" view-transition->Click me to load</three-cube>
-
-				<confetti-button on="manual" id="confetti" onClick="registry.upgrade('manual')">
-					🎉 Click me to throw confetti 🎉
-				</confetti-button>
-			</div>
-		</vi-example>
-
-		<hr />
-		<div class="">
-			<h1 id="dynamic-resolvers">Dynamic Resolvers <span class="n-color-text-weaker">(Wildcard Loaders)</span>
-			</h1>
-
-			<p>
-				Don't want to register 50 components one by one? <strong>Pode crer</strong>, we got you.
-				Dynamic Resolvers (or Wildcard Loaders) allow you to register a function that "resolves" any tag
-				matching a specific pattern.
-			</p>
+		<div id="get-started">
+			<h1>Get started</h1>
 
 			<div class="grid-3" style="margin-top: 2rem;">
 				<div class="leftcenter">
-					<p>
-						In this example, we registered a resolver for <code>nord-*</code>.
-						The browser sees <code>&lt;nord-qrcode&gt;</code>, and our resolver instantly fetches the
-						Correct module from the CDN.
-					</p>
-					<ul style="margin-top: 1rem; display: grid; gap: 0.5rem;">
-						<li><strong>No Giant Bundles</strong>: Only the components on the page are downloaded.</li>
-						<li><strong>Pure HTML Workflow</strong>: Add a tag, and it just works.</li>
-						<li><strong>Industry Standard</strong>: Same pattern used by Vite and Auto-import plugins.</li>
-					</ul>
+					<p>It's just 3 steps. No build tools required (but recommended).</p>
+					<ol style="margin-top: 1rem; margin-left: 1rem; display: grid; gap: 0.5rem;">
+						<li><strong>Install</strong> via npm or CDN</li>
+						<li><strong>Define</strong> your catalog</li>
+						<li><strong>Enjoy</strong> automatic loading</li>
+					</ol>
 				</div>
+				<div class="right">
+					<pre>
+	<syntax-highlight language="bash">npm install ce-autoloader</syntax-highlight>
+	</pre>
+					<pre style="margin-top: 0.5rem;">
+	<syntax-highlight language="javascript">import CERegistry from 'ce-autoloader';
 
-				<figure class="right flex-y ai-center">
-					<nord-qrcode value="https://ce-autoloader.com" view-transition-name="qr-code"></nord-qrcode>
-					<figcaption>
-						Leve e rápido. (Light and fast)
-					</figcaption>
-				</figure>
+	const registry = new CERegistry({
+		catalog: {
+			'my-component': () => import('./my-component.js')
+		}
+	});
+
+	// Start the magic 🪄
+	registry.discover();
+	</syntax-highlight>
+	</pre>
+				</div>
+			</div>
+		</div>
+
+		<div id="docs">
+			<h1>Documentation</h1>
+			<div id="activation-triggers">
+				<h2>Activation Triggers <span class="n-color-text-weaker">(Loading
+						Strategies)</span>
+				</h2>
+
+				<p>The <code>on</code> attribute defines the <strong>strategy</strong> for when a component is
+					activated.
+					By default, components use the <code>visible</code> strategy to maximize initial performance.
+				</p>
+
+				<dl class="n-dl">
+					<dt>visible <span class="n-color-text-weaker">(Default)</span></dt>
+					<dd>
+						<strong>Lazy-loading via Intersection Observer.</strong>
+						Components are downloaded and defined only when they enter the viewport.
+						Perfect for content "below the fold" to keep initial page weight low.
+					</dd>
+
+					<dt>interaction</dt>
+					<dd>
+						<strong>Hydrate on demand.</strong>
+						The module is fetched when a user clicks or touches the element.
+						Ideal for heavy UI widgets like maps, complex editors, or modal content.
+					</dd>
+
+					<dt>eager</dt>
+					<dd>
+						<strong>Immediate activation.</strong>
+						Downloads the module as soon as the loader discovery starts.
+						Use this for critical "above the fold" components like navigation headers or hero sections.
+					</dd>
+
+					<dt>*custom*</dt>
+					<dd>
+						<strong>Manual/Programmatic mode.</strong>
+						You can specify any custom string (e.g., <code>on="lazy-load"</code>) and trigger it
+						manually via <code>registry.upgrade('lazy-load')</code>.
+					</dd>
+				</dl>
+
+				<vi-example>
+					<div slot="example" class="flex-y">
+						<nord-banner variant="success" on="visible">Nord-banner was loaded.</nord-banner>
+
+						<three-cube on="interaction" view-transition->Click me to load</three-cube>
+
+						<confetti-button on="manual" id="confetti" onClick="registry.upgrade('manual')">
+							🎉 Click me to throw confetti 🎉
+						</confetti-button>
+					</div>
+				</vi-example>
 			</div>
 
-			<p>Here is an example of a <strong>Wildcard Resolver</strong> for the Nord design system:</p>
+			<div id="dynamic-resolvers">
+				<h2>Dynamic Resolvers <span class="n-color-text-weaker">(Wildcard Loaders)</span>
+				</h2>
 
-			<pre>
+				<p>
+					Don't want to register 50 components one by one? <strong>Pode crer</strong>, we got you.
+					Dynamic Resolvers (or Wildcard Loaders) allow you to register a function that "resolves" any tag
+					matching a specific pattern.
+				</p>
+
+				<div class="grid-3" style="margin-top: 2rem;">
+					<div class="leftcenter">
+						<p>
+							In this example, we registered a resolver for <code>nord-*</code>.
+							The browser sees <code>&lt;nord-qrcode&gt;</code>, and our resolver instantly fetches the
+							Correct module from the CDN.
+						</p>
+						<ul style="margin-top: 1rem; display: grid; gap: 0.5rem;">
+							<li><strong>No Giant Bundles</strong>: Only the components on the page are downloaded.</li>
+							<li><strong>Pure HTML Workflow</strong>: Add a tag, and it just works.</li>
+							<li><strong>Industry Standard</strong>: Same pattern used by Vite and Auto-import plugins.
+							</li>
+						</ul>
+					</div>
+
+					<figure class="right flex-y ai-center">
+						<nord-qrcode value="https://ce-autoloader.com" view-transition-name="qr-code"></nord-qrcode>
+						<figcaption>
+							Leve e rápido. (Light and fast)
+						</figcaption>
+					</figure>
+				</div>
+
+				<p>Here is an example of a <strong>Wildcard Resolver</strong> for the Nord design system:</p>
+
+				<pre>
 <syntax-highlight language="js">/**
  * Pattern-based Resolver for Nord Health components
  */
@@ -369,11 +341,10 @@ registry.discover();
 },</syntax-highlight>
 </pre>
 
-		</div>
+			</div>
 
-		<div class="">
-			<section id="lifecycle">
-				<h1>Entrance Lifecycle <span class="n-color-text-weaker">& Transitions</span></h1>
+			<div id="lifecycle">
+				<h2>Entrance Lifecycle <span class="n-color-text-weaker">& Transitions</span></h2>
 
 				<p>Web components shouldn't just "pop" into existence. <code>ce-autoloader</code> provides a robust
 					<strong>lifecycle state machine</strong> that allows you to style components as they transition
@@ -408,9 +379,6 @@ registry.discover();
 						Use this to trigger a final "fade-in" or entrance animation.
 					</dd>
 				</dl>
-
-
-				<h2>Examples</h2>
 
 				<h3>View transitions</h3>
 
@@ -468,10 +436,9 @@ registry.discover();
 </syntax-highlight>
 </pre>
 
-			</section>
-		</div>
+			</div>
 
-		<!--
+			<!--
 	<json-viewer id="json" expand="**">
 		{ "quiz": { "sport": { "q1": { "question": "Which one is correct team name in NBA?", "options": [ "New York
 		Bulls", "Los Angeles Kings", "Golden State Warriros", "Houston Rockets" ], "answer": "Houston Rockets" } },
@@ -487,49 +454,51 @@ registry.discover();
 	</script>
 -->
 
-		<div class="">
-			<h1 id="telemetry">Native Telemetry <span class="n-color-text-weaker">& Insights</span></h1>
+			<div id="telemetry">
+				<h2>Native Telemetry <span class="n-color-text-weaker">& Insights</span></h2>
 
-			<p>
-				Performance is built into the core. <code>ce-autoloader</code> uses the native <strong>User Timing
-					API</strong>
-				to provide granular metrics for every stage of your components' lifecycle. This allows you to
-				quantify
-				the
-				exact impact of your loading strategies on <strong>Core Web Vitals</strong>.
-			</p>
+				<p>
+					Performance is built into the core. <code>ce-autoloader</code> uses the native <strong>User
+						Timing
+						API</strong>
+					to provide granular metrics for every stage of your components' lifecycle. This allows you to
+					quantify
+					the
+					exact impact of your loading strategies on <strong>Core Web Vitals</strong>.
+				</p>
 
-			<img src="assets/observability.jpg" alt="Observability has native integration into performance devtools"
-				width="1024" height="768" loading="lazy" style="margin: 1rem 0">
+				<img src="assets/observability.jpg" alt="Observability has native integration into performance devtools"
+					width="1024" height="768" loading="lazy" style="margin: 1rem 0">
 
-			<div class="grid-3">
-				<div class="leftcenter">
-					<h3>High-resolution markers</h3>
-					<p>
-						Granular metrics for every stage of the lifecycle, visible in the
-						<strong>Performance Tab</strong>.
-					</p>
-					<ul style="margin-top: 1rem; display: grid; gap: 0.5rem; font-size: 0.9rem;">
-						<li><strong>load:tag-name</strong>: Fetch duration.</li>
-						<li><strong>define:tag-name</strong>: JS registration time.</li>
-						<li><strong>transition</strong>: Animation duration.</li>
-					</ul>
-				</div>
-				<div class="right">
-					<h3>Performance Measure</h3>
-					<pre style="margin-top: 1rem; font-size: 11px;">
-<syntax-highlight language="js">
-// Export all load times
+				<div class="grid-3">
+					<div class="leftcenter">
+						<h3>High-resolution markers</h3>
+						<p>
+							Granular metrics for every stage of the lifecycle, visible in the
+							<strong>Performance Tab</strong>.
+						</p>
+						<ul style="margin-top: 1rem; display: grid; gap: 0.5rem; font-size: 0.9rem;">
+							<li><strong>load:tag-name</strong>: Fetch duration.</li>
+							<li><strong>define:tag-name</strong>: JS registration time.</li>
+							<li><strong>transition</strong>: Animation duration.</li>
+						</ul>
+					</div>
+					<div class="right">
+						<h3>Performance Measure</h3>
+						<pre style="margin-top: 1rem; font-size: 11px;">
+<syntax-highlight language="js">// Export all load times
 performance.getEntriesByType('measure')
     .filter(e => e.name.startsWith('load:'));
 </syntax-highlight>
 </pre>
+					</div>
 				</div>
 			</div>
+
 		</div>
 
-		<div class="brazilian-card" style="margin-top: 4rem;">
-			<h1 id="faq" style="border-bottom: 0;">FAQ <span class="n-color-text-weaker">(Perguntas Frequentes)</span>
+		<div class="brazilian-card" style="margin-top: 4rem;" id="faq">
+			<h1 style="border-bottom: 0;">FAQ <span class="n-color-text-weaker">(Perguntas Frequentes)</span>
 			</h1>
 
 			<div style="display: grid; gap: 2rem;">
@@ -572,8 +541,7 @@ performance.getEntriesByType('measure')
 		<div class="body-container" style="padding: 0 2rem;">
 			<div class="grid-3">
 				<div class="leftcenter">
-					<p class="footer-text"
-						style="font-family: var(--font-display); font-weight: 700; font-size: 1.5rem;">
+					<p class="footer-text" style="font-weight: 700; font-size: 1.5rem;">
 						Feito com carinho no 🇧🇷
 					</p>
 					<p style="font-size: 1rem; opacity: 0.6; margin-top: 0.5rem;">

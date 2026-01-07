@@ -39,14 +39,15 @@
         --color-blue: oklch(65% 0.2 250);
         /* Deep Blue */
 
-        --color-bg: oklch(98% 0.01 145);
+        --color-bg-light: oklch(98% 0.01 145);
+        --color-bg: oklch(96% 0.01 145);
         /* Off-white with hint of green */
         --color-bg-dark: oklch(94% 0.02 145);
         --color-fg: oklch(25% 0.02 145);
         --color-fg-muted: oklch(45% 0.02 145);
 
-        --font-display: "Outfit", system-ui, sans-serif;
-        --font-body: "Inter", system-ui, sans-serif;
+        --font-display: "Cormorant Garamond", system-ui, sans-serif;
+        --font-body: system-ui, sans-serif;
         --font-mono: "Fira Code", monospace;
 
         --radius-lg: 1.25rem;
@@ -58,7 +59,7 @@
         --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
         --spring-easing: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        --spring-duration: 0.6s;
+        --spring-duration: 1.6s;
     }
 }
 
@@ -268,7 +269,7 @@ pre {
 code {
     font-size: 12px;
     padding: 0.1em 0.5em;
-    border-radius: calc(var(--radius) * 0.5);
+    border-radius: calc(var(--radius-sm) * 0.5);
 
     --_color: var(--bg-color, var(--color-bg));
     background-color: oklch(from var(--_color) calc(l - 0.1) c h);
@@ -319,7 +320,7 @@ figure {
     text-decoration: none;
     font-size: var(--n-font-size-s);
     padding: 0.35em 0.75em;
-    border-radius: calc(var(--radius) * 0.5);
+    border-radius: calc(var(--radius-sm) * 0.5);
     transition: all 0.2s ease;
     opacity: 0.7;
     font-weight: 500;
@@ -382,7 +383,7 @@ footer {
     color: var(--color-fg);
     text-decoration: none;
     padding: 1em 0em;
-    border-radius: var(--radius);
+    border-radius: var(--radius-md);
     transition: all 0.2s ease;
     background-color: transparent;
 }

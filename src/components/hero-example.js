@@ -33,8 +33,8 @@ export default class HeroExample extends LitElement {
 
 			.preview {
 				opacity: 1;
-				/* animation: 1000ms ease both fade-in;
-				animation-delay: var(--spring-duration); */
+				animation: 1000ms ease both fade-in;
+				animation-delay: var(--spring-duration);
 				position: relative;
 			}
 
@@ -54,23 +54,17 @@ export default class HeroExample extends LitElement {
 			height: 100%;
 		}
 
-		@media (max-width: 60ch) {
+		@media (max-width: 100ch) {
 			hero-example {
-				/* display: flex;
-				flex-direction: column;
-				width: 100%;
-				flex-wrap: wrap;
-				align-items: stretch;
-
-				*/
-				grid-template-columns: 1fr;
+				grid-template-columns: 1fr !important;
 
 				.left,.right {
 					max-width: 100%;
-					grid-column: unset;
+					grid-column: 1 / -1 !important;
 				}
 				.right {
-					height: 100%;
+					height: auto;
+					min-height: 50vh;
 				}
 			}
 		}

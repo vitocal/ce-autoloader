@@ -37,15 +37,15 @@
     width: 100%;
 }
 
-.font-serif {
-    font-family: var(--font-serif);
+.font-display {
+    font-family: var(--font-display);
     font-size-adjust: 0.52;
 }
 
 /** Component utilities */
 .card {
     background-color: var(--color-bg-light);
-    border-radius: var(--radius);
+    border-radius: var(--radius-md);
     padding: var(--space-sm);
 
     --bg-color: var(--color-bg);
@@ -64,7 +64,7 @@
 
 .window {
     background-color: var(--color-bg-light);
-    border-radius: var(--radius);
+    border-radius: var(--radius-md);
     gap: 0;
     overflow: hidden;
 
