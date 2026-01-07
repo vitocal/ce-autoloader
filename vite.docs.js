@@ -30,6 +30,7 @@ export default defineConfig({
       '@nord-ui/button': 'https://esm.sh/@nordhealth/components/lib/Button.js?external=lit',
       '@nord-ui/icon': 'https://esm.sh/@nordhealth/components/lib/Icon.js?external=lit',
       '@nord-ui/select': 'https://esm.sh/@nordhealth/components/lib/Select.js?external=lit',
+      '@nord-ui/empty-state': 'https://esm.sh/@nordhealth/components/lib/EmptyState.js?external=lit',
     }
   },
   build: {

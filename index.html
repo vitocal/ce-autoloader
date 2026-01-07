@@ -33,6 +33,7 @@
 			height: 70%;
 			margin: 4em 0;
 			overflow: clip;
+			display: grid;
 		}
 
 		@media (max-width: 60ch) {
@@ -119,7 +120,7 @@
 
 
 			<h1 class="hidden">Demo</h1>
-			<hero-example view-transition-name="hero-example" on="eager" bundled></hero-example>
+			<hero-example view-transition-name="hero-example" on="visible" bundled></hero-example>
 
 		</div>
 
@@ -212,7 +213,7 @@
 
 		<vi-example>
 			<div slot="example" class="flex-y">
-				<nord-banner variant="success" on="eager">Nord-banner was loaded.</nord-banner>
+				<nord-banner variant="success" on="visible">Nord-banner was loaded.</nord-banner>
 
 				<three-cube on="interaction" view-transition->Click me to load</three-cube>
 

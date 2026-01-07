@@ -1,3 +1,5 @@
 node_modules/
 dist/
 package-lock.json
+lighthouse-report-local.json
+lighthouse-report.json
