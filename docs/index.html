@@ -137,32 +137,33 @@
 
 		<div class="" id="about">
 			<h1 style="display: none;">About</h1>
-			<!--
 			<p>
-				Modern frontend is a bit of a circus. You install 500MB of <code>node_modules</code> to render a button,
-				wrap the whole universe in an <code>&lt;App></code> tag, and then wait for 1MB of JavaScript
-				to hydrate before the user can even scroll.
+				Modern frontend is a circus. You need a fancy <code>&lt;select></code>, so you install
+				<strong>500MB</strong> of <i>node_modules</i>,
+				wrap your whole page in an <code>&lt;App></code> tag, and then wait for 1MB of JavaScript
+				to run before the user can even scroll. 😖
 			</p>
-			<p>
-				Or you go full SSR, marry your framework of choice and enter the <strong>"Hydration Mismatch" horror
-					movie</strong>
+			<p>They'll say "go SSR", and now you're married to the framework and
+				the <strong>"Hydration Mismatch" horror movie</strong>,
 				where the server and client start arguing about what a <code>Date</code> object looks like.
 				Suddenly you're paying for a beefy server just to stringify JSON into HTML, while losing your mind over
 				cache-control headers that are never quite right. Content is stale, CPU is 100%, and your wallet is
 				crying.
 			</p>
+			<h3>
+				<strong style="font-size: 1.5rem;">🤬</strong> I just need static pages with some components. <br />
+				There has to be a better way!
+			</h3>
+
 			<p>
-				<strong>Égua!</strong> There has to be a better way.
-			</p>
-			-->
-
-			<p style="margin-bottom: 0;">
-				ce-autoloader is a lightweight library that makes your website faster by only loading the components
-				that are actually needed. Instead of downloading a large JavaScript file when the page opens, it
-				waits
-				until a user scrolls to a specific component before fetching its code.
+				ce-autoloader is a lightweight library born out of this frustration. Put it simply, it'll lazy-load your
+				web components using islands architecture.</p>
+			<p>
+				Instead of bundling everything inside a single file, or hard-coding which page needs which components,
+				it scans the page for web components and waits until the user scrolls to them to fetches its code.
 			</p>
 
+			<p>Simple, web-friendly, and zero-friction. 😮‍💨</p>
 
 
 			<ul
@@ -508,7 +509,7 @@ performance.getEntriesByType('measure')
 						<li><strong>Astro (Server-First):</strong> Renders at <strong>build time</strong> or at server.
 							Great for new apps.</li>
 						<li><strong>ce-autoloader (Client-First):</strong> Runs at <strong>runtime</strong>. Great for
-							adding islands to <em>existing</em> PHP, Python, or static HTML pages.</li>
+							adding islands to <em>existing</em> PHP, Python, Ruby, Elixir or static HTML pages.</li>
 					</ul>
 				</div>
 
