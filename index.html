@@ -142,15 +142,14 @@
 		<div class="" id="about">
 			<h1 style="display: none;">About</h1>
 			<p>
-				Modern frontend is a circus. You need a fancy <code>&lt;select></code>, so you install
-				<strong>500MB</strong> of <i>node_modules</i>,
-				wrap your whole page in an <code>&lt;App></code> tag, and then wait for 1MB of JavaScript
-				to run before the user can even scroll. 😖
+				You need a custom <code>&lt;select></code> menu. Suddenly, you've installed <strong>500MB</strong>
+				of <i>node_modules</i>, wrapped your site in an russian doll <code>&lt;App>&lt;Provider></code>,
+				and then wait for 1MB of JavaScript to run before the user can even scroll. 😖
 			</p>
-			<p>They'll say "go SSR", and now you're married to the framework and
-				the <strong>"Hydration Mismatch" horror movie</strong>,
+			<p>When you try to fix it with SSR, you're now married to the framework and
+				the <strong>"Hydration Mismatch" horror movie</strong> —
 				where the server and client start arguing about what a <code>Date</code> object looks like.
-				Suddenly you're paying for a beefy server just to stringify JSON into HTML, while losing your mind over
+				Now you're paying for a beefy server just to stringify JSON into HTML, while losing your mind over
 				cache-control headers that are never quite right. Content is stale, CPU is 100%, and your wallet is
 				crying.
 			</p>
@@ -160,15 +159,16 @@
 			</h3>
 
 			<p>
-				ce-autoloader is a lightweight library born out of this frustration. Put it simply, it'll lazy-load your
-				web components using islands architecture.</p>
-			<p>
-				Instead of bundling everything inside a single file, or hard-coding which page needs which components,
-				it scans the page for web components and waits until the user scrolls to them to fetches its code.
+				ce-autoloader is a lightweight library born out of this frustration. It brings Islands Architecture to
+				any site without the framework overhead.
 			</p>
 
-			<p>Simple, web-friendly, and zero-friction. 😮‍💨</p>
+			<p>The special sauce? It lazy-loads components by default and uses the CSS Animation/View Transitions API to
+				animate them
+				into place. Smooth, app-like interactions on a static foundation.
+			</p>
 
+			<p>Fast&Lean sites, without the hydration/cache wars. 😮‍💨</p>
 
 			<ul
 				style="margin-top: 4rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
@@ -176,18 +176,17 @@
 					works
 					(React, Vue, Lit, Svelte, etc.).
 				</li>
-				<li class="brazilian-card"><strong>Custom Strategy</strong>: Use <code>on="visible"</code> or
+				<li class="brazilian-card"><strong>Custom Loader Strategy</strong>: Use <code>on="visible"</code> or
 					<code>on="click"</code> to define when a component should be loaded.
 				</li>
 				<li class="brazilian-card"><strong>Zero Friction</strong>: 5kb gzipped. No dependencies. No
 					build steps required.</li>
 				<li class="brazilian-card"><strong>Shared Catalog</strong>: Define your components in a single
 					place and use it across your app/pages.</li>
-				<li class="brazilian-card"><strong>Smooth Entrances</strong>: Use the lifecycle states (loading,
-					defined) to animate components as they appear. No layout shifts.</li>
+				<li class="brazilian-card"><strong>Native-Level Polish</strong>: Use the lifecycle states and View
+					Transitions API to animate components as they load/render.</li>
 				<li class="brazilian-card"><strong>Smart Scheduling</strong>: Batches custom element upgrades into
-					single
-					animation frames to prevent layout thrashing.</li>
+					single animation frames to prevent layout thrashing.</li>
 			</ul>
 		</div>
 

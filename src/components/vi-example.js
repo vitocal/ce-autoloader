@@ -3,8 +3,6 @@ import SlottedElement from "./vi/slotted-element.js";
 
 import { html, unsafeStatic } from 'lit/static-html.js';
 
-import NordButton from "@nordhealth/components/lib/Button.js"
-
 /**
  * A component to showcase examples
  */
@@ -19,7 +17,7 @@ export class ViExample extends SlottedElement {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 1rem;
-            align-items: center;
+            align-items: stretch;
 
             .left {
                 grid-column: 1 / 2;

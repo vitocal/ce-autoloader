@@ -434,13 +434,13 @@ footer {
         contain: layout paint;
         isolation: isolate;
 
-        --color: color-mix(in srgb, var(--color-fg) 40%, transparent);
-        --bg: var(--color-bg);
+        --bg-color: color-mix(in srgb, var(--color-fg) 40%, transparent);
+        --bg: repeating-linear-gradient(135deg, transparent, transparent 5px, var(--bg-color) 5px, var(--bg-color) 10px);
         /* --bg: repeating-linear-gradient(315deg, var(--color) 0 1px, #0000 0 50%); */
 
         outline: none;
         color: var(--color-fg);
-        border: 1px dashed var(--color);
+        border: 1px dashed var(--bg-color);
         background-image: var(--bg);
         background-size: 8px 8px;
         background-position: 0 0;
