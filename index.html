@@ -73,20 +73,27 @@
 
 		observable-plot-wrapper {
 			width: 100%;
+			display: flex;
+			align-items: center;
+			flex-direction: row;
+			align-content: center;
+			justify-content: center;
 		}
 
-		::view-transition-image-pair(plot-example) {
+		::view-transition-image-pair(plot-example),
+		::view-transition-image-pair(three-cube) {
 			transform-style: preserve-3d;
 			perspective-origin: center;
 			perspective: 1000px;
 		}
 
-		::view-transition-old(plot-example) {
-			animation: var(--spring-duration) ease-out both fade-out;
-		}
-
-		::view-transition-new(plot-example) {
-			animation: var(--spring-duration) var(--spring-easing) both appear-below-in;
+		::view-transition-old(plot-example),
+		::view-transition-new(plot-example),
+		::view-transition-old(three-cube),
+		::view-transition-new(three-cube) {
+			height: 100%;
+			overflow: clip;
+			animation-timing-function: ease-in-out;
 		}
 	</style>
 
@@ -288,7 +295,7 @@
 					<div slot="example" class="flex-y">
 						<nord-banner variant="success" on="visible">Nord-banner was loaded.</nord-banner>
 
-						<three-cube on="click" view-transition->Click me to load</three-cube>
+						<three-cube on="click" view-transition-name="three-cube">Click me to load</three-cube>
 
 						<confetti-button on="manual" id="confetti" onClick="registry.upgrade('manual')">
 							🎉 Click me to throw confetti 🎉

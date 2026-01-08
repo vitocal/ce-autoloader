@@ -11,12 +11,13 @@ export default class ObservablePlotWrapper extends HTMLElement {
             marginLeft: 90,
             width: 1152,
             style: `
-    margin: 0 -14px;
+    margin: 0 0;
     background: #111;
     color: #fff;
     max-width: none;
     text-transform: uppercase;
-    width: calc(100% + 28px);
+    width: 100%;
+    border-radius: var(--radius-sm);
   `,
             x: { domain: d3.range(1, 40), axis: null }, // day of month, aligned by day of week
             y: { domain: d3.range(12) }, // month of year

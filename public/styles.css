@@ -686,23 +686,6 @@ footer {
     }
 }
 
-@keyframes outline-highlight {
-    0% {
-        outline-color: transparent;
-        outline-offset: 4px;
-    }
-
-    50% {
-        outline-color: var(--color-success);
-        outline-offset: 8px;
-    }
-
-    100% {
-        outline-color: transparent;
-        outline-offset: 0px;
-    }
-}
-
 @keyframes appear-above-in {
     0% {
         opacity: 0;
