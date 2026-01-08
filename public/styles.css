@@ -59,7 +59,7 @@
         --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
         --spring-easing: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        --spring-duration: 1.6s;
+        --spring-duration: 0.6s;
     }
 }
 
@@ -502,7 +502,7 @@ footer {
 
     :where([ce-defined]) {
         background-image: none;
-        overflow-clip-margin: 1em;
+        overflow-clip-margin: 4em;
 
         overflow: clip;
         visibility: visible;

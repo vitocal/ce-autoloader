@@ -12,11 +12,12 @@
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Redacted+Script&family=Cormorant+Garamond:ital@1&display=swap"
 		rel="stylesheet">
-
 	<link rel="preconnect" href="https://nordcdn.net" />
 	<link rel="preconnect" href="https://cdn.jsdelivr.net">
 
 	<style>
+		@import url('https://nordcdn.net/ds/css/4.2.0/nord.min.css') layer(ds);
+
 		/** To avoid FOUC (Flash of Unstyled Content) or Layout Shifts,
 			we should style early our components, before the first render of page.
 
@@ -64,6 +65,11 @@
 			}
 		}
 
+		#docs {
+			display: flex;
+			flex-direction: column;
+			gap: 2em;
+		}
 
 		observable-plot-wrapper {
 			width: 100%;
@@ -111,7 +117,6 @@
 	<script type="module" async>
 		import { loadCSSLayer } from './src/utils.ts'
 
-		loadCSSLayer('https://fonts.googleapis.com/css2?family=Redacted+Script&family=Cormorant+Garamond:ital@1&display=swap', 'ds');
 		loadCSSLayer('https://nordcdn.net/ds/css/4.2.0/nord.min.css', 'ds');
 		loadCSSLayer('https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css', 'scoped');
 	</script>
@@ -131,7 +136,7 @@
 				</p>
 			</div>
 
-			<hero-example view-transition-name="hero-example" on="visible" bundled></hero-example>
+			<hero-example view-transition-name="hero-example" bundled></hero-example>
 		</div>
 
 		<div class="" id="about">
@@ -171,7 +176,7 @@
 					(React, Vue, Lit, Svelte, etc.).
 				</li>
 				<li class="brazilian-card"><strong>Custom Strategy</strong>: Use <code>on="visible"</code> or
-					<code>on="interaction"</code> to define when a component should be loaded.
+					<code>on="click"</code> to define when a component should be loaded.
 				</li>
 				<li class="brazilian-card"><strong>Zero Friction</strong>: 5kb gzipped. No dependencies. No
 					build steps required.</li>
@@ -185,7 +190,6 @@
 			</ul>
 		</div>
 
-		<!--
 		<nav class="sticky-nav">
 			<img src="/logo.svg" alt="ce-autoloader logo" class="nav-logo" />
 			<a href="#about" class="nav-link">About</a>
@@ -258,7 +262,7 @@
 						Perfect for content "below the fold" to keep initial page weight low.
 					</dd>
 
-					<dt>interaction</dt>
+					<dt>click</dt>
 					<dd>
 						<strong>Hydrate on demand.</strong>
 						The module is fetched when a user clicks or touches the element.
@@ -284,7 +288,7 @@
 					<div slot="example" class="flex-y">
 						<nord-banner variant="success" on="visible">Nord-banner was loaded.</nord-banner>
 
-						<three-cube on="interaction" view-transition->Click me to load</three-cube>
+						<three-cube on="click" view-transition->Click me to load</three-cube>
 
 						<confetti-button on="manual" id="confetti" onClick="registry.upgrade('manual')">
 							🎉 Click me to throw confetti 🎉
@@ -394,7 +398,7 @@
 					customize the transition</p>
 
 				<div class="grid-3">
-					<observable-plot-wrapper on="interaction" view-transition-name="plot-example" class="left">
+					<observable-plot-wrapper on="click" view-transition-name="plot-example" class="left">
 						<strong>appear-below-in</strong> and <strong>fade-out</strong>
 					</observable-plot-wrapper>
 					<div class="card center">Center</div>
@@ -562,7 +566,6 @@ performance.getEntriesByType('measure')
 			</div>
 		</div>
 	</footer>
-			-->
 
 </body>
 

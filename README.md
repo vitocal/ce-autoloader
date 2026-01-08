@@ -4,7 +4,7 @@ A webcomponent lazy loader and registry for the web.
 The missing parts of `customElements` API.
 
 - Automatically Load any web-component on demand, if and when they're used in the page.
-- **Activation Triggers**: Native support for loading strategies like `on="visible"`, `on="interaction"`, or eager loading.
+- **Activation Triggers**: Native support for loading strategies like `on="visible"`, `on="click"`, or eager loading.
 - **Dynamic Resolvers**: Effortlessly resolve entire component libraries (e.g., `nord-*`) using pattern-based loaders.
 - Supports for animations with view-transitions!
 - Framework-independent: React, Lit, Svelte, Vue, Angular...

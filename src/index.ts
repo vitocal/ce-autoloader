@@ -4,7 +4,7 @@
 export type CEAutoLoaderModule = string | ((name?: string) => Promise<CustomElementConstructor>)
 export type CEAutoLoaderCatalog = Record<string, CEAutoLoaderModule>;
 
-export type CEAutoLoaderDirectives = "eager" | "visible" | "interaction" | string
+export type CEAutoLoaderDirectives = "eager" | "visible" | "click" | string
 export type CEAutoLoaderOptions = {
 	/* The component catalog */
 	catalog: CEAutoLoaderCatalog;
@@ -18,8 +18,6 @@ export type CEAutoLoaderOptions = {
 	directives?: CEAutoLoaderDirectives[];
 	/** Overwrite the default directive */
 	defaultDirective?: CEAutoLoaderDirectives;
-	/** Interval to flush batches */
-	// batchInterval?: number;
 
 	/** Use View Transitions API to animate the component upgrade */
 	transition?: boolean;
@@ -74,30 +72,8 @@ class CEAutoLoader {
 	#observers: Record<string, MutationObserver | IntersectionObserver> = {};
 	#initialized: boolean = false;
 
-	// Batches of fns to be called in a single animation frame
-	// batches: Array<() => Promise<void>> = [];
-	// batchLoop?: NodeJS.Timeout = undefined;
-
-	/**
-	 * Maybe those are not needed,
-	 * because the catalog can be changed at runtime
-	 * and will be reflected.
-	 *
-	 * just a public catalog.
-	 * should refactor _namespaces thought
-	 */
-	// public get catalog() {
-	// 	return this._catalog;
-	// }
-	// public set catalog(value: CEAutoLoaderCatalog) {
-	// 	this._catalog = value;
-	// 	this._namespaces = Object.fromEntries(
-	// 		Object.entries(this._catalog)
-	// 			.filter(([key]) => key.endsWith('-*'))
-	// 			.map(([key, value]) => [key.split('-')[0], value])
-	// 	)
-	// }
-
+	// Active transition
+	activeTransition?: ViewTransition;
 
 	constructor(options: CEAutoLoaderOptions) {
 		console.log("CEAutoLoader started with options:", options);
@@ -108,7 +84,7 @@ class CEAutoLoader {
 		this.options = {
 			live: true,
 			root: document.body,
-			directives: ["eager", "visible", "interaction"],
+			directives: ["eager", "visible", "click"],
 			defaultDirective: "visible",
 			transition: true,
 			...options
@@ -259,8 +235,8 @@ class CEAutoLoader {
 
 		const interaction = (elements: HTMLElement[]) => {
 			return elements.map((el) => {
-				return el.addEventListener("pointerdown", async () => {
-					await this.loadAndDefine([el], "interaction")
+				return el.addEventListener("click", async () => {
+					await this.loadAndDefine([el], "click")
 				}, { once: true });
 			})
 		}
@@ -269,7 +245,7 @@ class CEAutoLoader {
 		// Directives apply special conditions to when the component is loaded
 		if (directive === "visible") {
 			return visible(elements);
-		} else if (directive === "interaction") {
+		} else if (directive === "click") {
 			return interaction(elements);
 		} else if (directive === "eager") {
 			return await this.loadAndDefine(elements, "eager")
@@ -277,7 +253,7 @@ class CEAutoLoader {
 			// Use defaultDirective if it's not specified
 			if (this.options.defaultDirective === 'visible') {
 				return visible(elements)
-			} else if (this.options.defaultDirective === 'interaction') {
+			} else if (this.options.defaultDirective === "click") {
 				return interaction(elements)
 			} else if (this.options.defaultDirective === 'eager') {
 				return await this.loadAndDefine(elements, "eager")
@@ -302,6 +278,10 @@ class CEAutoLoader {
 			const on = el.getAttribute("on")
 			return (on === source || on === null)
 		})
+
+		if (elements.length === 0) {
+			return [];
+		}
 
 		const load_result = await Promise.allSettled(elements.map((el) => this.load(el)))
 		console.log(`defining from ${source}`, elements.map((el) => el.tagName.toLowerCase()));
@@ -332,7 +312,7 @@ class CEAutoLoader {
 		}
 
 		if (this.options.transition && document.startViewTransition) {
-			load_success.map((result) => result.value)
+			const transitions = load_success.map((result) => result.value)
 				.map((result) => {
 					const { el } = result;
 					const transitionName = el.getAttribute('view-transition-name');
@@ -344,17 +324,23 @@ class CEAutoLoader {
 					if (transitionClass) {
 						el.style.viewTransitionClass = transitionClass;
 					}
+
+					return result;
 				})
 
-			performance.mark("transition-start");
-			const transition = document.startViewTransition(async () => await defineComponents(source));
-			await transition.updateCallbackDone;
-			performance.mark("transition-end");
-			performance.measure("transition", "transition-start", "transition-end")
+			if (this.activeTransition) {
+				await this.activeTransition.finished;
+			}
 
-			load_success.map((result) => result.value)
-				.map((result) => {
-					const { el } = result;
+			const transition_name = transitions.map((result) => result.el.getAttribute('view-transition-name')).join('-');
+			performance.mark(`transition-${transition_name}:start`);
+			this.activeTransition = document.startViewTransition(async () => await defineComponents(source));
+			await this.activeTransition.updateCallbackDone;
+			performance.mark(`transition-${transition_name}:end`);
+			performance.measure("transition", `transition-${transition_name}:start`, `transition-${transition_name}:end`)
+
+			transitions.map((result) => result.el)
+				.map((el) => {
 					el.style.viewTransitionName = "";
 					el.style.viewTransitionClass = "";
 				})
