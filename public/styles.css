@@ -101,12 +101,21 @@
         letter-spacing: -0.03em;
     }
 
+    h3 {
+        font-size: 1.5rem;
+        letter-spacing: -0.02em;
+    }
+
     p+p {
         margin-top: 1rem;
     }
 
     :is(h1, h2, h3)+p {
-        margin-top: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    p+:is(h1, h2, h3) {
+        margin-top: 1rem;
     }
 
     .relaxed-badge {

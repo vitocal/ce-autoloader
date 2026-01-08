@@ -364,25 +364,26 @@
 				</p>
 
 				<h3>The Discovery Lifecycle</h3>
-				<p>Every component managed by the registry moves through three distinct visual states:</p>
+				<p>Every component moves through three distinct states, that you can style using CSS.</p>
 
 				<dl class="n-dl">
-					<dt>:not(:defined)</dt>
+					<dt><code>:not(:defined)</code></dt>
 					<dd>
 						<strong>Placeholder State.</strong>
 						The custom element is in the DOM but the browser doesn't know its behavior yet.
-						Use this to set <code>min-height</code> or <code>aspect-ratio</code> to reserve space on the
+						Use this to set <i>min-height</i> or <i>aspect-ratio</i> to reserve space on
+						the
 						page.
 					</dd>
 
-					<dt>[ce-loading]</dt>
+					<dt><code>[ce-loading]</code></dt>
 					<dd>
 						<strong>Activation State.</strong>
 						Triggered when the library begins fetching the module.
-						This is the perfect time to show a <strong>Skeleton Loader</strong> or a progress indicator.
+						This is the perfect time to show a <i>Skeleton Loader</i> or a progress indicator.
 					</dd>
 
-					<dt>[ce-defined]</dt>
+					<dt><code>[ce-defined]</code></dt>
 					<dd>
 						<strong>interactive State.</strong>
 						The component is defined and upgraded.
@@ -390,21 +391,23 @@
 					</dd>
 				</dl>
 
-				<h3>View transitions</h3>
+				<p>Besides the lifecycle states, <strong>view transitions</strong> are supported out of the box.</p>
 
-				<p>Support for view transitions is built-in! You can use the <code>view-transition-name</code>
-					attribute
-					to
-					customize the transition</p>
+				<p>You can use the <code>view-transition-name</code>
+					attribute to include a view transition</p>
 
-				<div class="grid-3">
-					<observable-plot-wrapper on="click" view-transition-name="plot-example" class="left">
-						<strong>appear-below-in</strong> and <strong>fade-out</strong>
-					</observable-plot-wrapper>
-					<div class="card center">Center</div>
-					<div class="card right">Right</div>
-				</div>
+				<br />
 
+				<vi-example>
+					<div slot="example">
+						<observable-plot-wrapper on="click" view-transition-name="plot-example">
+							🌜 Phases of the moon 🌛
+						</observable-plot-wrapper>
+					</div>
+				</vi-example>
+
+
+				<!--
 				<h3>CSS Transitions</h3>
 				<p>Use the following css as a starting point:</p>
 
@@ -445,7 +448,7 @@
 }
 </syntax-highlight>
 </pre>
-
+-->
 			</div>
 
 			<div id="telemetry">
@@ -492,7 +495,8 @@ performance.getEntriesByType('measure')
 		</div>
 
 		<div class="brazilian-card" style="margin-top: 4rem;" id="faq">
-			<h1 style="border-bottom: 0;">FAQ <span class="n-color-text-weaker">(Perguntas Frequentes)</span>
+			<h1 style="border-bottom: 0; margin-bottom: 2rem;">FAQ <span class="n-color-text-weaker">(Perguntas
+					Frequentes)</span>
 			</h1>
 
 			<div style="display: grid; gap: 2rem;">

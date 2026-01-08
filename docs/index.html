@@ -12,17 +12,19 @@
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Redacted+Script&family=Cormorant+Garamond:ital@1&display=swap"
 		rel="stylesheet">
-
 	<link rel="preconnect" href="https://nordcdn.net" />
 	<link rel="preconnect" href="https://cdn.jsdelivr.net">
 
 	<style>
+		@import url('https://nordcdn.net/ds/css/4.2.0/nord.min.css') layer(ds);
+
 		/** To avoid FOUC (Flash of Unstyled Content) or Layout Shifts,
 			we should style early our components, before the first render of page.
 
 			I like to just match the size/aspect ratio, aligning before/after to avoid layout shifts.
 			See `:not(:defined)` for more info on how to style every component at once.
 		*/
+
 		.fold {
 			min-height: 70svh;
 			display: flex;
@@ -46,7 +48,6 @@
 			aspect-ratio: 1;
 		}
 
-
 		@media (max-width: 60ch) {
 			.fold {
 				min-height: 100svh;
@@ -64,6 +65,11 @@
 			}
 		}
 
+		#docs {
+			display: flex;
+			flex-direction: column;
+			gap: 2em;
+		}
 
 		observable-plot-wrapper {
 			width: 100%;
@@ -108,8 +114,8 @@
         }
     }
     </script>
-  <script type="module" crossorigin src="/ce-autoloader/assets/main-DBuuky4_.js"></script>
-  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/preload-helper-D9D-SHYi.js">
+  <script type="module" crossorigin src="/ce-autoloader/assets/main-C0GxaL80.js"></script>
+  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/preload-helper-DWBNucpB.js">
 </head>
 
 <body class="n-reset n-typeset">
@@ -126,7 +132,7 @@
 				</p>
 			</div>
 
-			<hero-example view-transition-name="hero-example" on="interaction" bundled></hero-example>
+			<hero-example view-transition-name="hero-example" bundled></hero-example>
 		</div>
 
 		<div class="" id="about">
@@ -166,7 +172,7 @@
 					(React, Vue, Lit, Svelte, etc.).
 				</li>
 				<li class="brazilian-card"><strong>Custom Strategy</strong>: Use <code>on="visible"</code> or
-					<code>on="interaction"</code> to define when a component should be loaded.
+					<code>on="click"</code> to define when a component should be loaded.
 				</li>
 				<li class="brazilian-card"><strong>Zero Friction</strong>: 5kb gzipped. No dependencies. No
 					build steps required.</li>
@@ -180,9 +186,8 @@
 			</ul>
 		</div>
 
-		<!--
 		<nav class="sticky-nav">
-			<img src="/logo.svg" alt="ce-autoloader logo" class="nav-logo" />
+			<img src="/ce-autoloader/logo.svg" alt="ce-autoloader logo" class="nav-logo" />
 			<a href="#about" class="nav-link">About</a>
 			<a href="#get-started" class="nav-link">Get Started</a>
 			<a href="#docs" class="nav-link">Docs</a>
@@ -253,7 +258,7 @@
 						Perfect for content "below the fold" to keep initial page weight low.
 					</dd>
 
-					<dt>interaction</dt>
+					<dt>click</dt>
 					<dd>
 						<strong>Hydrate on demand.</strong>
 						The module is fetched when a user clicks or touches the element.
@@ -279,7 +284,7 @@
 					<div slot="example" class="flex-y">
 						<nord-banner variant="success" on="visible">Nord-banner was loaded.</nord-banner>
 
-						<three-cube on="interaction" view-transition->Click me to load</three-cube>
+						<three-cube on="click" view-transition->Click me to load</three-cube>
 
 						<confetti-button on="manual" id="confetti" onClick="registry.upgrade('manual')">
 							🎉 Click me to throw confetti 🎉
@@ -355,25 +360,26 @@
 				</p>
 
 				<h3>The Discovery Lifecycle</h3>
-				<p>Every component managed by the registry moves through three distinct visual states:</p>
+				<p>Every component moves through three distinct states, that you can style using CSS.</p>
 
 				<dl class="n-dl">
-					<dt>:not(:defined)</dt>
+					<dt><code>:not(:defined)</code></dt>
 					<dd>
 						<strong>Placeholder State.</strong>
 						The custom element is in the DOM but the browser doesn't know its behavior yet.
-						Use this to set <code>min-height</code> or <code>aspect-ratio</code> to reserve space on the
+						Use this to set <i>min-height</i> or <i>aspect-ratio</i> to reserve space on
+						the
 						page.
 					</dd>
 
-					<dt>[ce-loading]</dt>
+					<dt><code>[ce-loading]</code></dt>
 					<dd>
 						<strong>Activation State.</strong>
 						Triggered when the library begins fetching the module.
-						This is the perfect time to show a <strong>Skeleton Loader</strong> or a progress indicator.
+						This is the perfect time to show a <i>Skeleton Loader</i> or a progress indicator.
 					</dd>
 
-					<dt>[ce-defined]</dt>
+					<dt><code>[ce-defined]</code></dt>
 					<dd>
 						<strong>interactive State.</strong>
 						The component is defined and upgraded.
@@ -381,21 +387,23 @@
 					</dd>
 				</dl>
 
-				<h3>View transitions</h3>
+				<p>Besides the lifecycle states, <strong>view transitions</strong> are supported out of the box.</p>
 
-				<p>Support for view transitions is built-in! You can use the <code>view-transition-name</code>
-					attribute
-					to
-					customize the transition</p>
+				<p>You can use the <code>view-transition-name</code>
+					attribute to include a view transition</p>
 
-				<div class="grid-3">
-					<observable-plot-wrapper on="interaction" view-transition-name="plot-example" class="left">
-						<strong>appear-below-in</strong> and <strong>fade-out</strong>
-					</observable-plot-wrapper>
-					<div class="card center">Center</div>
-					<div class="card right">Right</div>
-				</div>
+				<br />
 
+				<vi-example>
+					<div slot="example">
+						<observable-plot-wrapper on="click" view-transition-name="plot-example">
+							🌜 Phases of the moon 🌛
+						</observable-plot-wrapper>
+					</div>
+				</vi-example>
+
+
+				<!--
 				<h3>CSS Transitions</h3>
 				<p>Use the following css as a starting point:</p>
 
@@ -436,7 +444,7 @@
 }
 </syntax-highlight>
 </pre>
-
+-->
 			</div>
 
 			<div id="telemetry">
@@ -452,7 +460,7 @@
 					exact impact of your loading strategies on <strong>Core Web Vitals</strong>.
 				</p>
 
-				<img src="assets/observability.jpg" alt="Observability has native integration into performance devtools"
+				<img src="/ce-autoloader/assets/observability-D7OwlOYm.jpg" alt="Observability has native integration into performance devtools"
 					width="1024" height="768" loading="lazy" style="margin: 1rem 0">
 
 				<div class="grid-3">
@@ -483,7 +491,8 @@ performance.getEntriesByType('measure')
 		</div>
 
 		<div class="brazilian-card" style="margin-top: 4rem;" id="faq">
-			<h1 style="border-bottom: 0;">FAQ <span class="n-color-text-weaker">(Perguntas Frequentes)</span>
+			<h1 style="border-bottom: 0; margin-bottom: 2rem;">FAQ <span class="n-color-text-weaker">(Perguntas
+					Frequentes)</span>
 			</h1>
 
 			<div style="display: grid; gap: 2rem;">
@@ -557,7 +566,6 @@ performance.getEntriesByType('measure')
 			</div>
 		</div>
 	</footer>
-			-->
 
 </body>
 

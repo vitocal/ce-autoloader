@@ -59,7 +59,7 @@
         --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
         --spring-easing: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        --spring-duration: 1.6s;
+        --spring-duration: 0.6s;
     }
 }
 
@@ -101,12 +101,21 @@
         letter-spacing: -0.03em;
     }
 
+    h3 {
+        font-size: 1.5rem;
+        letter-spacing: -0.02em;
+    }
+
     p+p {
         margin-top: 1rem;
     }
 
     :is(h1, h2, h3)+p {
-        margin-top: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    p+:is(h1, h2, h3) {
+        margin-top: 1rem;
     }
 
     .relaxed-badge {
@@ -502,7 +511,7 @@ footer {
 
     :where([ce-defined]) {
         background-image: none;
-        overflow-clip-margin: 1em;
+        overflow-clip-margin: 4em;
 
         overflow: clip;
         visibility: visible;

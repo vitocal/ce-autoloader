@@ -33,7 +33,7 @@ import{LitElement as r,css as s}from"lit";import{unsafeStatic as n,html as o}fro
 			}
 		}
     }
-    `;constructor(){super(),this.constructor.styles.styleSheet&&this.shadowRoot===null&&!document.adoptedStyleSheets.includes(this.constructor.styles.styleSheet)&&document.adoptedStyleSheets.push(this.constructor.styles.styleSheet),this.example_slot=this.slottedChildren.filter((e=>e instanceof HTMLElement)).find(e=>e.getAttribute("slot")==="example").outerHTML.trim().replace(/<!--.*?-->/g,"").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/slot="(.*?)"/g,"").replace(/ce-loading="(.*?)"/g,"").replace(/ce-defined="(.*?)"/g,"")}render(){return o`
+    `;constructor(){super(),this.constructor.styles.styleSheet&&this.shadowRoot===null&&!document.adoptedStyleSheets.includes(this.constructor.styles.styleSheet)&&document.adoptedStyleSheets.push(this.constructor.styles.styleSheet),this.example_slot=this.slottedChildren.filter((e=>e instanceof HTMLElement)).find(e=>e.getAttribute("slot")==="example").innerHTML.trim().replace(/<!--.*?-->/g,"").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/slot="(.*?)"/g,"").replace(/ce-loading="(.*?)"/g,"").replace(/ce-defined="(.*?)"/g,"")}render(){return o`
             <div class="left window flex-y">
                 <h4>Example</h4>
                 <pre><syntax-highlight language="html">${n(this.example_slot)}</syntax-highlight></pre>

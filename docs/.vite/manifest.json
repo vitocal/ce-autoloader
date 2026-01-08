@@ -10,17 +10,21 @@
     "file": "assets/SlotController-Z6eG7LSZ-paOtwl-R.js",
     "name": "SlotController-Z6eG7LSZ"
   },
-  "_preload-helper-D9D-SHYi.js": {
-    "file": "assets/preload-helper-D9D-SHYi.js",
+  "_preload-helper-DWBNucpB.js": {
+    "file": "assets/preload-helper-DWBNucpB.js",
     "name": "preload-helper"
   },
+  "assets/observability.jpg": {
+    "file": "assets/observability-D7OwlOYm.jpg",
+    "src": "assets/observability.jpg"
+  },
   "index.html": {
-    "file": "assets/main-DBuuky4_.js",
+    "file": "assets/main-C0GxaL80.js",
     "name": "main",
     "src": "index.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-D9D-SHYi.js"
+      "_preload-helper-DWBNucpB.js"
     ],
     "dynamicImports": [
       "src/components/hero-example.js",
@@ -29,15 +33,18 @@
       "src/components/three-cube.js",
       "src/components/observable-plot-wrapper.js",
       "src/components/pix/qrcode.ts"
+    ],
+    "assets": [
+      "assets/observability-D7OwlOYm.jpg"
     ]
   },
   "single.html": {
-    "file": "assets/single-B_U6xwQS.js",
+    "file": "assets/single-BR43wf6-.js",
     "name": "single",
     "src": "single.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-D9D-SHYi.js",
+      "_preload-helper-DWBNucpB.js",
       "_SlotController-Z6eG7LSZ-paOtwl-R.js"
     ]
   },
@@ -48,7 +55,7 @@
     "isDynamicEntry": true
   },
   "src/components/hero-example.js": {
-    "file": "assets/hero-example-DJVLATBp.js",
+    "file": "assets/hero-example-B0hybGJ6.js",
     "name": "hero-example",
     "src": "src/components/hero-example.js",
     "isDynamicEntry": true,
@@ -58,7 +65,7 @@
     ]
   },
   "src/components/observable-plot-wrapper.js": {
-    "file": "assets/observable-plot-wrapper-DTTmTyl7.js",
+    "file": "assets/observable-plot-wrapper-sOCLqJh7.js",
     "name": "observable-plot-wrapper",
     "src": "src/components/observable-plot-wrapper.js",
     "isDynamicEntry": true
@@ -76,7 +83,7 @@
     "isDynamicEntry": true
   },
   "src/components/vi-example.js": {
-    "file": "assets/vi-example-adTGF6Bu.js",
+    "file": "assets/vi-example-CV8XceX5.js",
     "name": "vi-example",
     "src": "src/components/vi-example.js",
     "isDynamicEntry": true,

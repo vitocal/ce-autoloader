@@ -62,7 +62,7 @@ export class ViExample extends SlottedElement {
         this.example_slot = this.slottedChildren
             .filter((children => children instanceof HTMLElement))
             .find((children) => children.getAttribute("slot") === "example")
-            .outerHTML.trim()
+            .innerHTML.trim()
             .replace(/<!--.*?-->/g, "")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
