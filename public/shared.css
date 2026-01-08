@@ -63,13 +63,7 @@
 }
 
 .window {
-    background-color: var(--color-bg-light);
-    border-radius: var(--radius-md);
-    gap: 0;
-    overflow: hidden;
-
-    box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 0px 0px inset;
-    filter: drop-shadow(0 0 0.25rem rgba(0, 0, 0, 0.2));
+    gap: 0.5em;
 
     h1,
     h2,
@@ -83,8 +77,15 @@
 
     pre,
     syntax-highlight {
-        border-radius: 0;
+        border: 1px solid var(--color-bg-dark);
+        border-radius: var(--radius-sm);
         margin: 0;
+
+        overflow: clip;
+        overflow-clip-margin: 4em;
+
+        box-shadow: var(--shadow-md);
+
     }
 }
 

@@ -4,7 +4,6 @@ import SlottedElement from "./vi/slotted-element.js";
 import { html, unsafeStatic } from 'lit/static-html.js';
 
 import NordButton from "@nordhealth/components/lib/Button.js"
-import NordIcon from "@nordhealth/components/lib/Icon.js"
 
 /**
  * A component to showcase examples

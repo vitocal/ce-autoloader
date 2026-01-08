@@ -35,7 +35,8 @@ export default defineConfig({
         'lit/directives/ref.js',
         'lit/directives/if-defined.js',
         'lit/directives/unsafe-html.js',
-        'lit/directives/style-map.js'
+        'lit/directives/style-map.js',
+        'lit/static-html.js'
       ],
       input: {
         main: resolve(__dirname, 'index.html'),

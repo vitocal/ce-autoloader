@@ -1,7 +1,7 @@
 {
-  "_Icon-CpkMzTJW.js": {
-    "file": "assets/Icon-CpkMzTJW.js",
-    "name": "Icon",
+  "_Button-BgOlomVX.js": {
+    "file": "assets/Button-BgOlomVX.js",
+    "name": "Button",
     "imports": [
       "_SlotController-Z6eG7LSZ-paOtwl-R.js"
     ]
@@ -10,40 +10,34 @@
     "file": "assets/SlotController-Z6eG7LSZ-paOtwl-R.js",
     "name": "SlotController-Z6eG7LSZ"
   },
-  "_preload-helper-DcrpyqX9.js": {
-    "file": "assets/preload-helper-DcrpyqX9.js",
+  "_preload-helper-R8jGNxHe.js": {
+    "file": "assets/preload-helper-R8jGNxHe.js",
     "name": "preload-helper"
   },
-  "assets/observability.jpg": {
-    "file": "assets/observability-D7OwlOYm.jpg",
-    "src": "assets/observability.jpg"
-  },
   "index.html": {
-    "file": "assets/main-Bx7PT-_p.js",
+    "file": "assets/main-TnvcNoGd.js",
     "name": "main",
     "src": "index.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-DcrpyqX9.js"
+      "_preload-helper-R8jGNxHe.js"
     ],
     "dynamicImports": [
       "src/components/hero-example.js",
       "src/components/vi-example.js",
       "src/components/confetti-button.ts",
       "src/components/three-cube.js",
-      "src/components/observable-plot-wrapper.js"
-    ],
-    "assets": [
-      "assets/observability-D7OwlOYm.jpg"
+      "src/components/observable-plot-wrapper.js",
+      "src/components/pix/qrcode.ts"
     ]
   },
   "single.html": {
-    "file": "assets/single-DcAbNFab.js",
+    "file": "assets/single-C7W42iGe.js",
     "name": "single",
     "src": "single.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-DcrpyqX9.js",
+      "_preload-helper-R8jGNxHe.js",
       "_SlotController-Z6eG7LSZ-paOtwl-R.js"
     ]
   },
@@ -54,19 +48,25 @@
     "isDynamicEntry": true
   },
   "src/components/hero-example.js": {
-    "file": "assets/hero-example-D0kAKnau.js",
+    "file": "assets/hero-example-DJVLATBp.js",
     "name": "hero-example",
     "src": "src/components/hero-example.js",
     "isDynamicEntry": true,
     "imports": [
-      "_Icon-CpkMzTJW.js",
-      "_SlotController-Z6eG7LSZ-paOtwl-R.js"
+      "_SlotController-Z6eG7LSZ-paOtwl-R.js",
+      "_Button-BgOlomVX.js"
     ]
   },
   "src/components/observable-plot-wrapper.js": {
     "file": "assets/observable-plot-wrapper-DTTmTyl7.js",
     "name": "observable-plot-wrapper",
     "src": "src/components/observable-plot-wrapper.js",
+    "isDynamicEntry": true
+  },
+  "src/components/pix/qrcode.ts": {
+    "file": "assets/qrcode-ld3giMKn.js",
+    "name": "qrcode",
+    "src": "src/components/pix/qrcode.ts",
     "isDynamicEntry": true
   },
   "src/components/three-cube.js": {
@@ -76,12 +76,12 @@
     "isDynamicEntry": true
   },
   "src/components/vi-example.js": {
-    "file": "assets/vi-example-CDbP1yMK.js",
+    "file": "assets/vi-example-adTGF6Bu.js",
     "name": "vi-example",
     "src": "src/components/vi-example.js",
     "isDynamicEntry": true,
     "imports": [
-      "_Icon-CpkMzTJW.js",
+      "_Button-BgOlomVX.js",
       "_SlotController-Z6eG7LSZ-paOtwl-R.js"
     ]
   }

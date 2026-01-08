@@ -1,4 +1,4 @@
-import { LitElement, html } from 'lit';
+import { LitElement } from 'lit';
 
 /*
  This mimics the behavior of <slot>s in a light DOM LitElement. It supports both

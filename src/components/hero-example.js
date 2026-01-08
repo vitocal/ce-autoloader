@@ -167,13 +167,6 @@ document.addEventListener('load', () => registry.discover());
     		</div>
 
 			<div class="right preview flex-y" mode=${this.mode}>
-				<!--
-				<h4 class="flex-x"> Preview
-					<nord-button @click=${this.onClick} class="ml-auto" variant="primary" size="m" square>
-						<nord-icon name="interface-play" label="Play" size="m"></nord-icon>
-					</nord-button>
-				</h4>
-				-->
 				${preview}
 			</div>
 		`
