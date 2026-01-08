@@ -498,33 +498,37 @@ performance.getEntriesByType('measure')
 			<div style="display: grid; gap: 2rem;">
 				<div>
 					<h3 style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-						<span style="font-size: 1.5rem;">🚀</span> Wait, is this like Astro?
+						<span style="font-size: 1.5rem;">🚀</span> Wait, isn't this like Astro?
 					</h3>
 					<p>
-						<strong>Sim e não (Yes and No).</strong> Both use the "Island Architecture" concept to reduce JS
-						bloat, but they are opposites:
+						<strong>Yes and No.</strong> Both use the "Island Architecture" concept to reduce JS
+						bloat, but they are :
 					</p>
 					<ul style="margin-top: 0.5rem; display: grid; gap: 0.25rem;">
-						<li><strong>Astro (Server-First):</strong> Renders at <strong>build time</strong>. Great for new
-							apps.</li>
+						<li><strong>Astro (Server-First):</strong> Renders at <strong>build time</strong> or at server.
+							Great for new apps.</li>
 						<li><strong>ce-autoloader (Client-First):</strong> Runs at <strong>runtime</strong>. Great for
 							adding islands to <em>existing</em> PHP, Python, or static HTML pages.</li>
 					</ul>
-					<p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">Think of it as "Astro for when you
-						don't have a build step."</p>
 				</div>
 
 				<div>
 					<h3 style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-						<span style="font-size: 1.5rem;">⚛️</span> Why not just use React?
+						<span style="font-size: 1.5rem;">⚛️</span> Why not just use React/Svelte/Vue/Angular?
 					</h3>
 					<p>
-						Because <strong>hydration is expensive</strong>. React (and others) typically re-run all your
-						logic in the
-						browser just to make a button interactive.
-						<code>ce-autoloader</code> only loads code for the specific components the user interacts with
-						or sees.
-						<strong>Zero hydration mismatch cost.</strong>
+						Because React (and others) doesn't allow island architecture, so you tipically need to wrap your
+						whole site
+						under a root <code>&lt;App></code> component. And now you're fully married to the framework,
+						have to use a bundler,
+						need to lazy-load each components by hand, SEO is a nightmare, Lighthouse score is bad, and much
+						more.
+						It's has a lot of downsides and very few upsides.</p>
+
+					<p>
+						<a href="#about">ce-autoloader</a> is web friendly, don't need any bundler/server, incredibly
+						practical and with
+						lazy-load by default. Lighthouse scores are high, SEO is great, and it works with any framework!
 					</p>
 				</div>
 			</div>

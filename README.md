@@ -1,14 +1,35 @@
-# ce-autoloader
+<p align="center">
+  <img src="public/logo.svg" alt="ce-autoloader logo" width="200" />
+</p>
 
-A webcomponent lazy loader and registry for the web.
-The missing parts of `customElements` API.
+<h1 align="center">ce-autoloader</h1>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/ce-autoloader"><img src="https://img.shields.io/npm/v/ce-autoloader.svg" alt="npm version"></a>
+  <a href="https://bundlephobia.com/package/ce-autoloader"><img src="https://img.shields.io/bundlephobia/min/ce-autoloader.svg" alt="bundle size"></a>
+  <a href="https://bundlephobia.com/package/ce-autoloader"><img src="https://img.shields.io/bundlephobia/minzip/ce-autoloader.svg" alt="bundle size (gzip)"></a>
+  <a href="https://www.npmjs.com/package/ce-autoloader"><img src="https://img.shields.io/npm/l/ce-autoloader.svg" alt="license"></a>
+  <a href="https://github.com/vitocal/ce-autoloader/stargazers"><img src="https://img.shields.io/github/stars/vitocal/ce-autoloader.svg" alt="github stars"></a>
+  <a href="https://github.com/vitocal/ce-autoloader/network/members"><img src="https://img.shields.io/github/forks/vitocal/ce-autoloader.svg" alt="github forks"></a>
+</p>
+
+<p align="center">
+  <strong>A webcomponent lazy loader and registry for the web.</strong><br>
+  <em>The missing parts of the <code>customElements</code> API.</em>
+</p>
+
+<p align="center">
+  <a href="https://vitocal.github.io/ce-autoloader/"><strong>🚀 Live Demo</strong></a> |
+  <a href="https://vitocal.github.io/ce-autoloader/"><strong>📖 Documentation</strong></a>
+</p>
 
 - Automatically Load any web-component on demand, if and when they're used in the page.
+- A centralized registry for your components, skip the tedious and error-prone manual registration.
 - **Activation Triggers**: Native support for loading strategies like `on="visible"`, `on="click"`, or eager loading.
 - **Dynamic Resolvers**: Effortlessly resolve entire component libraries (e.g., `nord-*`) using pattern-based loaders.
-- Supports for animations with view-transitions!
+- Supports for CSS animations and even view-transitions!
 - Framework-independent: React, Lit, Svelte, Vue, Angular...
-- No dependencies, <10kb gzip, and fast!
+- No dependencies, <10kb (3kb gzip), and fast!
 
 ### Use Cases
 
@@ -63,15 +84,6 @@ Now you can use any component from these libraries, and they will be activated o
 
 ## Gotchas
 
-### Performance and customization
-
-Since they're loaded at runtime, each module `imported()` by a component causes another network request.
-And if every component loads the full library, instead of sharing, it would be a lot of code to load,
-repeatedly.
-
-This happens if every component is compiled separatedly, without deduplication, as the default behavior
-of most bundlers.
-
 #### De-duplicating dependencies with `?external`
 
 We can deduplicate by marking core dependencies as **external**, and loading them once.
@@ -81,23 +93,8 @@ We can deduplicate by marking core dependencies as **external**, and loading the
 
 ## Browser support
 
+Latest Chrome, Firefox, Safari, Edge for view transition support.
+
 ## Documentation
 
-## TODO
-
-- [X] Implement component loader function: Allow functions to be registered as a component.
-- [X] Tests for url loader, function loader, namespaced loader.
-- [X] Robust Loading: Support modules that auto-register, or not.
-- [X] Animation lifecycle: Support for view transitions and/or html-attribute change([ce-loading] and [ce-defined]) triggers css animations.
-- [X] Cleanup: Move lit to devDependencies if not used in core.
-- [X] Publish on npm
-
-
-### Separate load and define
-
-Nowadays, the loader_run() calls both `load` and `define`. This means that the promises returned by `registerComponents()` are resolved when the component is defined, not when it's loaded.
-
-We can split, so the `loader_run()` just calls `load`.
-So the promise now only resolves when the component(s) is defined.
-
-But we need another step to `define()` the component.
+See documentation at [ce-autoloader](https://vitocal.github.io/ce-autoloader/)
