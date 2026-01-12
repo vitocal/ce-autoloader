@@ -93,8 +93,7 @@
 /* Shimmer/skeleton */
 @keyframes shimmer {
     to {
-        /* transform: translateX(100%) rotate(-45deg); */
-        transform: translateX(100%) translateY(-40%) rotate(215deg);
+        transform: translateX(100%);
     }
 }
 

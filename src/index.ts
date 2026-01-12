@@ -76,7 +76,6 @@ class CEAutoLoader {
 	activeTransition?: ViewTransition;
 
 	constructor(options: CEAutoLoaderOptions) {
-		console.log("CEAutoLoader started with options:", options);
 		if (!options.catalog) {
 			throw new Error("CEAutoLoader needs a catalog to start")
 		}
@@ -191,7 +190,6 @@ class CEAutoLoader {
 
 		// Load everyone else right away
 		const result = await this.upgrade();
-		console.log("finished discover", result)
 
 		this.#initialized = true;
 
@@ -211,8 +209,6 @@ class CEAutoLoader {
 
 		const ce_elements = matchCustomElement(this.options.root || document.body)
 		const elements = this.filterByDirective(ce_elements, directive)
-		console.log(`upgrading ${directive}`, elements)
-		elements.forEach((el) => el.setAttribute("ce", ""))
 
 		const visible = (elements: HTMLElement[]) => {
 			// Create observer if it doesn't exist
@@ -241,7 +237,6 @@ class CEAutoLoader {
 			})
 		}
 
-		// console.log("CEAutoLoader: Registering", elements, "with directive", directive)
 		// Directives apply special conditions to when the component is loaded
 		if (directive === "visible") {
 			return visible(elements);
@@ -258,9 +253,6 @@ class CEAutoLoader {
 			} else if (this.options.defaultDirective === 'eager') {
 				return await this.loadAndDefine(elements, "eager")
 			}
-			// else {
-			// 	return await this.loadAndDefine(elements, "manual");
-			// }
 		} else {
 			return await this.loadAndDefine(elements, directive)
 		}
@@ -284,7 +276,6 @@ class CEAutoLoader {
 		}
 
 		const load_result = await Promise.allSettled(elements.map((el) => this.load(el)))
-		console.log(`defining from ${source}`, elements.map((el) => el.tagName.toLowerCase()));
 
 		const load_success = load_result.filter((result) => result.status === "fulfilled")
 		const load_fail = load_result.filter((result) => result.status === "rejected")
@@ -295,7 +286,7 @@ class CEAutoLoader {
 				const origin = result.reason.details;
 				console.error(result.reason.message);
 
-				// We must clone, because browsers don't allow to define the same class with the same name
+				// We must clone, because browsers don't allow to define the same class twice
 				let fallback_cloned = class ClonedFallback extends this.options.fallback!{ }
 
 				origin.el.setAttribute('error', result.reason.message);
@@ -307,7 +298,6 @@ class CEAutoLoader {
 		const defineComponents = async (source?: string) => {
 			await Promise.allSettled([
 				...load_success.map(async (result) => this.define(result.value)),
-				this.flushDefine(source)
 			])
 		}
 
@@ -332,7 +322,8 @@ class CEAutoLoader {
 				await this.activeTransition.finished;
 			}
 
-			const transition_name = transitions.map((result) => result.el.getAttribute('view-transition-name')).join('-');
+			// const transition_name = transitions.map((result) => result.el.getAttribute('view-transition-name')).join('-');
+			const transition_name = "wherever";
 			performance.mark(`transition-${transition_name}:start`);
 			this.activeTransition = document.startViewTransition(async () => await defineComponents(source));
 			await this.activeTransition.updateCallbackDone;
@@ -367,9 +358,9 @@ class CEAutoLoader {
 
 		try {
 			performance.mark(`load:${name}:start`);
-			el.setAttribute('ce-loading', "");
 
-			// await new Promise((resolve) => setTimeout(resolve, 3000 + Math.random() * 1000));
+			el.setAttribute('ce', "loading");
+
 			if (typeof asset === "string") {
 				module = await import(/* @vite-ignore */ asset);
 			} else if (typeof asset === "function") {
@@ -380,18 +371,18 @@ class CEAutoLoader {
 		} catch (error: any) {
 			throw new CEError(`${name} - ${error.message}`, { name, el, module, error });
 		} finally {
-			el.removeAttribute('ce-loading');
 			performance.mark(`load:${name}:end`);
 			performance.measure(`load:${name}`, `load:${name}:start`, `load:${name}:end`);
 		}
 
 		// bundled mode must define dependencies upfront
-		let after_imports = customElements.waiting;
-		let diff_imports = Object.keys(after_imports)
-			.filter((key) => !Object.keys(before_imports).includes(key))
-			.filter((key) => key !== name);
 
 		if (el.hasAttribute('bundled')) {
+			let after_imports = customElements.waiting;
+			let diff_imports = Object.keys(after_imports)
+				.filter((key) => !Object.keys(before_imports).includes(key))
+				.filter((key) => key !== name);
+
 			console.log("🩻 diff_imports", diff_imports)
 			for (const element of diff_imports) {
 				DEFINE(element, customElements.waiting[element]['ctor'], {})
@@ -406,11 +397,6 @@ class CEAutoLoader {
 	 * Define a single component
 	 */
 	async define({ name, el, module }: { name: string, el: HTMLElement, module: any }) {
-		// Maybe it's already defined...
-		if (customElements.get(name)) {
-			return;
-		}
-
 		if (customElements.waiting[name]) {
 			module = customElements.waiting[name]['ctor']
 		} else {
@@ -424,9 +410,10 @@ class CEAutoLoader {
 		try {
 			performance.mark(`define:${name}:start`);
 
-			el.setAttribute('ce-defined', '');
-			requestAnimationFrame(() => DEFINE(name, module, {}));
+			DEFINE(name, module, {});
 		} finally {
+			el.setAttribute("ce", "defined");
+
 			performance.mark(`define:${name}:end`);
 			performance.measure(`define:${name}`, `define:${name}:start`, `define:${name}:end`);
 		}
@@ -447,7 +434,6 @@ class CEAutoLoader {
 	 * Define components in the waiting queue
 	 */
 	flushDefine(source?: string) {
-		console.log(`flushDefine(${source})`, Object.keys(customElements.waiting))
 		// Some components definitions can be still in waiting (they' have called customElements.define but they're not in DOM)
 		// Let's define them now
 		requestAnimationFrame(() => {

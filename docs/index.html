@@ -25,17 +25,6 @@
 			See `:not(:defined)` for more info on how to style every component at once.
 		*/
 
-		.fold {
-			min-height: 70svh;
-			display: flex;
-			flex-direction: column;
-			gap: 1em;
-		}
-
-		.fold-header {
-			margin-top: 1em;
-		}
-
 		hero-example {
 			width: 100%;
 			height: 50svh;
@@ -46,23 +35,27 @@
 
 		nord-qrcode {
 			aspect-ratio: 1;
+			width: 128px;
+			height: 128px;
+		}
+
+		pix-qrcode {
+			aspect-ratio: 1;
+			width: 196px;
+			height: 196px;
 		}
 
 		@media (max-width: 60ch) {
-			.fold {
-				min-height: 100svh;
-				gap: 1em;
-			}
-
-			.fold-header {
-				margin-top: 0em;
-			}
-
 			hero-example {
 				height: auto;
 				min-height: 100%;
 				margin: 0;
 			}
+		}
+
+		#about {
+			margin-top: 0em;
+			overflow-clip-margin: 2em;
 		}
 
 		#docs {
@@ -73,20 +66,27 @@
 
 		observable-plot-wrapper {
 			width: 100%;
+			display: flex;
+			align-items: center;
+			flex-direction: row;
+			align-content: center;
+			justify-content: center;
 		}
 
-		::view-transition-image-pair(plot-example) {
+		::view-transition-image-pair(plot-example),
+		::view-transition-image-pair(three-cube) {
 			transform-style: preserve-3d;
 			perspective-origin: center;
 			perspective: 1000px;
 		}
 
-		::view-transition-old(plot-example) {
-			animation: var(--spring-duration) ease-out both fade-out;
-		}
-
-		::view-transition-new(plot-example) {
-			animation: var(--spring-duration) var(--spring-easing) both appear-below-in;
+		::view-transition-old(plot-example),
+		::view-transition-new(plot-example),
+		::view-transition-old(three-cube),
+		::view-transition-new(three-cube) {
+			height: 100%;
+			overflow: clip;
+			animation-timing-function: ease-in-out;
 		}
 	</style>
 
@@ -114,12 +114,12 @@
         }
     }
     </script>
-  <script type="module" crossorigin src="/ce-autoloader/assets/main-C0GxaL80.js"></script>
-  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/preload-helper-DWBNucpB.js">
+  <script type="module" crossorigin src="/ce-autoloader/assets/main-Bkc5TOlm.js"></script>
+  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/preload-helper-ldEX_rdl.js">
 </head>
 
 <body class="n-reset n-typeset">
-	<main class="body-container">
+	<main class="body-container prose">
 		<div class="fold">
 			<div class="fold-header">
 				<h1 style="display: flex; align-items: center; gap: 0.5rem;">
@@ -138,15 +138,15 @@
 		<div class="" id="about">
 			<h1 style="display: none;">About</h1>
 			<p>
-				Modern frontend is a circus. You need a fancy <code>&lt;select></code>, so you install
-				<strong>500MB</strong> of <i>node_modules</i>,
-				wrap your whole page in an <code>&lt;App></code> tag, and then wait for 1MB of JavaScript
-				to run before the user can even scroll. 😖
+				You need a custom <code>&lt;select></code> menu. Suddenly, you've installed <strong>500MB</strong>
+				of <i>node_modules</i>, wrapped your site inside a russian doll of
+				<code>&lt;App>&lt;Provider>&lt;Router</code> tags,
+				and then wait for 1MB of JavaScript to run before the user can even scroll. 😖
 			</p>
-			<p>They'll say "go SSR", and now you're married to the framework and
-				the <strong>"Hydration Mismatch" horror movie</strong>,
+			<p>When you try to fix it with SSR, you're now married to the framework and
+				the <strong>"Hydration Mismatch" horror movie</strong> —
 				where the server and client start arguing about what a <code>Date</code> object looks like.
-				Suddenly you're paying for a beefy server just to stringify JSON into HTML, while losing your mind over
+				Now you're paying for a beefy server just to stringify JSON into HTML, while losing your mind over
 				cache-control headers that are never quite right. Content is stale, CPU is 100%, and your wallet is
 				crying.
 			</p>
@@ -156,15 +156,16 @@
 			</h3>
 
 			<p>
-				ce-autoloader is a lightweight library born out of this frustration. Put it simply, it'll lazy-load your
-				web components using islands architecture.</p>
-			<p>
-				Instead of bundling everything inside a single file, or hard-coding which page needs which components,
-				it scans the page for web components and waits until the user scrolls to them to fetches its code.
+				ce-autoloader is a lightweight library born out of this frustration. It brings Islands Architecture to
+				any site without the framework overhead.
 			</p>
 
-			<p>Simple, web-friendly, and zero-friction. 😮‍💨</p>
+			<p>The special sauce? It lazy-loads components by default and uses the CSS Animation/View Transitions API to
+				animate them
+				into place. Smooth, app-like interactions on a static foundation.
+			</p>
 
+			<p>Fast&Lean sites, without the hydration/cache wars. 😮‍💨</p>
 
 			<ul
 				style="margin-top: 4rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
@@ -172,18 +173,17 @@
 					works
 					(React, Vue, Lit, Svelte, etc.).
 				</li>
-				<li class="brazilian-card"><strong>Custom Strategy</strong>: Use <code>on="visible"</code> or
+				<li class="brazilian-card"><strong>Custom Loader Strategy</strong>: Use <code>on="visible"</code> or
 					<code>on="click"</code> to define when a component should be loaded.
 				</li>
 				<li class="brazilian-card"><strong>Zero Friction</strong>: 5kb gzipped. No dependencies. No
 					build steps required.</li>
 				<li class="brazilian-card"><strong>Shared Catalog</strong>: Define your components in a single
 					place and use it across your app/pages.</li>
-				<li class="brazilian-card"><strong>Smooth Entrances</strong>: Use the lifecycle states (loading,
-					defined) to animate components as they appear. No layout shifts.</li>
+				<li class="brazilian-card"><strong>Native-Level Polish</strong>: Use the lifecycle states and View
+					Transitions API to animate components as they load/render.</li>
 				<li class="brazilian-card"><strong>Smart Scheduling</strong>: Batches custom element upgrades into
-					single
-					animation frames to prevent layout thrashing.</li>
+					single animation frames to prevent layout thrashing.</li>
 			</ul>
 		</div>
 
@@ -285,7 +285,7 @@
 					<div slot="example" class="flex-y">
 						<nord-banner variant="success" on="visible">Nord-banner was loaded.</nord-banner>
 
-						<three-cube on="click" view-transition->Click me to load</three-cube>
+						<three-cube on="click" view-transition-name="three-cube">Click me to load</three-cube>
 
 						<confetti-button on="manual" id="confetti" onClick="registry.upgrade('manual')">
 							🎉 Click me to throw confetti 🎉
@@ -320,7 +320,8 @@
 					</div>
 
 					<figure class="right flex-y ai-center">
-						<nord-qrcode value="https://ce-autoloader.com" view-transition-name="qr-code"></nord-qrcode>
+						<nord-qrcode value="https://vitocal.github.io/ce-autoloader/"
+							view-transition-name="qr-code"></nord-qrcode>
 						<figcaption>
 							Leve e rápido. (Light and fast)
 						</figcaption>
@@ -491,12 +492,52 @@ performance.getEntriesByType('measure')
 
 		</div>
 
-		<div class="brazilian-card" style="margin-top: 4rem;" id="faq">
+		<div class="brazilian-card prose" style="margin-top: 4rem;" id="faq">
 			<h1 style="border-bottom: 0; margin-bottom: 2rem;">FAQ <span class="n-color-text-weaker">(Perguntas
 					Frequentes)</span>
 			</h1>
 
 			<div style="display: grid; gap: 2rem;">
+
+				<div>
+					<h3>Why web components?</h3>
+					<p>
+						Web components with light-dom&css variables are the GOAT! They are the only way to reuse
+						components
+						across frameworks, and since they're part of HTML spec, they'll still work in 20 years.</p>
+					<p>
+						Aren't you tired of recreating the same components over and over again every 5 years with the
+						new shiny framework? Let's stop this madness!
+					</p>
+				</div>
+
+				<div>
+					<h3>⚛️ How to use this with react/vue/svelte/etç?</h3>
+
+					<p><a href="https://vuejs.org/guide/extras/web-components">Vue</a> and <a
+							href="https://svelte.dev/blog/web-components">Svelte</a> already export web-components out
+						of the box! </p>
+					<p>Only React is purposefully missing this feature, so you need to use a library like <a
+							href="https://github.com/rstacruz/remount">remount</a> or <a
+							href="https://github.com/bitovi/react-to-web-component">react-to-web-component</a>.
+					</p>
+					<pre>
+<syntax-highlight language="js">import r2wc from "@r2wc/react-to-web-component"
+
+const Greeter = ({ name }) => {
+	return &lt;div&gt;Hello, {name}!&lt;/div&gt;
+}
+
+export default r2wc(Greeter, {
+	props: {
+		name: "string",
+	}
+});
+</syntax-highlight>
+					</pre>
+
+				</div>
+
 				<div>
 					<h3 style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
 						<span style="font-size: 1.5rem;">🚀</span> Wait, isn't this like Astro?
@@ -509,31 +550,23 @@ performance.getEntriesByType('measure')
 						<li><strong>Astro (Server-First):</strong> Renders at <strong>build time</strong> or at server.
 							Great for new apps.</li>
 						<li><strong>ce-autoloader (Client-First):</strong> Runs at <strong>runtime</strong>. Great for
-							adding islands to <em>existing</em> PHP, Python, Ruby, Elixir or static HTML pages.</li>
+							adding islands to <em>existing</em> Python, Ruby, Elixir or static HTML pages.</li>
 					</ul>
 				</div>
 
 				<div>
 					<h3 style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-						<span style="font-size: 1.5rem;">⚛️</span> Why not just use React/Svelte/Vue/Angular?
+						<span style="font-size: 1.5rem;">🚀</span> What's the performance like?
 					</h3>
 					<p>
-						Because React (and others) doesn't allow island architecture, so you tipically need to wrap your
-						whole site
-						under a root <code>&lt;App></code> component. And now you're fully married to the framework,
-						have to use a bundler,
-						need to lazy-load each components by hand, SEO is a nightmare, Lighthouse score is bad, and much
-						more.
-						It's has a lot of downsides and very few upsides.</p>
-
-					<p>
-						<a href="#about">ce-autoloader</a> is web friendly, don't need any bundler/server, incredibly
-						practical and with
-						lazy-load by default. Lighthouse scores are high, SEO is great, and it works with any framework!
+						Glad you asked! Core Web Vitals with ce-autoloader matches or exceeds SSR frameworks like
+						Next.js. Don't believe me? This is the score of the page you're reading now:
 					</p>
+
+					<img src="/ce-autoloader/assets/core-web-vitals-DBb9bc-d.jpg" alt="Core Web Vitals" width="735" height="629"
+						loading="lazy" />
 				</div>
 			</div>
-		</div>
 
 	</main>
 
@@ -563,7 +596,7 @@ performance.getEntriesByType('measure')
 				<div class="right" style="display: flex; flex-direction: column; align-items: center;">
 					<span class="relaxed-badge" style="background: var(--color-blue); color: #fff;">Apoie o
 						projeto</span>
-					<pix-qrcode on="visible" style="margin-top: 1rem;"></pix-qrcode>
+					<pix-qrcode style="margin-top: 1rem;"></pix-qrcode>
 					<p style="font-size: 0.8rem; opacity: 0.5; margin-top: 0.5rem; text-align: right;">
 						Escaneie para apoiar com PIX
 					</p>

@@ -42,13 +42,23 @@
         --color-bg-light: oklch(98% 0.01 145);
         --color-bg: oklch(96% 0.01 145);
         /* Off-white with hint of green */
-        --color-bg-dark: oklch(94% 0.02 145);
+        --color-bg-dark: oklch(92.049% 0.02597 150.96);
         --color-fg: oklch(25% 0.02 145);
         --color-fg-muted: oklch(45% 0.02 145);
 
         --font-display: "Cormorant Garamond", system-ui, sans-serif;
         --font-body: system-ui, sans-serif;
         --font-mono: "Fira Code", monospace;
+        --n-font-family: var(--font-body);
+        --n-font-family-code: var(--font-mono);
+
+        --n-font-size-xxxl: 2.25rem;
+        --n-font-size-xxl: 2rem;
+        --n-font-size-xl: 1.5rem;
+        --n-font-size-l: 1.25rem;
+        --n-font-size-m: 1rem;
+        --n-font-size-s: 0.75rem;
+        --n-font-size-xs: 0.6875rem;
 
         --radius-lg: 1.25rem;
         --radius-md: 0.75rem;
@@ -83,43 +93,104 @@
         &>*+* {
             margin-top: 4rem;
         }
+
+        &>*:not(.fold) {
+            content-visibility: auto;
+        }
     }
 
-    h1,
-    h2,
-    h3,
-    h4 {
-        font-family: var(--font-display);
-        font-weight: 700;
-        line-height: 1.1;
-        color: var(--color-fg);
+    .fold {
+        min-height: 70svh;
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+
+        content-visibility: visible;
+
+        .fold-header {
+            margin-top: 1em;
+        }
     }
 
-    h1 {
-        font-size: 3.5rem;
-        letter-spacing: -0.05em;
+    @media (max-width: 60ch) {
+        .fold {
+            min-height: 100svh;
+            gap: 1em;
+
+            .fold-header {
+                margin-top: 0em;
+            }
+        }
     }
 
-    h2 {
-        font-size: 2.25rem;
-        letter-spacing: -0.03em;
-    }
+    .prose {
 
-    h3 {
-        font-size: 1.5rem;
-        letter-spacing: -0.02em;
-    }
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: var(--font-display);
+            font-weight: 700;
+            line-height: 1.1;
+            color: var(--color-fg);
+        }
 
-    p+p {
-        margin-top: 1rem;
-    }
+        h1 {
+            font-size: 3.5rem;
+            letter-spacing: -0.05em;
+        }
 
-    :is(h1, h2, h3)+p {
-        margin-top: 1rem;
-    }
+        h2 {
+            font-size: 2.25rem;
+            letter-spacing: -0.03em;
+        }
 
-    p+:is(h1, h2, h3) {
-        margin-top: 1rem;
+        h3 {
+            font-size: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        p+p {
+            margin-top: 1rem;
+        }
+
+        :is(h1, h2, h3)+p {
+            margin-top: 1rem;
+        }
+
+        p+:is(h1, h2, h3) {
+            margin-top: 1rem;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        code {
+            font-size: 12px;
+            padding: 0.1em 0.5em;
+            border-radius: calc(var(--radius-sm) * 0.5);
+
+            --_color: var(--bg-color, var(--color-bg));
+            background-color: oklch(from var(--_color) calc(l - 0.1) c h);
+        }
+
+        hr {
+            border: 0px;
+            border-top: 1px solid var(--color-secondary);
+        }
+
+        figure {
+            margin: 0;
+            padding: 1em;
+
+            figcaption {
+                text-align: center;
+                font-style: italic;
+            }
+        }
+
     }
 
     .relaxed-badge {
@@ -141,7 +212,7 @@
         border-radius: var(--radius-lg);
         padding: 1rem;
         box-shadow: var(--shadow-md);
-        transition: transform 0.3s var(--spring-easing), box-shadow 0.3s ease;
+        transition: transform 0.3s var(--spring-easing), box-shadow 0.3s var(--spring-easing);
         position: relative;
         overflow: hidden;
 
@@ -249,11 +320,6 @@
     }
 }
 
-img {
-    max-width: 100%;
-    height: auto;
-}
-
 pre {
     box-sizing: border-box;
     display: flex;
@@ -279,32 +345,6 @@ pre {
     }
 }
 
-code {
-    font-size: 12px;
-    padding: 0.1em 0.5em;
-    border-radius: calc(var(--radius-sm) * 0.5);
-
-    --_color: var(--bg-color, var(--color-bg));
-    background-color: oklch(from var(--_color) calc(l - 0.1) c h);
-}
-
-hr {
-    border: 0px;
-    border-top: 1px solid var(--color-secondary);
-}
-
-
-
-figure {
-    margin: 0;
-    padding: 1em;
-
-    figcaption {
-        text-align: center;
-        font-style: italic;
-    }
-}
-
 .sticky-nav {
     position: sticky;
     top: 0;
@@ -318,7 +358,6 @@ figure {
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
-    backdrop-filter: blur(8px);
     background-color: color-mix(in srgb, var(--color-bg) 95%, transparent);
 }
 
@@ -431,12 +470,12 @@ footer {
 
 @layer components {
     :where(:not(:defined)) {
+        overflow: clip;
+        isolation: isolate;
+
         visibility: visible;
         display: inline-block;
         position: relative;
-        overflow: clip;
-        contain: layout paint;
-        isolation: isolate;
 
         --bg-color: color-mix(in srgb, var(--color-fg) 5%, transparent);
         --bg: repeating-linear-gradient(135deg, transparent, transparent 5px, var(--bg-color) 5px, var(--bg-color) 10px);
@@ -446,99 +485,36 @@ footer {
         color: var(--color-fg);
         background-image: var(--bg);
         background-position: 0 0;
-        box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 0px 0px inset;
 
         width: 100%;
         min-height: 24px;
         padding: 0.35em;
         border-radius: 0.5em;
 
-        /** Nested components are hidden
+        /** Nested components are hidden */
         & :not(:defined) {
             visibility: hidden;
         }
-        */
-    }
 
-    :defined {
-        &::after {
-            opacity: 0;
-            visibility: hidden;
-            width: 100%;
-            height: 100%;
-            animation: none;
-            pointer-events: none;
+        &[ce="loading"] {
+            cursor: wait;
+            overflow: hidden !important;
+
+            &::after {
+                pointer-events: none;
+                content: " ";
+                position: absolute;
+                inset: 0;
+
+                transform: translateX(-100%);
+                width: 100%;
+
+                background: linear-gradient(to right, transparent 10%, var(--color-bg-dark) 50%, transparent 90%);
+                will-change: transform;
+                animation: shimmer 1.5s ease-in-out infinite;
+            }
         }
     }
-
-    :where([ce]) {
-        contain: layout paint;
-        overflow: clip;
-        overflow-clip-margin: 4em;
-        isolation: isolate;
-
-        &::after {
-            pointer-events: none;
-            content: " ";
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            z-index: 1;
-
-            transform: translateX(-100%) translateY(-40%) rotate(215deg);
-            width: 200svw;
-            height: 200svh;
-
-            background: linear-gradient(to right, transparent 10%, var(--color-bg-dark) 50%, transparent 90%);
-            will-change: transform;
-
-            transition: opacity 0.3s ease-out;
-            animation: shimmer 1.5s ease-in-out infinite;
-        }
-
-        /** Nested components are hidden */
-        & [ce]::after {
-            animation: none;
-        }
-    }
-
-    :where([ce-loading]) {
-        cursor: wait;
-        background-color: transparent;
-        overflow: clip;
-
-        &::after {
-            opacity: 1;
-        }
-    }
-
-    :where([ce-defined]) {
-        background-image: none;
-        overflow-clip-margin: 4em;
-
-        overflow: clip;
-        visibility: visible;
-
-        &::after {
-            opacity: 0;
-            visibility: hidden;
-            width: 100%;
-            height: 100%;
-            animation: none;
-        }
-
-        & [ce-loading]::after {
-            animation: shimmer 3s ease-in-out infinite;
-        }
-    }
-
-    :where([ce-defined][ce-outline-highlight]) {
-        outline: 2px dashed transparent;
-        outline-offset: 0px;
-
-        animation: outline-highlight 0.7s ease-in-out 4 alternate;
-    }
-
 }
 
 @layer hotfix {
@@ -707,5 +683,15 @@ footer {
     100% {
         opacity: 1;
         transform: translateZ(0);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
     }
 }
