@@ -170,10 +170,52 @@
         code {
             font-size: 12px;
             padding: 0.1em 0.5em;
-            border-radius: calc(var(--radius-sm) * 0.5);
+            border-radius: calc(var(--radius-sm));
 
-            --_color: var(--bg-color, var(--color-bg));
-            background-color: oklch(from var(--_color) calc(l - 0.1) c h);
+            background-color: oklch(from var(--bg-color, var(--color-bg-light)) calc(l - 0.1) c h);
+        }
+
+        blockquote {
+            font-family: var(--font-display);
+            font-style: italic;
+            font-size: 1.4rem;
+            line-height: 1.4;
+            padding: 1.25rem 2rem;
+            margin: 2rem 0;
+            border-left: 4px solid var(--color-primary);
+            background-color: var(--color-bg-dark);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            color: var(--color-fg);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1rem;
+            margin: 1rem 0;
+
+            th {
+                text-align: left;
+                padding: 0.75rem;
+                background-color: var(--color-bg-dark);
+                border-bottom: 2px solid var(--color-primary);
+                font-family: var(--font-display);
+                font-weight: 700;
+            }
+
+            td {
+                padding: 0.75rem;
+                border-bottom: 1px solid var(--color-bg-dark);
+                vertical-align: top;
+            }
+
+            tr:last-child td {
+                border-bottom: none;
+            }
+
+            code {
+                white-space: nowrap;
+            }
         }
 
         hr {
@@ -332,11 +374,10 @@ pre {
     }
 
     syntax-highlight {
-        white-space: pre-wrap;
+        white-space: pre;
         word-break: normal;
         padding: .5rem 0.5rem;
         display: flex;
-        align-items: center;
         max-inline-size: 100%;
         width: 100%;
         position: relative;

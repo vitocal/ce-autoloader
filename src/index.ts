@@ -4,6 +4,13 @@
 export type CEAutoLoaderModule = string | ((name?: string) => Promise<CustomElementConstructor>)
 export type CEAutoLoaderCatalog = Record<string, CEAutoLoaderModule>;
 
+export type CEAutoLoaderLoadResult = {
+	name: string;
+	el: HTMLElement;
+	loader?: CEAutoLoaderModule;
+	module?: CustomElementConstructor;
+}
+
 export type CEAutoLoaderDirectives = "eager" | "visible" | "click" | string
 export type CEAutoLoaderOptions = {
 	/* The component catalog */
@@ -23,6 +30,9 @@ export type CEAutoLoaderOptions = {
 	transition?: boolean;
 }
 
+/**
+ * Error thrown by CEAutoLoader
+ */
 class CEError extends Error {
 	details: any;
 
@@ -65,14 +75,14 @@ class CEAutoLoader {
 	options: CEAutoLoaderOptions;
 	catalog: CEAutoLoaderCatalog = {};
 
-	// Wildcard resolvers (prefix-*) matched against tags at runtime.
+	// Resolvers matched against tags at runtime.
 	_resolvers: Record<string, CEAutoLoaderModule> = {};
 
 	// Mutation and Interaction Observers
 	#observers: Record<string, MutationObserver | IntersectionObserver> = {};
 	#initialized: boolean = false;
 
-	// Active transition
+	// Active view transition
 	activeTransition?: ViewTransition;
 
 	constructor(options: CEAutoLoaderOptions) {
@@ -97,8 +107,10 @@ class CEAutoLoader {
 
 
 
-
-	watch() {
+	/**
+	 * Watch for new elements in the DOM
+	 */
+	private watchDOMMutations() {
 		const observer = new MutationObserver(debounceMutations(this.watcher.bind(this), 100));
 
 		observer.observe(this.options.root || document.body, {
@@ -111,26 +123,21 @@ class CEAutoLoader {
 
 		return;
 	}
-	async watcher(_mutations: MutationRecord[]) {
-		performance.mark("mutation-start");
-		await this.discover();
-		// for (const mutation of mutations) {
-		// 	if (mutation.type === 'childList') {
-		// 		for (const node of mutation.addedNodes) {
-		// 			if (node.nodeType != 1) { continue; }
+	private async watcher(mutations: MutationRecord[]) {
+		// await this.discover();
+		for (const mutation of mutations.filter((m) => m.type === 'childList')) {
+			for (const node of mutation.addedNodes) {
+				if (node.nodeType != 1) { continue; }
 
-		// 			// Check the node itself
-		// 			// or any children that are custom elements
-		// 			if (node instanceof HTMLElement &&
-		// 				(isCustomElement(node) ||
-		// 					matchCustomElement(node as Element).length > 0)) {
-		// 				await this.discover();
-		// 			}
-		// 		};
-		// 	}
-		// }
-		performance.mark("mutation-end");
-		performance.measure("mutation", "mutation-start", "mutation-end");
+				// Check the node itself
+				// or any children that are custom elements
+				if (node instanceof HTMLElement &&
+					(isCustomElement(node) ||
+						matchCustomElement(node as Element).length > 0)) {
+					await this.discover();
+				}
+			};
+		}
 	}
 
 	/**
@@ -174,13 +181,12 @@ class CEAutoLoader {
 
 
 	/**
-	 * discover custom elements in the page and upgrade them.
+	 * Discover the custom elements in the `root` and upgrade them lazily
 	 */
 	async discover() {
 
-		// Watch for new elements
 		if (!this.#initialized && this.options.live) {
-			this.watch();
+			this.watchDOMMutations();
 		}
 
 		// Load elements that matches directives
@@ -197,10 +203,10 @@ class CEAutoLoader {
 	}
 
 	/**
-	 * Upgrade the custom elements in the root
+	 * Upgrade the custom elements using the given `directive`.
 	 *
 	 * @param directive - Filter by elements that matches the given directive (eg: `on="visible"`),
-	 * If directive is null, will upgrade all elements in the `this.#options.root`!
+	 * If directive is null, will upgrade all elements in the `this.#options.root`.
 	 *
 	 * To manually upgrade elements, use the `on="manual"` attribute, but it
 	 * can be any string really. Then call `registry.upgrade("manual")` to upgrade all elements with that attribute.
@@ -225,7 +231,6 @@ class CEAutoLoader {
 				});
 			}
 
-			// TODO: Must check if elements are already observed
 			return elements.map((el) => this.#observers['intersection'].observe(el))
 		}
 
@@ -345,11 +350,11 @@ class CEAutoLoader {
 	/**
 	 * Load a single component
 	 */
-	async load(el: HTMLElement) {
+	async load(el: HTMLElement): Promise<CEAutoLoaderLoadResult> {
 		const name = el.tagName.toLowerCase()
 
-		let asset = this.catalog[name] || this.getWildcardResolver(name)
-		if (!asset) {
+		let loader = this.catalog[name] || this.getWildcardResolver(name)
+		if (!loader) {
 			throw new CEError(`Component ${name} not found in catalog`, { name, el })
 		}
 
@@ -361,10 +366,10 @@ class CEAutoLoader {
 
 			el.setAttribute('ce', "loading");
 
-			if (typeof asset === "string") {
-				module = await import(/* @vite-ignore */ asset);
-			} else if (typeof asset === "function") {
-				module = await asset(name);
+			if (typeof loader === "string") {
+				module = await import(/* @vite-ignore */ loader);
+			} else if (typeof loader === "function") {
+				module = await loader(name);
 			} else {
 				throw new CEError(`Loader of ${name} is invalid! Should be a url or a function`, { name, el, module })
 			}
@@ -375,42 +380,42 @@ class CEAutoLoader {
 			performance.measure(`load:${name}`, `load:${name}:start`, `load:${name}:end`);
 		}
 
-		// bundled mode must define dependencies upfront
+		// Support for components defining it's dependencies upfront
+		let after_imports = customElements.waiting;
+		let diff_imports = Object.keys(after_imports)
+			.filter((key) => !Object.keys(before_imports).includes(key))
+			.filter((key) => key !== name);
 
-		if (el.hasAttribute('bundled')) {
-			let after_imports = customElements.waiting;
-			let diff_imports = Object.keys(after_imports)
-				.filter((key) => !Object.keys(before_imports).includes(key))
-				.filter((key) => key !== name);
-
-			console.log("🩻 diff_imports", diff_imports)
-			for (const element of diff_imports) {
-				DEFINE(element, customElements.waiting[element]['ctor'], {})
-			}
+		for (const element of diff_imports) {
+			DEFINE(element, customElements.waiting[element]['ctor'], {})
 		}
 
-		return { name, module, asset, el }
+		return { name, module, loader, el }
 	}
 
 
 	/**
 	 * Define a single component
 	 */
-	async define({ name, el, module }: { name: string, el: HTMLElement, module: any }) {
+	async define({ name, el, module }: CEAutoLoaderLoadResult) {
+		/**
+		 * The loader may return a `HTMLCustomElement`,
+		 * or it may define the element itself (customElements.define).
+		 */
 		if (customElements.waiting[name]) {
 			module = customElements.waiting[name]['ctor']
 		} else {
 			if (!module) {
 				throw new CEError(`Component ${name} wasn't defined! This is a bug!!!`, { name, el, module })
 			}
-
-			module = module?.prototype instanceof HTMLElement ? module : module?.default;
 		}
 
 		try {
 			performance.mark(`define:${name}:start`);
 
 			DEFINE(name, module, {});
+		} catch (error: any) {
+			throw new CEError(`${name} - ${error.message}`, { name, el, module, error });
 		} finally {
 			el.setAttribute("ce", "defined");
 
@@ -425,17 +430,15 @@ class CEAutoLoader {
 	 * Matches a component name to a wildcard resolver (if exists)
 	 * e.g. "nord-button" -> "nord-*"
 	 */
-	getWildcardResolver(name: string): CEAutoLoaderModule | null {
+	private getWildcardResolver(name: string): CEAutoLoaderModule | null {
 		const [prefix, _comp_name] = name.split('-');
 		return this.catalog[`${prefix}-*`];
 	}
 
 	/**
-	 * Define components in the waiting queue
+	 * Define components in the waiting queue.
 	 */
-	flushDefine(source?: string) {
-		// Some components definitions can be still in waiting (they' have called customElements.define but they're not in DOM)
-		// Let's define them now
+	public flushDefineQueue() {
 		requestAnimationFrame(() => {
 			if (Object.keys(customElements.waiting).length > 0) {
 				Object.entries(customElements.waiting)
@@ -448,19 +451,14 @@ class CEAutoLoader {
 }
 
 /**
- * customElements.define is patched to only register it.
+ * The original customElements.define is patched to allow queueing.
  * It needs another call `DEFINE` to actually define the component.
  *
- * It's used for deferring component.define() calls, and hence, a render until.
- * ce-autoloader uses this to control the lifecycle of the components load -> ready,
- * It'll batches many components.define() calls together, and animate them in a single pass.
- *
- * Otherwise, the define() calls will be executed one by one, and the animation will be
- * triggered one by one.
+ * This allows ce-autoloader to schedule the definitions of components, making animations smoother
+ * Otherwise, the define() calls will be executed one by one, and the animation will be janky.
  *
  * Note that it's global, so it will affect all components in the app that are defined after ce-autoloader.
- * They'll be still available at `customElements.waiting` and you can define anytime with `flushDefine()`
- *
+ * They'll be still available at `customElements.waiting` and you can define anytime with `flushDefineQueue()`
  */
 function monkeyPatchDefine() {
 	globalThis._DEFINE = customElements.define.bind(customElements);

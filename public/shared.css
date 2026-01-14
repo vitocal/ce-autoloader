@@ -42,13 +42,25 @@
     font-size-adjust: 0.52;
 }
 
+.gap-sm {
+    gap: var(--space-sm);
+}
+
+.gap-md {
+    gap: var(--space-md);
+}
+
+.text-center {
+    text-align: center;
+}
+
 /** Component utilities */
 .card {
     background-color: var(--color-bg-light);
     border-radius: var(--radius-md);
     padding: var(--space-sm);
 
-    --bg-color: var(--color-bg);
+    --bg-color: var(--color-bg-light);
     background-color: var(--bg-color);
 
     &[variant="primary"] {

@@ -52,26 +52,22 @@ npm install ce-autoloader
 Import ce-autoloader in your primary bundle and add a components registry:
 
 ```js
-import CERegistry from "ce-autoloader";
+import CERegistry from 'ce-autoloader';
 
-### Powerful Resolvers (Wildcard Loading)
+/* A central registry for all our components 😘 */
+const registry = new CERegistry({
+	catalog: {
+		"model-viewer": "https://unpkg.com/@google/model-viewer",
+		"confetti-button": () => import('./confetti-button.ts'),
+	}
+});
 
-For large design systems, you can use **Dynamic Resolvers** to avoid manual registration:
+// Use the component in your HTML, just like any other element
+// &lt;model-viewer camera-controls auto-rotate
+// src="https://modelviewer.dev/shared-assets/models/shishkebab.glb">&lt;/model-viewer>
 
-```js
-const catalog = {
-    // 1. Dynamic Resolver for Shoelace
-    "sl-*": "https://cdn.jsdelivr.net/npm/shoelace@2.20.1/",
-
-    // 2. Pattern-based Resolver for Material Design
-    "md-*": async (full_name) => {
-        const [namespace, name] = full_name.split('-');
-        return import(`https://esm.run/@material/web/${name}`);
-    },
-
-    // 3. Explicit component registration
-    "x-counter": () => import("./components/x-counter.js"),
-}
+// And load only the components used in the page
+registry.discover();
 ```
 
 Now you can use any component from these libraries, and they will be activated only when used.

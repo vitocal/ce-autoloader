@@ -9,6 +9,7 @@ let catalog = {
 
     "confetti-button": () => import("./confetti-button.ts"),
     "three-cube": () => import("./three-cube.js"),
+    "gl-globe": () => import("./vi/gl-globe.ts"),
     "observable-plot-wrapper": () => import("./observable-plot-wrapper.js"),
     "pix-qrcode": () => import("./pix/qrcode.ts"),
 
@@ -17,11 +18,13 @@ let catalog = {
     "playground-ide": "https://cdn.jsdelivr.net/npm/playground-elements@0.18.1/+esm",
     "json-viewer": "https://esm.sh/@alenaksu/json-viewer",
     "wc-markdown": "https://cdn.skypack.dev/@vanillawc/wc-markdown",
+    "fireworks-js": () => import("https://esm.sh/@fireworks-js/web"),
 
     "model-viewer": async () => {
         // await new Promise((resolve) => setTimeout(resolve, 60000 + Math.random() * 1000));
         await import("https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js");
     },
+
 
     "syntax-highlight": async () => {
         // loadCSSLayer('https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css', 'scoped');

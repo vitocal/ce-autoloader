@@ -5,8 +5,10 @@ import nordSelect from "@nordhealth/components/lib/Select.js";
 import nordButton from "@nordhealth/components/lib/Button.js";
 
 const demos = {
-	"model-viewer": html`<model-viewer on="eager" camera-controls touch-action="pan-y" auto-rotate poster="https://modelviewer.dev/assets/poster-shishkebab.webp" tone-mapping="aces" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" shadow-intensity="1" alt="A 3D model of a shishkebab" ></model-viewer>`,
-	"confetti-button": html`<confetti-button on="eager"><div class="card">🎉 Click me to throw confetti 🎉</div></confetti-button>`
+	"model-viewer": html`<model-viewer on="eager" camera-controls touch-action="pan-y" auto-rotate poster="https://modelviewer.dev/assets/poster-shishkebab.webp" tone-mapping="aces" src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" shadow-intensity="1" alt="A 3D model of a shishkebab" view-transition-name="model-viewer"></model-viewer>`,
+	"confetti-button": html`<confetti-button on="eager"><div class="card" view-transition-name="confetti-button">🎉 Click me to throw confetti 🎉</div></confetti-button>`,
+	"gl-globe": html`<gl-globe on="eager" view-transition-name="gl-globe"></gl-globe>`,
+	"fireworks-js": html`<fireworks-js on="eager" style="height: 600px;"></fireworks-js>`,
 }
 
 export default class HeroExample extends LitElement {
@@ -49,7 +51,7 @@ export default class HeroExample extends LitElement {
   			white-space: pre-wrap;
 		}
 
-		model-viewer {
+		model-viewer, gl-globe, fireworks-js {
 			width: 100%;
 			height: 100%;
 		}
@@ -94,7 +96,7 @@ export default class HeroExample extends LitElement {
 
 	constructor() {
 		super();
-		this.demo = "initial";
+		this.demo = "model-viewer";
 
 		// In light-dom mode, we need to adopt the styles
 		if (this.constructor.styles.styleSheet &&
@@ -109,24 +111,24 @@ export default class HeroExample extends LitElement {
 /* A central registry for all our components 😘 */
 const registry = new CERegistry({
 	catalog: {
-		"model-viewer": "https://unpkg.com/@google/model-viewer",
-		"confetti-button": () => import('./confetti-button.ts'),
+		"model-viewer": "//unpkg.com/@google/model-viewer",
+		"fireworks-js": "//esm.sh/@fireworks-js/web",
+		"gl-globe": () => import("./vi/gl-globe.ts"),
 	}
 });
 
 // Use the component in your HTML, just like any other element
-// &lt;model-viewer camera-controls auto-rotate src="https://modelviewer.dev/shared-assets/models/shishkebab.glb">&lt;/model-viewer>
+// &lt;model-viewer camera-controls auto-rotate
+// src="//modelviewer.dev/shared-assets/models/shishkebab.glb">&lt;/model-viewer>
 
 // And load only the components used in the page
-document.addEventListener('load', () => registry.discover());
-
-`;
+registry.discover();`;
 	}
 
 	html_template() {
-		return `&lt;!-- Use it like any other HTML element -->
-&lt;model-viewer camera-controls auto-rotate src="https://modelviewer.dev/shared-assets/models/shishkebab.glb" >&lt;/model-viewer>
-		`
+		return `&lt;!-- Use it like any other HTML element--&gt;
+& lt; model - viewer camera - controls auto - rotate src = "https://modelviewer.dev/shared-assets/models/shishkebab.glb" >& lt;/model-viewer>
+	`
 	}
 
 	onClick() {
@@ -139,37 +141,24 @@ document.addEventListener('load', () => registry.discover());
 
 	render() {
 
-		let preview = html`<nord-empty-state>
-			<div class="text-center" style="display: flex;flex-direction: column;align-items: center;">
-				<h2>3D Model Demo</h2>
-				<p>Click to load the interactive 3D model (Heavy!)</p>
-				<nord-button variant="primary" @click=${() => this.demo = "model-viewer-loaded"}>Load 3D Model</nord-button>
-			</div>
-		</nord-empty-state>`;
-
-		if (this.demo === "model-viewer-loaded") {
-			preview = demos["model-viewer"];
-		} else if (demos[this.demo]) {
-			preview = demos[this.demo];
-		}
+		let preview = demos[this.demo];
 
 		return html`
-			<div class="left window flex-y" >
-        		<h4 class="flex-x">
-					Demo
+	<div class="left window flex-y">
+		<h4 class="flex-x">
+			Demo
 
-					<nord-select name="demo" value="model-viewer" hide-label class="ml-auto" @change=${this.onDemoSelect} view-transition-name="hero-demo-select">
-						<option value="model-viewer">model-viewer</option>
-						<option value="confetti-button">confetti-button</option>
-					</nord-select>
-				</h4>
-        		<pre><syntax-highlight language="js" view-transition-name="hero-demo-code">${unsafeStatic(this.js_template())}</syntax-highlight></pre>
-    		</div>
+			<nord-select name="demo" value="model-viewer" hide-label class="ml-auto" @change=${this.onDemoSelect} view-transition-name="hero-demo-select">
+				<option value="model-viewer">model-viewer</option>
+				<option value="gl-globe">gl-globe</option>
+				<option value="fireworks-js">fireworks-js</option>
+				<option value="confetti-button">confetti-button</option>
+			</nord-select>
+		</h4>
+		<pre><syntax-highlight language="js" view-transition-name="hero-demo-code">${unsafeStatic(this.js_template())}</syntax-highlight></pre>
+	</div>
 
-			<div class="right preview flex-y" mode=${this.mode}>
-				${preview}
-			</div>
-		`
+	<div class="right preview flex-y" mode=${this.mode}>${preview}</div>`
 	}
 }
 

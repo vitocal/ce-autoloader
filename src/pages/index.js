@@ -16,7 +16,7 @@ globalThis.registry = new CERegistry({
     defaultDirective: 'visible',
     transition: true,
 });
-console.log('Discovered on first run:', await registry.discover());
+await registry.discover();
 
 
 // async function metrics() {
