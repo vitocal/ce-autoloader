@@ -151,21 +151,6 @@ class CEAutoLoader {
 		return elements.filter((el) => (el.getAttribute("loading") == directive))
 	}
 
-	private uniqueByTag(elements: HTMLElement[]) {
-		const seen = new Set();
-		const unique = [];
-
-		for (const el of elements) {
-			const tag = el.tagName;
-			if (!seen.has(tag)) {
-				seen.add(tag);
-				unique.push(el);
-			}
-		}
-
-		return unique
-	}
-
 	/**
 	 * Clean up observers to avoid memory leak
 	 */
