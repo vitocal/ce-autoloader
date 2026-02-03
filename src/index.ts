@@ -145,10 +145,10 @@ class CEAutoLoader {
 	 */
 	private filterByDirective(elements: HTMLElement[], directive?: CEAutoLoaderDirectives) {
 		if (!directive) {
-			return elements.filter((el) => !el.hasAttribute("on"));
+			return elements.filter((el) => !el.hasAttribute("loading"));
 		}
 
-		return elements.filter((el) => (el.getAttribute("on") == directive))
+		return elements.filter((el) => (el.getAttribute("loading") == directive))
 	}
 
 	private uniqueByTag(elements: HTMLElement[]) {
@@ -205,10 +205,10 @@ class CEAutoLoader {
 	/**
 	 * Upgrade the custom elements using the given `directive`.
 	 *
-	 * @param directive - Filter by elements that matches the given directive (eg: `on="visible"`),
+	 * @param directive - Filter by elements that matches the given directive (eg: `loading="visible"`),
 	 * If directive is null, will upgrade all elements in the `this.#options.root`.
 	 *
-	 * To manually upgrade elements, use the `on="manual"` attribute, but it
+	 * To manually upgrade elements, use the `loading="manual"` attribute, but it
 	 * can be any string really. Then call `registry.upgrade("manual")` to upgrade all elements with that attribute.
 	 */
 	async upgrade(directive?: CEAutoLoaderDirectives) {
@@ -272,7 +272,7 @@ class CEAutoLoader {
 	async loadAndDefine(comps: HTMLElement[], source: string) {
 
 		let elements = comps.filter((el) => {
-			const on = el.getAttribute("on")
+			const on = el.getAttribute("loading")
 			return (on === source || on === null)
 		})
 

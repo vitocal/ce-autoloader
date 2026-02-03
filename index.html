@@ -256,8 +256,8 @@
           </li>
           <li class="brazilian-card">
             <strong>Custom Loader Strategy</strong>: Use
-            <code>on="visible"</code> or <code>on="click"</code> to define when
-            a component should be loaded.
+            <code>loading="visible"</code> or <code>loading="click"</code> to
+            define when a component should be loaded.
           </li>
           <li class="brazilian-card">
             <strong>Zero Friction</strong>: 3kb gzipped without dependencies and
@@ -312,7 +312,7 @@ const registry = new CERegistry({
 registry.discover();</syntax-highlight></pre>
 
             <!-- prettier-ignore -->
-            <pre><syntax-highlight language="html">&lt;p>Hello &lt;my-component on="visible">World&lt;/my-component>&lt;/p></syntax-highlight></pre>
+            <pre><syntax-highlight language="html">&lt;p>Hello &lt;my-component loading="visible">World&lt;/my-component>&lt;/p></syntax-highlight></pre>
           </div>
         </div>
       </div>
@@ -384,7 +384,7 @@ registry.discover();</syntax-highlight></pre>
                   <td><code>'visible'</code></td>
                   <td>
                     The default loading strategy used when the
-                    <code>on</code> attribute is missing.
+                    <code>loading</code> attribute is missing.
                   </td>
                 </tr>
                 <tr>
@@ -406,7 +406,7 @@ registry.discover();</syntax-highlight></pre>
           </h2>
 
           <p>
-            The <code>on</code> attribute defines the
+            The <code>loading</code> attribute defines the
             <strong>strategy</strong> for when a component is activated. By
             default, components use the <code>visible</code> strategy to
             maximize initial performance.
@@ -441,7 +441,7 @@ registry.discover();</syntax-highlight></pre>
             <dd>
               <strong>Manual/Programmatic mode.</strong>
               You can specify any custom string (e.g.,
-              <code>on="lazy-load"</code>) and trigger it manually via
+              <code>loading="lazy-load"</code>) and trigger it manually via
               <code>registry.upgrade('lazy-load')</code>.
             </dd>
           </dl>
@@ -449,11 +449,11 @@ registry.discover();</syntax-highlight></pre>
           <!-- prettier-ignore -->
           <vi-example>
 				<div slot="example" class="flex-y">
-<nord-banner variant="success" on="visible">Nord-banner was loaded.</nord-banner>
+<nord-banner variant="success" loading="visible">Nord-banner was loaded.</nord-banner>
 
-<three-cube on="click" view-transition-name="three-cube">Click me to load</three-cube>
+<three-cube loading="click" view-transition-name="three-cube">Click me to load</three-cube>
 
-<confetti-button on="manual" id="confetti" onClick="registry.upgrade('manual')">
+<confetti-button loading="manual" id="confetti" onClick="registry.upgrade('manual')">
 	🎉 Click me to throw confetti 🎉
 </confetti-button>
 				</div>
@@ -590,7 +590,7 @@ registry.discover();</syntax-highlight></pre>
           <!-- prettier-ignore -->
           <vi-example>
             <div slot="example">
-<observable-plot-wrapper on="click" view-transition-name="plot-example">
+<observable-plot-wrapper loading="click" view-transition-name="plot-example">
 🌜 Phases of the moon 🌛
 </observable-plot-wrapper>
             </div>
