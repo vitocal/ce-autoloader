@@ -16,7 +16,6 @@ export default class ObservablePlotWrapper extends HTMLElement {
     color: #fff;
     max-width: none;
     text-transform: uppercase;
-    width: 100%;
     border-radius: var(--radius-sm);
   `,
             x: { domain: d3.range(1, 40), axis: null }, // day of month, aligned by day of week

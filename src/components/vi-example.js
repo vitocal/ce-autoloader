@@ -30,6 +30,14 @@ export class ViExample extends SlottedElement {
                 height: 100%; width: 100%;
                 white-space: pre-wrap;
             }
+
+
+            &.equal-size {
+                grid-template-columns: 1fr minmax(50%, 1fr);
+                syntax-highlight {
+                    white-space: normal !important;
+                }
+            }
         }
 
         @media (max-width: 60ch) {
@@ -72,7 +80,6 @@ export class ViExample extends SlottedElement {
     render() {
         return html`
             <div class="left window flex-y">
-                <h4>Example</h4>
                 <pre><syntax-highlight language="html">${unsafeStatic(this.example_slot)}</syntax-highlight></pre>
             </div>
             <div class="preview right card flex-y">

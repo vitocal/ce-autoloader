@@ -283,6 +283,13 @@ class CEAutoLoader {
 				origin.el.setAttribute('stack', result.reason.stack);
 				this.define({ name: origin.name, el: origin.el, module: fallback_cloned })
 			}))
+		} else if (load_fail.length > 0) {
+			load_fail.forEach((result) => {
+				const origin = result.reason.details;
+				console.error(result.reason.message);
+				origin.el.setAttribute('error', result.reason.message);
+			})
+			throw load_fail[0].reason;
 		}
 
 		const defineComponents = async (source?: string) => {
