@@ -92,6 +92,19 @@
         justify-content: center;
       }
 
+      performance-metrics-plot {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      performance-metrics-plot svg {
+        width: 100% !important;
+        height: auto;
+        display: block;
+      }
+
       ::view-transition-image-pair(plot-example),
       ::view-transition-image-pair(three-cube),
       ::view-transition-image-pair(gl-globe),
@@ -690,6 +703,10 @@ performance.getEntriesByType('measure')
 </syntax-highlight>
 </pre>
             </div>
+          </div>
+
+          <div class="card">
+            <performance-metrics-plot></performance-metrics-plot>
           </div>
         </div>
       </div>

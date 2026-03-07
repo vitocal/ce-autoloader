@@ -7,8 +7,8 @@
     "file": "assets/_commonjsHelpers-CE1G-McA.js",
     "name": "_commonjsHelpers"
   },
-  "_preload-helper-BdcZrgud.js": {
-    "file": "assets/preload-helper-BdcZrgud.js",
+  "_preload-helper-JoHg6GGk.js": {
+    "file": "assets/preload-helper-JoHg6GGk.js",
     "name": "preload-helper"
   },
   "assets/core-web-vitals.jpg": {
@@ -20,12 +20,12 @@
     "src": "assets/observability.jpg"
   },
   "index.html": {
-    "file": "assets/main-ObyiuOJ-.js",
+    "file": "assets/main-DptNHk_m.js",
     "name": "main",
     "src": "index.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-BdcZrgud.js"
+      "_preload-helper-JoHg6GGk.js"
     ],
     "dynamicImports": [
       "src/components/hero-example.js",
@@ -43,12 +43,12 @@
     ]
   },
   "single.html": {
-    "file": "assets/single-DDLsRjAn.js",
+    "file": "assets/single-CZaFWWjV.js",
     "name": "single",
     "src": "single.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-BdcZrgud.js",
+      "_preload-helper-JoHg6GGk.js",
       "_SlotController-Z6eG7LSZ-paOtwl-R.js"
     ]
   },
@@ -89,7 +89,7 @@
     "isDynamicEntry": true
   },
   "src/components/vi-example.js": {
-    "file": "assets/vi-example-CJKBJ2ng.js",
+    "file": "assets/vi-example-z_-HaL1l.js",
     "name": "vi-example",
     "src": "src/components/vi-example.js",
     "isDynamicEntry": true

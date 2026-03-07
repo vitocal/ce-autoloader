@@ -1,4 +1,4 @@
-import{LitElement as s,css as r}from"lit";import{unsafeStatic as n,html as a}from"lit/static-html.js";class o extends s{constructor(){super(),this.slottedChildren=[...this.childNodes],this.namedSlotContent=this.querySelectorAll("[slot]")}updated(){[...this.querySelectorAll("slot:not([filled])")].forEach(t=>{t.getAttribute("name")?this._fillNamedSlot(t):this._fillAnonSlot(t)})}_fillNamedSlot(e){const t=[...this.namedSlotContent].find(l=>l.getAttribute("slot")===e.getAttribute("name"));t&&e.parentElement.replaceChild(t,e),e.setAttribute("filled","")}_fillAnonSlot(e){this.slottedChildren.forEach(t=>{t!==e&&e.parentElement.insertBefore(t,e)}),e.parentElement.removeChild(e),e.setAttribute("filled","")}createRenderRoot(){return this}}class h extends o{static properties={shadow:{type:String,default:"light"}};static styles=r`
+import{LitElement as r,css as s}from"lit";import{unsafeStatic as n,html as a}from"lit/static-html.js";class o extends r{constructor(){super(),this.slottedChildren=[...this.childNodes],this.namedSlotContent=this.querySelectorAll("[slot]")}updated(){[...this.querySelectorAll("slot:not([filled])")].forEach(t=>{t.getAttribute("name")?this._fillNamedSlot(t):this._fillAnonSlot(t)})}_fillNamedSlot(e){const t=[...this.namedSlotContent].find(l=>l.getAttribute("slot")===e.getAttribute("name"));t&&e.parentElement.replaceChild(t,e),e.setAttribute("filled","")}_fillAnonSlot(e){this.slottedChildren.forEach(t=>{t!==e&&e.parentElement.insertBefore(t,e)}),e.parentElement.removeChild(e),e.setAttribute("filled","")}createRenderRoot(){return this}}class d extends o{static properties={shadow:{type:String,default:"light"}};static styles=s`
     @layer components {
         vi-example {
             display: grid;
@@ -16,6 +16,12 @@ import{LitElement as s,css as r}from"lit";import{unsafeStatic as n,html as a}fro
             syntax-highlight {
                 height: 100%; width: 100%;
                 white-space: pre-wrap;
+            }
+
+            &.equal-size {
+                grid-template-columns: 1fr 1fr;
+                .left { grid-column: 1 / 2; }
+                .right { grid-column: 2 / 2; }
             }
         }
 
@@ -41,4 +47,4 @@ import{LitElement as s,css as r}from"lit";import{unsafeStatic as n,html as a}fro
             <div class="preview right card flex-y">
                 <slot name="example"></slot>
             </div>
-        `}}customElements.define("vi-example",h);export{h as ViExample};
+        `}}customElements.define("vi-example",d);export{d as ViExample};

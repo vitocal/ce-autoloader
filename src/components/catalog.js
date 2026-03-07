@@ -11,6 +11,7 @@ let catalog = {
     "three-cube": () => import("./three-cube.js"),
     "gl-globe": () => import("./vi/gl-globe.ts"),
     "observable-plot-wrapper": () => import("./observable-plot-wrapper.js"),
+    "performance-metrics-plot": () => import("./performance-metrics-plot.js"),
     "pix-qrcode": () => import("./pix/qrcode.ts"),
 
     "react-example": () => import("./vi/react-example.tsx"),
