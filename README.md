@@ -65,9 +65,6 @@ const registry = new CERegistry({
 // Use the component in your HTML, just like any other element
 // &lt;model-viewer camera-controls auto-rotate
 // src="https://modelviewer.dev/shared-assets/models/shishkebab.glb">&lt;/model-viewer>
-
-// And load only the components used in the page
-registry.discover();
 ```
 
 Now you can use any component from these libraries, and they will be activated only when used.

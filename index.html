@@ -59,7 +59,6 @@
         @media (max-width: 100ch) {
             hero-example {
                 height: calc(80dvh + 2em);
-                border: 1px solid red;
 
                 grid-gap: 2em;
 
@@ -157,7 +156,8 @@
                     "lit-element": "./assets/vendor.js",
 
                     "globe.gl": "https://cdn.jsdelivr.net/npm/globe.gl",
-                    "three": "https://cdn.jsdelivr.net/npm/three"
+                    "three": "https://cdn.jsdelivr.net/npm/three",
+                    "canvas-confetti": "https://esm.sh/canvas-confetti",
                 }
             }
         </script>
@@ -334,9 +334,7 @@ const registry = new CERegistry({
 		'my-component': () => import('./my-component.js')
 	}
 });
-
-// Start the magic 🪄
-registry.discover();</syntax-highlight></pre>
+</syntax-highlight></pre>
 
                     <!-- prettier-ignore -->
                     <pre><syntax-highlight language="html">&lt;p>Hello &lt;my-component loading="visible">World&lt;/my-component>&lt;/p></syntax-highlight></pre>
@@ -665,6 +663,29 @@ registry.discover();</syntax-highlight></pre>
                 </div>
             </div>
 
+            <div id="error-fallback">
+                <h2>
+                    Error Fallbacks
+                    <span class="n-color-text-weaker">& Resilience</span>
+                </h2>
+
+                <p>
+                    The web is a messy place. Network failures, broken
+                    modules, or unexpected errors can happen. Define a custom
+                    fallback component via <code>fallback</code> that will be displayed if a module
+                    fails to load or throws an error during upgrade.
+                </p>
+
+                <p>
+                    This ensures that your users always have a graceful
+                    experience, even when things go wrong.
+                </p>
+
+                <div class="card">
+                    <vi-error />
+                </div>
+            </div>
+
             <div id="constructor">
                 <h2>Configuration</h2>
                 <p>
@@ -734,12 +755,9 @@ registry.discover();</syntax-highlight></pre>
                             <tr>
                                 <td><code>defaultDirective</code></td>
                                 <td><code>string</code></td>
-                                <td><code>'visible'</code></td>
+                                <td><code>visible</code></td>
                                 <td>
-                                    The default loading strategy used when
-                                    the
-                                    <code>loading</code> attribute is
-                                    missing.
+                                    The default loading strategy, when it's not specified on the element.
                                 </td>
                             </tr>
                             <tr>

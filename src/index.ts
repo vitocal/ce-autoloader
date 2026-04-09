@@ -112,6 +112,8 @@ class CEAutoLoader {
     if (!globalThis.DEFINE) {
       monkeyPatchDefine();
     }
+
+    this.discover();
   }
 
   /**
@@ -387,6 +389,7 @@ class CEAutoLoader {
 
     let module;
     let before_imports = { ...customElements.waiting };
+    let load_error = null;
 
     try {
       performance.mark(`load:${name}:start`);
@@ -404,6 +407,7 @@ class CEAutoLoader {
         );
       }
     } catch (error: any) {
+      load_error = error;
       throw new CEError(`${name} - ${error.message}`, {
         name,
         el,
@@ -412,11 +416,11 @@ class CEAutoLoader {
       });
     } finally {
       performance.mark(`load:${name}:end`);
-      performance.measure(
-        `load:${name}`,
-        `load:${name}:start`,
-        `load:${name}:end`,
-      );
+      performance.measure(`load:${name}`, {
+        detail: { name: name, type: "load", error: load_error },
+        start: `load:${name}:start`,
+        end: `load:${name}:end`,
+      });
     }
 
     // Support for components defining it's dependencies upfront
@@ -445,17 +449,19 @@ class CEAutoLoader {
     } else {
       if (!module) {
         throw new CEError(
-          `Component ${name} wasn't defined! This is a bug!!!`,
+          `Component ${name} wasn't defined! This is a bug and should not have reached here!!`,
           { name, el, module },
         );
       }
     }
 
+    let define_error = null;
     try {
       performance.mark(`define:${name}:start`);
 
       DEFINE(name, module, {});
     } catch (error: any) {
+      define_error = error;
       throw new CEError(`${name} - ${error.message}`, {
         name,
         el,
@@ -466,11 +472,11 @@ class CEAutoLoader {
       el.setAttribute("ce", "defined");
 
       performance.mark(`define:${name}:end`);
-      performance.measure(
-        `define:${name}`,
-        `define:${name}:start`,
-        `define:${name}:end`,
-      );
+      performance.measure(`define:${name}`, {
+        detail: { name: name, type: "define", error: define_error },
+        start: `define:${name}:start`,
+        end: `define:${name}:end`,
+      });
     }
 
     return { name, module, el };

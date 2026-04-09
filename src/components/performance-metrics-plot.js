@@ -30,6 +30,9 @@ export default class PerformanceMetricsPlot extends HTMLElement {
     const colorSecondary =
       style.getPropertyValue("--color-secondary").trim() ||
       "oklch(85% 0.15 85)";
+    const colorTertiary =
+      style.getPropertyValue("--color-accent").trim() || "oklch(85% 0.15 15)";
+
     const colorBg = style.getPropertyValue("--color-bg").trim() || "#f5f5f5";
     const colorFg = style.getPropertyValue("--color-fg").trim() || "#222";
     const radiusSm = style.getPropertyValue("--radius-sm").trim() || "0.4rem";
@@ -37,12 +40,21 @@ export default class PerformanceMetricsPlot extends HTMLElement {
     const entries = performance
       .getEntriesByType("measure")
       .filter((e) => e.name.startsWith("load:") || e.name === "transition")
+      .map((e) => {
+        console.log(e);
+        return e;
+      })
       .map((e) => ({
         name: e.name.replace("load:", ""),
         start: e.startTime,
         end: e.startTime + e.duration,
         duration: e.duration,
-        type: e.name.startsWith("load:") ? "load" : "transition",
+        type:
+          e.detail?.error != null
+            ? "error"
+            : e.name.startsWith("load:")
+              ? "load"
+              : "unknown",
       }))
       .sort((a, b) => a.duration - b.duration);
 
@@ -84,14 +96,16 @@ export default class PerformanceMetricsPlot extends HTMLElement {
         grid: true,
         // load entries in chronological order, transition pinned last
         domain: [
-          ...entries.filter((d) => d.type === "load").map((d) => d.name),
+          ...entries
+            .filter((d) => d.type === "load" || d.type === "error")
+            .map((d) => d.name),
         ],
       },
-      // color: {
-      //   legend: true,
-      //   domain: ["load"],
-      //   range: [colorPrimary, colorSecondary],
-      // },
+      color: {
+        legend: true,
+        domain: ["load", "error"],
+        range: [colorPrimary, colorTertiary],
+      },
       marks: [
         Plot.barX(entries, {
           x1: (d) => 0,

@@ -54,6 +54,7 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "buffer": "^6.0.3",
+    "canvas-confetti": "^1.9.4",
     "chai": "^6.2.1",
     "globe.gl": "^2.45.3",
     "lit": "^3.3.1",
