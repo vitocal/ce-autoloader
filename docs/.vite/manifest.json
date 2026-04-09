@@ -7,8 +7,8 @@
     "file": "assets/_commonjsHelpers-CE1G-McA.js",
     "name": "_commonjsHelpers"
   },
-  "_preload-helper-JoHg6GGk.js": {
-    "file": "assets/preload-helper-JoHg6GGk.js",
+  "_preload-helper-DpCfWECk.js": {
+    "file": "assets/preload-helper-DpCfWECk.js",
     "name": "preload-helper"
   },
   "assets/core-web-vitals.jpg": {
@@ -20,12 +20,12 @@
     "src": "assets/observability.jpg"
   },
   "index.html": {
-    "file": "assets/main-DptNHk_m.js",
+    "file": "assets/main-C7x2jf82.js",
     "name": "main",
     "src": "index.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-JoHg6GGk.js"
+      "_preload-helper-DpCfWECk.js"
     ],
     "dynamicImports": [
       "src/components/hero-example.js",
@@ -34,6 +34,7 @@
       "src/components/three-cube.js",
       "src/components/vi/gl-globe.ts",
       "src/components/observable-plot-wrapper.js",
+      "src/components/performance-metrics-plot.js",
       "src/components/pix/qrcode.ts",
       "src/components/vi/react-example.tsx"
     ],
@@ -43,12 +44,12 @@
     ]
   },
   "single.html": {
-    "file": "assets/single-CZaFWWjV.js",
+    "file": "assets/single-CKnd6j5L.js",
     "name": "single",
     "src": "single.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-JoHg6GGk.js",
+      "_preload-helper-DpCfWECk.js",
       "_SlotController-Z6eG7LSZ-paOtwl-R.js"
     ]
   },
@@ -68,13 +69,19 @@
     ]
   },
   "src/components/observable-plot-wrapper.js": {
-    "file": "assets/observable-plot-wrapper-BPN8VJ_7.js",
+    "file": "assets/observable-plot-wrapper-BGmSK2ei.js",
     "name": "observable-plot-wrapper",
     "src": "src/components/observable-plot-wrapper.js",
     "isDynamicEntry": true
   },
+  "src/components/performance-metrics-plot.js": {
+    "file": "assets/performance-metrics-plot-BkHPYENy.js",
+    "name": "performance-metrics-plot",
+    "src": "src/components/performance-metrics-plot.js",
+    "isDynamicEntry": true
+  },
   "src/components/pix/qrcode.ts": {
-    "file": "assets/qrcode-C-qI_u54.js",
+    "file": "assets/qrcode-zEs-PjNP.js",
     "name": "qrcode",
     "src": "src/components/pix/qrcode.ts",
     "isDynamicEntry": true,
@@ -89,13 +96,13 @@
     "isDynamicEntry": true
   },
   "src/components/vi-example.js": {
-    "file": "assets/vi-example-z_-HaL1l.js",
+    "file": "assets/vi-example-Bsaf35nv.js",
     "name": "vi-example",
     "src": "src/components/vi-example.js",
     "isDynamicEntry": true
   },
   "src/components/vi/gl-globe.ts": {
-    "file": "assets/gl-globe-BmnLTzKo.js",
+    "file": "assets/gl-globe-DHkakV00.js",
     "name": "gl-globe",
     "src": "src/components/vi/gl-globe.ts",
     "isDynamicEntry": true

@@ -1,25 +1,30 @@
 declare global {
-    interface Window {
-        Buffer: any;
-    }
+  interface Window {
+    Buffer: any;
+  }
 }
 
-declare module 'qrcode-pix' {
-    interface QrCodePixParams {
-        version: string;
-        key: string;
-        name: string;
-        city: string;
-        transactionId: string;
-        message?: string;
-        value: number;
-        [key: string]: any;
-    }
+declare module "qrcode-pix" {
+  interface QrCodePixParams {
+    version: string;
+    key: string;
+    name: string;
+    city: string;
+    transactionId: string;
+    message?: string;
+    value: number;
+    [key: string]: any;
+  }
 
-    interface QrCodePixResult {
-        payload: () => string;
-        base64: () => Promise<string>;
-    }
+  interface QrCodePixResult {
+    payload: () => string;
+    base64: () => Promise<string>;
+  }
 
-    export function QrCodePix(params: QrCodePixParams): QrCodePixResult;
+  export function QrCodePix(params: QrCodePixParams): QrCodePixResult;
+}
+
+declare module "globe.gl" {
+  const Globe: any;
+  export default Globe;
 }

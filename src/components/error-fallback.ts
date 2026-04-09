@@ -12,7 +12,7 @@ export default class ErrorFallback extends HTMLElement {
     this.stack = this.getAttribute("stack") || "";
   }
 
-  attributeChangedCallback(name, oldValue, newValue) {
+  attributeChangedCallback(name: string, _oldValue: any, newValue: any) {
     if (name === "error") {
       this.error = newValue;
       this.render();
@@ -30,8 +30,7 @@ export default class ErrorFallback extends HTMLElement {
   render() {
     if (!this.shadowRoot) return;
 
-    this.shadowRoot.innerHTML =
-      `<style>
+    this.shadowRoot.innerHTML = `<style>
         :host {
           display: block;
           background-color: red;
@@ -47,4 +46,4 @@ export default class ErrorFallback extends HTMLElement {
   }
 }
 
-customElements.define('error-fallback', ErrorFallback);
+customElements.define("error-fallback", ErrorFallback);
