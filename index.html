@@ -84,12 +84,10 @@
                         overflow: hidden;
                     }
                     & .left {
-                        max-height: 40dvh;
-                        min-height: 40dvh;
+                        height: 40dvh;
                     }
                     & .right {
-                        max-height: 40dvh;
-                        min-height: 40dvh;
+                        height: 40dvh;
                     }
                 }
             }
@@ -699,7 +697,7 @@ registry.discover();</syntax-highlight></pre>
                     <vi-example class="equal-size">
             <div slot="example">
 <observable-plot-wrapper loading="click" view-transition-name="plot-example">
-🌜 Phases of the moon 🌛
+🌜 (click to load) 🌛
 </observable-plot-wrapper>
             </div>
           </vi-example>
@@ -804,12 +802,13 @@ registry.discover();</syntax-highlight></pre>
                         </div>
                         <div class="right">
                             <h3>Performance Measure</h3>
-                            <pre style="margin-top: 1rem; font-size: 11px">
-<syntax-highlight language="js">// Export all load times
-performance.getEntriesByType('measure')
-    .filter(e => e.name.startsWith('load:'));
-</syntax-highlight>
-</pre>
+
+                            <p>
+                                Gather all measurements with
+                                <code
+                                    >performance.getEntriesByType('measure')</code
+                                >
+                            </p>
                         </div>
                     </div>
 
