@@ -442,6 +442,8 @@ class CEAutoLoader {
 
 }
 
+console.log("CE-autoloader linked");
+
 /**
  * The original customElements.define is patched to allow queueing.
  * It needs another call `DEFINE` to actually define the component.
@@ -478,5 +480,6 @@ declare global {
 	var _DEFINE: typeof CustomElementRegistry.prototype.define;
 	var DEFINE: typeof CustomElementRegistry.prototype.define;
 }
+
 
 export default CEAutoLoader

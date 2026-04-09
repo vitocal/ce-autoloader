@@ -1,319 +1,371 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-      ce-autoloader - Load web components on demand if and when they're needed
-    </title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            ce-autoloader - Load web components on demand if and when they're
+            needed
+        </title>
 
-    <meta property="og:title" content="ce-autoloader" />
-    <meta
-      property="og:description"
-      content="Load web components on demand if and when they're needed." />
-    <meta
-      property="og:image"
-      content="https://vitocal.github.io/ce-autoloader/logo.svg" />
-    <meta
-      property="og:url"
-      content="https://vitocal.github.io/ce-autoloader/" />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="ce-autoloader" />
-    <meta
-      name="twitter:description"
-      content="Load web components on demand if and when they're needed." />
-    <meta
-      name="twitter:image"
-      content="https://vitocal.github.io/ce-autoloader/logo.svg" />
+        <meta property="og:title" content="ce-autoloader" />
+        <meta
+            property="og:description"
+            content="Load web components on demand if and when they're needed."
+        />
+        <meta
+            property="og:image"
+            content="https://vitocal.github.io/ce-autoloader/logo.svg"
+        />
+        <meta
+            property="og:url"
+            content="https://vitocal.github.io/ce-autoloader/"
+        />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="ce-autoloader" />
+        <meta
+            name="twitter:description"
+            content="Load web components on demand if and when they're needed."
+        />
+        <meta
+            name="twitter:image"
+            content="https://vitocal.github.io/ce-autoloader/logo.svg"
+        />
 
-    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+        <link rel="icon" type="image/svg+xml" href="/logo.svg" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital@1&display=swap"
-      rel="stylesheet" />
-    <link rel="preconnect" href="https://nordcdn.net" />
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital@1&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="preconnect" href="https://nordcdn.net" />
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 
-    <style>
-      /** To avoid FOUC (Flash of Unstyled Content) or Layout Shifts,
+        <style>
+            /** To avoid FOUC (Flash of Unstyled Content) or Layout Shifts,
 			we should style early our components, before the first render of page.
 
 			I like to just match the size/aspect ratio, aligning before/after to avoid layout shifts.
 			See `:not(:defined)` for more info on how to style every component at once.
 		*/
-      hero-example {
-        width: 100%;
-        height: 50svh;
-        overflow: clip;
-        overflow-clip-margin: 2em;
-        display: grid;
-      }
-
-      nord-qrcode {
-        aspect-ratio: 1;
-        width: 128px;
-        height: 128px;
-      }
-
-      pix-qrcode {
-        aspect-ratio: 1;
-        width: 196px;
-        height: 196px;
-      }
-
-      @media (max-width: 60ch) {
-        hero-example {
-          height: auto;
-          min-height: 100%;
-          margin: 0;
-        }
-      }
-
-      #about {
-        margin-top: 0em;
-        overflow-clip-margin: 2em;
-      }
-
-      #docs {
-        display: flex;
-        flex-direction: column;
-        gap: 2em;
-      }
-
-      observable-plot-wrapper {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        flex-direction: row;
-        align-content: center;
-        justify-content: center;
-      }
-
-      performance-metrics-plot {
-        display: block;
-        width: 100%;
-        min-width: 0;
-        overflow: hidden;
-      }
-
-      performance-metrics-plot svg {
-        width: 100% !important;
-        height: auto;
-        display: block;
-      }
-
-      ::view-transition-image-pair(plot-example),
-      ::view-transition-image-pair(three-cube),
-      ::view-transition-image-pair(gl-globe),
-      ::view-transition-image-pair(confetti-button),
-      ::view-transition-image-pair(model-viewer) {
-        transform-style: preserve-3d;
-        perspective-origin: center;
-        perspective: 1000px;
-      }
-
-      ::view-transition-old(plot-example),
-      ::view-transition-new(plot-example),
-      ::view-transition-old(three-cube),
-      ::view-transition-new(three-cube),
-      ::view-transition-old(gl-globe),
-      ::view-transition-new(gl-globe),
-      ::view-transition-old(confetti-button),
-      ::view-transition-new(confetti-button),
-      ::view-transition-old(model-viewer),
-      ::view-transition-new(model-viewer) {
-        height: 100%;
-        overflow: clip;
-        animation-timing-function: ease-in-out;
-      }
-    </style>
-
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="shared.css" />
-
-    <script type="importmap">
-      {
-        "imports": {
-          "syntax-highlight": "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm",
-
-          "lit": "./assets/vendor.js",
-          "lit/static-html.js": "./assets/vendor.js",
-          "lit/decorators.js": "./assets/vendor.js",
-          "lit/directives/ref.js": "./assets/vendor.js",
-          "lit/directives/if-defined.js": "./assets/vendor.js",
-          "lit/directives/unsafe-html.js": "./assets/vendor.js",
-          "lit/directives/style-map.js": "./assets/vendor.js",
-          "lit-html": "./assets/vendor.js",
-          "lit-html/is-server.js": "./assets/vendor.js",
-          "@lit/reactive-element": "./assets/vendor.js",
-          "lit-element": "./assets/vendor.js"
-        }
-      }
-    </script>
-
-    <script type="module" src="src/pages/index.js"></script>
-    <script type="module" async>
-      import { loadCSSLayer } from "./src/utils.ts";
-
-      loadCSSLayer("https://nordcdn.net/ds/css/4.2.0/nord.min.css", "ds");
-      loadCSSLayer(
-        "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css",
-        "scoped",
-      );
-    </script>
-  </head>
-
-  <body class="n-reset n-typeset">
-    <nav class="sticky-nav">
-      <img src="/logo.svg" alt="ce-autoloader logo" class="nav-logo" />
-      <a href="#about" class="nav-link">About</a>
-      <a href="#get-started" class="nav-link">Get Started</a>
-      <a href="#docs" class="nav-link">Docs</a>
-      <a href="#examples" class="nav-link">Examples</a>
-      <a href="#faq" class="nav-link">FAQ</a>
-      <a
-        href="https://github.com/vitocal/ce-autoloader"
-        target="_blank"
-        class="nav-link icon-only"
-        aria-label="GitHub Repository">
-        <svg
-          viewBox="0 0 24 24"
-          width="20"
-          height="20"
-          stroke="currentColor"
-          stroke-width="2"
-          fill="none"
-          stroke-linecap="round"
-          stroke-linejoin="round">
-          <path
-            d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-        </svg>
-      </a>
-    </nav>
-
-    <main class="body-container prose">
-      <div class="fold">
-        <div class="fold-header">
-          <h1 style="display: flex; align-items: center; gap: 0.5rem">
-            <img src="/logo.svg" alt="logo" style="width: 80px" />
-            ce-autoloader
-          </h1>
-          <p
-            class="font-display n-color-text-weaker"
-            style="font-size: 1.3rem; max-width: 600px; line-height: 1.3">
-            Load web components on demand <br />
-            <mark>if and when</mark> they're needed.
-          </p>
-        </div>
-
-        <hero-example
-          view-transition-name="hero-example"
-          bundled></hero-example>
-      </div>
-
-      <div class="" id="about">
-        <h1 style="display: none">About</h1>
-        <p>
-          You need a custom <code>&lt;select></code> menu. Suddenly, you've
-          installed <strong>500MB</strong> of <i>node_modules</i>, wrapped your
-          site inside a russian doll of
-          <code>&lt;App>&lt;Provider>&lt;Router</code> tags, and then wait for
-          1MB of JavaScript to run before the user can even scroll. 😖
-        </p>
-        <p>
-          When you try to fix it with SSR, you're now married to the framework
-          and the <strong>"Hydration Mismatch" horror movie</strong> — where the
-          server and client start arguing about what a <code>Date</code> object
-          looks like. Now you're paying for a beefy server just to stringify
-          JSON into HTML, while losing your mind over cache-control headers that
-          are never quite right. Content is stale, CPU is 100%, and your wallet
-          is crying.
-        </p>
-        <blockquote>
-          I just want static pages with a few interactive components. <br />
-          If a component isn’t used on the page, it shouldn’t be downloaded.
-          <br />
-          The fact that this is still hard is kind of absurd. <br />
-        </blockquote>
-
-        <p>
-          <strong>ce-autoloader</strong> is a lightweight library born out of
-          this frustration. It brings
-          <a href="https://jasonformat.com/islands-architecture/"
-            >Islands Architecture</a
-          >
-          to any site, with any framework.
-        </p>
-
-        <p>
-          The special sauce? A shared component catalog, lazy-loading components
-          by default and CSS Animation/View Transitions API to animate them into
-          place.
-        </p>
-
-        <p>Fast sites, minimal JavaScript, without over-engineering. 😮‍💨</p>
-
-        <ul
-          style="
-            margin-top: 4rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-          ">
-          <li class="brazilian-card">
-            <strong>Universal</strong>: Anything that exports a Web Component
-            works (React, Vue, Lit, Svelte, etc.).
-          </li>
-          <li class="brazilian-card">
-            <strong>Custom Loader Strategy</strong>: Use
-            <code>loading="visible"</code> or <code>loading="click"</code> to
-            define when a component should be loaded.
-          </li>
-          <li class="brazilian-card">
-            <strong>Zero Friction</strong>: 3kb gzipped without dependencies and
-            no build steps required.
-          </li>
-          <li class="brazilian-card">
-            <strong>Shared Catalog</strong>: Define your components in a single
-            place and use it across any page.
-          </li>
-          <li class="brazilian-card">
-            <strong>Polished Animations</strong>: Use the lifecycle states and
-            View Transitions API to animate components as they load/render.
-          </li>
-          <li class="brazilian-card">
-            <strong>Smart Scheduling</strong>: Batches custom element upgrades
-            into single animation frames to prevent layout thrashing.
-          </li>
-        </ul>
-      </div>
-
-      <div id="get-started">
-        <h1>Get started</h1>
-
-        <div class="grid-3" style="margin-top: 2rem">
-          <div class="left">
-            <p>It's just 3 steps. No build tools required (but recommended).</p>
-            <ol
-              style="
-                margin-top: 1rem;
-                margin-left: 1rem;
+            hero-example {
+                width: 100%;
+                height: 50svh;
+                overflow: clip;
+                overflow-clip-margin: 2em;
                 display: grid;
-                gap: 0.5rem;
-              ">
-              <li><strong>Install</strong> via npm or CDN</li>
-              <li><strong>Define</strong> your catalog</li>
-              <li><strong>Sprinkle</strong> your web components on the page</li>
-            </ol>
-          </div>
-          <div class="centerright flex-y gap-md">
-            <pre><syntax-highlight language="bash">npm install ce-autoloader</syntax-highlight></pre>
+                transform: translateY(0em);
+                contain: paint;
+            }
 
-            <!-- prettier-ignore -->
-            <pre><syntax-highlight language="javascript">import CERegistry from 'ce-autoloader';
+            nord-qrcode {
+                aspect-ratio: 1;
+                width: 128px;
+                height: 128px;
+            }
+
+            pix-qrcode {
+                aspect-ratio: 1;
+                width: 196px;
+                height: 196px;
+            }
+
+            @media (max-width: 100ch) {
+                hero-example {
+                    height: calc(80dvh + 2em);
+                    border: 1px solid red;
+
+                    grid-gap: 2em;
+
+                    & .window {
+                        overflow: hidden;
+                    }
+                    & .left {
+                        max-height: 40dvh;
+                        min-height: 40dvh;
+                    }
+                    & .right {
+                        max-height: 40dvh;
+                        min-height: 40dvh;
+                    }
+                }
+            }
+
+            #about {
+                margin-top: 0em;
+                overflow-clip-margin: 2em;
+            }
+
+            #docs {
+                display: flex;
+                flex-direction: column;
+                gap: 2em;
+            }
+
+            observable-plot-wrapper {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                flex-direction: row;
+                align-content: center;
+                justify-content: center;
+            }
+
+            performance-metrics-plot {
+                display: block;
+                width: 100%;
+                min-width: 0;
+                overflow: hidden;
+            }
+
+            performance-metrics-plot svg {
+                width: 100% !important;
+                height: auto;
+                display: block;
+            }
+
+            ::view-transition-image-pair(plot-example),
+            ::view-transition-image-pair(three-cube),
+            ::view-transition-image-pair(gl-globe),
+            ::view-transition-image-pair(confetti-button),
+            ::view-transition-image-pair(model-viewer) {
+                transform-style: preserve-3d;
+                perspective-origin: center;
+                perspective: 1000px;
+            }
+
+            ::view-transition-old(plot-example),
+            ::view-transition-new(plot-example),
+            ::view-transition-old(three-cube),
+            ::view-transition-new(three-cube),
+            ::view-transition-old(gl-globe),
+            ::view-transition-new(gl-globe),
+            ::view-transition-old(confetti-button),
+            ::view-transition-new(confetti-button),
+            ::view-transition-old(model-viewer),
+            ::view-transition-new(model-viewer) {
+                height: 100%;
+                overflow: clip;
+                animation-timing-function: ease-in-out;
+            }
+        </style>
+
+        <link rel="stylesheet" href="styles.css" />
+        <link rel="stylesheet" href="shared.css" />
+
+        <script type="importmap">
+            {
+                "imports": {
+                    "syntax-highlight": "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm",
+
+                    "lit": "./assets/vendor.js",
+                    "lit/static-html.js": "./assets/vendor.js",
+                    "lit/decorators.js": "./assets/vendor.js",
+                    "lit/directives/ref.js": "./assets/vendor.js",
+                    "lit/directives/if-defined.js": "./assets/vendor.js",
+                    "lit/directives/unsafe-html.js": "./assets/vendor.js",
+                    "lit/directives/style-map.js": "./assets/vendor.js",
+                    "lit-html": "./assets/vendor.js",
+                    "lit-html/is-server.js": "./assets/vendor.js",
+                    "@lit/reactive-element": "./assets/vendor.js",
+                    "lit-element": "./assets/vendor.js"
+                }
+            }
+        </script>
+
+        <script type="module" src="src/pages/index.js"></script>
+        <script type="module" async>
+            import { loadCSSLayer } from "./src/utils.ts";
+
+            loadCSSLayer("https://nordcdn.net/ds/css/4.2.0/nord.min.css", "ds");
+            loadCSSLayer(
+                "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css",
+                "scoped",
+            );
+        </script>
+    </head>
+
+    <body class="n-reset n-typeset">
+        <nav class="sticky-nav">
+            <img src="/logo.svg" alt="ce-autoloader logo" class="nav-logo" />
+            <a href="#about" class="nav-link">About</a>
+            <a href="#get-started" class="nav-link">Get Started</a>
+            <a href="#docs" class="nav-link">Docs</a>
+            <a href="#examples" class="nav-link">Examples</a>
+            <a href="#faq" class="nav-link">FAQ</a>
+            <a
+                href="https://github.com/vitocal/ce-autoloader"
+                target="_blank"
+                class="nav-link icon-only"
+                aria-label="GitHub Repository"
+            >
+                <svg
+                    viewBox="0 0 24 24"
+                    width="20"
+                    height="20"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path
+                        d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+                    ></path>
+                </svg>
+            </a>
+        </nav>
+
+        <main class="body-container prose">
+            <div class="fold">
+                <div class="fold-header">
+                    <h1 style="display: flex; align-items: center; gap: 0.5rem">
+                        <img src="/logo.svg" alt="logo" style="width: 80px" />
+                        ce-autoloader
+                    </h1>
+                    <p
+                        class="font-display n-color-text-weaker"
+                        style="
+                            font-size: 1.3rem;
+                            max-width: 600px;
+                            line-height: 1.3;
+                        "
+                    >
+                        Load web components on demand <br />
+                        <mark>if and when</mark> they're needed.
+                    </p>
+                </div>
+
+                <hero-example
+                    view-transition-name="hero-example"
+                    bundled
+                ></hero-example>
+            </div>
+
+            <div class="" id="about">
+                <h1 style="display: none">About</h1>
+                <p>
+                    You need a custom <code>&lt;select></code> menu. Suddenly,
+                    you've installed <strong>500MB</strong> of
+                    <i>node_modules</i>, wrapped your site inside a russian doll
+                    of <code>&lt;App>&lt;Provider>&lt;Router</code> tags, and
+                    then wait for 1MB of JavaScript to run before the user can
+                    even scroll. 😖
+                </p>
+                <p>
+                    When you try to fix it with SSR, you're now married to the
+                    framework and the
+                    <strong>"Hydration Mismatch" horror movie</strong> — where
+                    the server and client start arguing about what a
+                    <code>Date</code> object looks like. Now you're paying for a
+                    beefy server just to stringify JSON into HTML, while losing
+                    your mind over cache-control headers that are never quite
+                    right. Content is stale, CPU is 100%, and your wallet is
+                    crying.
+                </p>
+                <blockquote>
+                    I just want static pages with a few interactive components.
+                    <br />
+                    If a component isn’t used on the page, it shouldn’t be
+                    downloaded.
+                    <br />
+                    The fact that this is still hard is kind of absurd. <br />
+                </blockquote>
+
+                <p>
+                    <strong>ce-autoloader</strong> is a lightweight library born
+                    out of this frustration. It brings
+                    <a href="https://jasonformat.com/islands-architecture/"
+                        >Islands Architecture</a
+                    >
+                    to any site, with any framework.
+                </p>
+
+                <p>
+                    The special sauce? A shared component catalog, lazy-loading
+                    components by default and CSS Animation/View Transitions API
+                    to animate them into place.
+                </p>
+
+                <p>
+                    Fast sites, minimal JavaScript, without over-engineering. 😮‍💨
+                </p>
+
+                <ul
+                    style="
+                        margin-top: 4rem;
+                        display: grid;
+                        grid-template-columns: repeat(
+                            auto-fit,
+                            minmax(250px, 1fr)
+                        );
+                        gap: 1rem;
+                    "
+                >
+                    <li class="brazilian-card">
+                        <strong>Universal</strong>: Anything that exports a Web
+                        Component works (React, Vue, Lit, Svelte, etc.).
+                    </li>
+                    <li class="brazilian-card">
+                        <strong>Custom Loader Strategy</strong>: Use
+                        <code>loading="visible"</code> or
+                        <code>loading="click"</code> to define when a component
+                        should be loaded.
+                    </li>
+                    <li class="brazilian-card">
+                        <strong>Zero Friction</strong>: 3kb gzipped without
+                        dependencies and no build steps required.
+                    </li>
+                    <li class="brazilian-card">
+                        <strong>Shared Catalog</strong>: Define your components
+                        in a single place and use it across any page.
+                    </li>
+                    <li class="brazilian-card">
+                        <strong>Polished Animations</strong>: Use the lifecycle
+                        states and View Transitions API to animate components as
+                        they load/render.
+                    </li>
+                    <li class="brazilian-card">
+                        <strong>Smart Scheduling</strong>: Batches custom
+                        element upgrades into single animation frames to prevent
+                        layout thrashing.
+                    </li>
+                </ul>
+            </div>
+
+            <div id="get-started">
+                <h1>Get started</h1>
+
+                <div class="grid-3" style="margin-top: 2rem">
+                    <div class="left">
+                        <p>
+                            It's just 3 steps. No build tools required (but
+                            recommended).
+                        </p>
+                        <ol
+                            style="
+                                margin-top: 1rem;
+                                margin-left: 1rem;
+                                display: grid;
+                                gap: 0.5rem;
+                            "
+                        >
+                            <li><strong>Install</strong> via npm or CDN</li>
+                            <li><strong>Define</strong> your catalog</li>
+                            <li>
+                                <strong>Sprinkle</strong> your web components on
+                                the page
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="centerright flex-y gap-md">
+                        <pre><syntax-highlight language="bash">npm install ce-autoloader</syntax-highlight></pre>
+
+                        <!-- prettier-ignore -->
+                        <pre><syntax-highlight language="javascript">import CERegistry from 'ce-autoloader';
 
 const registry = new CERegistry({
 	catalog: {
@@ -324,143 +376,168 @@ const registry = new CERegistry({
 // Start the magic 🪄
 registry.discover();</syntax-highlight></pre>
 
-            <!-- prettier-ignore -->
-            <pre><syntax-highlight language="html">&lt;p>Hello &lt;my-component loading="visible">World&lt;/my-component>&lt;/p></syntax-highlight></pre>
-          </div>
-        </div>
-      </div>
+                        <!-- prettier-ignore -->
+                        <pre><syntax-highlight language="html">&lt;p>Hello &lt;my-component loading="visible">World&lt;/my-component>&lt;/p></syntax-highlight></pre>
+                    </div>
+                </div>
+            </div>
 
-      <div id="docs">
-        <h1>Documentation</h1>
-        <div id="constructor">
-          <h2>Configuration</h2>
-          <p>
-            When creating a new <code>CERegistry</code>, you can pass an options
-            object to customize its behavior.
-          </p>
-          <div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Option</th>
-                  <th>Type</th>
-                  <th>Default</th>
-                  <th>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>catalog</code></td>
-                  <td><code>Record&lt;string, string | function&gt;</code></td>
-                  <td><em>Required</em></td>
-                  <td>
-                    A mapping of tag names to their respective loader functions
-                    or URLs.
-                  </td>
-                </tr>
-                <tr>
-                  <td><code>root</code></td>
-                  <td><code>HTMLElement</code></td>
-                  <td><code>document.body</code></td>
-                  <td>
-                    The root element where the loader will search for custom
-                    elements.
-                  </td>
-                </tr>
-                <tr>
-                  <td><code>live</code></td>
-                  <td><code>boolean</code></td>
-                  <td><code>true</code></td>
-                  <td>
-                    Automatically watches the DOM for new custom elements to
-                    upgrade.
-                  </td>
-                </tr>
-                <tr>
-                  <td><code>transition</code></td>
-                  <td><code>boolean</code></td>
-                  <td><code>true</code></td>
-                  <td>
-                    Enables the View Transitions API for smooth element
-                    upgrades.
-                  </td>
-                </tr>
-                <tr>
-                  <td><code>directives</code></td>
-                  <td><code>string[]</code></td>
-                  <td><code>['eager', 'visible', 'click']</code></td>
-                  <td>A list of supported loading triggers.</td>
-                </tr>
-                <tr>
-                  <td><code>defaultDirective</code></td>
-                  <td><code>string</code></td>
-                  <td><code>'visible'</code></td>
-                  <td>
-                    The default loading strategy used when the
-                    <code>loading</code> attribute is missing.
-                  </td>
-                </tr>
-                <tr>
-                  <td><code>fallback</code></td>
-                  <td><code>CustomElementConstructor</code></td>
-                  <td><code>undefined</code></td>
-                  <td>
-                    A custom element class to use if a component fails to load.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div id="activation-triggers">
-          <h2>
-            Activation Triggers
-            <span class="n-color-text-weaker">(Loading Strategies)</span>
-          </h2>
+            <div id="docs">
+                <h1>Documentation</h1>
+                <div id="constructor">
+                    <h2>Configuration</h2>
+                    <p>
+                        When creating a new <code>CERegistry</code>, you can
+                        pass an options object to customize its behavior.
+                    </p>
+                    <div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Option</th>
+                                    <th>Type</th>
+                                    <th>Default</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>catalog</code></td>
+                                    <td>
+                                        <code
+                                            >Record&lt;string, string |
+                                            function&gt;</code
+                                        >
+                                    </td>
+                                    <td><em>Required</em></td>
+                                    <td>
+                                        A mapping of tag names to their
+                                        respective loader functions or URLs.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><code>root</code></td>
+                                    <td><code>HTMLElement</code></td>
+                                    <td><code>document.body</code></td>
+                                    <td>
+                                        The root element where the loader will
+                                        search for custom elements.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><code>live</code></td>
+                                    <td><code>boolean</code></td>
+                                    <td><code>true</code></td>
+                                    <td>
+                                        Automatically watches the DOM for new
+                                        custom elements to upgrade.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><code>transition</code></td>
+                                    <td><code>boolean</code></td>
+                                    <td><code>true</code></td>
+                                    <td>
+                                        Enables the View Transitions API for
+                                        smooth element upgrades.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><code>directives</code></td>
+                                    <td><code>string[]</code></td>
+                                    <td>
+                                        <code
+                                            >['eager', 'visible', 'click']</code
+                                        >
+                                    </td>
+                                    <td>
+                                        A list of supported loading triggers.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><code>defaultDirective</code></td>
+                                    <td><code>string</code></td>
+                                    <td><code>'visible'</code></td>
+                                    <td>
+                                        The default loading strategy used when
+                                        the
+                                        <code>loading</code> attribute is
+                                        missing.
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><code>fallback</code></td>
+                                    <td>
+                                        <code>CustomElementConstructor</code>
+                                    </td>
+                                    <td><code>undefined</code></td>
+                                    <td>
+                                        A custom element class to use if a
+                                        component fails to load.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="activation-triggers">
+                    <h2>
+                        Activation Triggers
+                        <span class="n-color-text-weaker"
+                            >(Loading Strategies)</span
+                        >
+                    </h2>
 
-          <p>
-            The <code>loading</code> attribute defines the
-            <strong>strategy</strong> for when a component is activated. By
-            default, components use the <code>visible</code> strategy to
-            maximize initial performance.
-          </p>
+                    <p>
+                        The <code>loading</code> attribute defines the
+                        <strong>strategy</strong> for when a component is
+                        activated. By default, components use the
+                        <code>visible</code> strategy to maximize initial
+                        performance.
+                    </p>
 
-          <dl class="n-dl">
-            <dt>visible <span class="n-color-text-weaker">(Default)</span></dt>
-            <dd>
-              <strong>Lazy-loading via Intersection Observer.</strong>
-              Components are downloaded and defined only when they enter the
-              viewport. Perfect for content "below the fold" to keep initial
-              page weight low.
-            </dd>
+                    <dl class="n-dl">
+                        <dt>
+                            visible
+                            <span class="n-color-text-weaker">(Default)</span>
+                        </dt>
+                        <dd>
+                            <strong
+                                >Lazy-loading via Intersection Observer.</strong
+                            >
+                            Components are downloaded and defined only when they
+                            enter the viewport. Perfect for content "below the
+                            fold" to keep initial page weight low.
+                        </dd>
 
-            <dt>click</dt>
-            <dd>
-              <strong>Hydrate on demand.</strong>
-              The module is fetched when a user clicks or touches the element.
-              Ideal for heavy UI widgets like maps, complex editors, or modal
-              content.
-            </dd>
+                        <dt>click</dt>
+                        <dd>
+                            <strong>Hydrate on demand.</strong>
+                            The module is fetched when a user clicks or touches
+                            the element. Ideal for heavy UI widgets like maps,
+                            complex editors, or modal content.
+                        </dd>
 
-            <dt>eager</dt>
-            <dd>
-              <strong>Immediate activation.</strong>
-              Downloads the module as soon as the loader discovery starts. Use
-              this for critical "above the fold" components like navigation
-              headers or hero sections.
-            </dd>
+                        <dt>eager</dt>
+                        <dd>
+                            <strong>Immediate activation.</strong>
+                            Downloads the module as soon as the loader discovery
+                            starts. Use this for critical "above the fold"
+                            components like navigation headers or hero sections.
+                        </dd>
 
-            <dt>*custom*</dt>
-            <dd>
-              <strong>Manual/Programmatic mode.</strong>
-              You can specify any custom string (e.g.,
-              <code>loading="lazy-load"</code>) and trigger it manually via
-              <code>registry.upgrade('lazy-load')</code>.
-            </dd>
-          </dl>
+                        <dt>*custom*</dt>
+                        <dd>
+                            <strong>Manual/Programmatic mode.</strong>
+                            You can specify any custom string (e.g.,
+                            <code>loading="lazy-load"</code>) and trigger it
+                            manually via
+                            <code>registry.upgrade('lazy-load')</code>.
+                        </dd>
+                    </dl>
 
-          <!-- prettier-ignore -->
-          <vi-example>
+                    <!-- prettier-ignore -->
+                    <vi-example>
 				<div slot="example" class="flex-y">
 <nord-banner variant="success" loading="visible">Nord-banner was loaded.</nord-banner>
 
@@ -471,60 +548,75 @@ registry.discover();</syntax-highlight></pre>
 </confetti-button>
 				</div>
 			</vi-example>
-        </div>
+                </div>
 
-        <div id="dynamic-resolvers">
-          <h2>
-            Dynamic Resolvers
-            <span class="n-color-text-weaker">(Wildcard Loaders)</span>
-          </h2>
+                <div id="dynamic-resolvers">
+                    <h2>
+                        Dynamic Resolvers
+                        <span class="n-color-text-weaker"
+                            >(Wildcard Loaders)</span
+                        >
+                    </h2>
 
-          <p>
-            Don't want to register 50 components one by one?
-            <strong>Pode crer</strong>, we got you. Dynamic Resolvers (or
-            Wildcard Loaders) allow you to register a function that "resolves"
-            any tag matching a specific pattern.
-          </p>
+                    <p>
+                        Don't want to register 50 components one by one?
+                        <strong>Pode crer</strong>, we got you. Dynamic
+                        Resolvers (or Wildcard Loaders) allow you to register a
+                        function that "resolves" any tag matching a specific
+                        pattern.
+                    </p>
 
-          <div class="grid-3" style="margin-top: 2rem">
-            <div class="leftcenter">
-              <p>
-                In this example, we registered a resolver for
-                <code>nord-*</code>. The browser sees
-                <code>&lt;nord-qrcode&gt;</code>, and our resolver instantly
-                fetches the Correct module from the CDN.
-              </p>
-              <ul style="margin-top: 1rem; display: grid; gap: 0.5rem">
-                <li>
-                  <strong>No Giant Bundles</strong>: Only the components on the
-                  page are downloaded.
-                </li>
-                <li>
-                  <strong>Pure HTML Workflow</strong>: Add a tag, and it just
-                  works.
-                </li>
-                <li>
-                  <strong>Industry Standard</strong>: Same pattern used by Vite
-                  and Auto-import plugins.
-                </li>
-              </ul>
-            </div>
+                    <div class="grid-3" style="margin-top: 2rem">
+                        <div class="leftcenter">
+                            <p>
+                                In this example, we registered a resolver for
+                                <code>nord-*</code>. The browser sees
+                                <code>&lt;nord-qrcode&gt;</code>, and our
+                                resolver instantly fetches the Correct module
+                                from the CDN.
+                            </p>
+                            <ul
+                                style="
+                                    margin-top: 1rem;
+                                    display: grid;
+                                    gap: 0.5rem;
+                                "
+                            >
+                                <li>
+                                    <strong>No Giant Bundles</strong>: Only the
+                                    components on the page are downloaded.
+                                </li>
+                                <li>
+                                    <strong>Pure HTML Workflow</strong>: Add a
+                                    tag, and it just works.
+                                </li>
+                                <li>
+                                    <strong>Industry Standard</strong>: Same
+                                    pattern used by Vite and Auto-import
+                                    plugins.
+                                </li>
+                            </ul>
+                        </div>
 
-            <figure class="right flex-y ai-center">
-              <nord-qrcode
-                value="https://vitocal.github.io/ce-autoloader/"
-                view-transition-name="qr-code"></nord-qrcode>
-              <figcaption>Leve e rápido. (Light and fast)</figcaption>
-            </figure>
-          </div>
+                        <figure class="right flex-y ai-center">
+                            <nord-qrcode
+                                value="https://vitocal.github.io/ce-autoloader/"
+                                view-transition-name="qr-code"
+                            ></nord-qrcode>
+                            <figcaption>
+                                Leve e rápido. (Light and fast)
+                            </figcaption>
+                        </figure>
+                    </div>
 
-          <p>
-            Here is an example of a <strong>Wildcard Resolver</strong> for the
-            Nord design system:
-          </p>
+                    <p>
+                        Here is an example of a
+                        <strong>Wildcard Resolver</strong> for the Nord design
+                        system:
+                    </p>
 
-          <!-- prettier-ignore -->
-          <pre><syntax-highlight language="js">/**
+                    <!-- prettier-ignore -->
+                    <pre><syntax-highlight language="js">/**
  * Pattern-based Resolver for Nord Health components
  */
 "nord-*": async (full_name) => {
@@ -540,68 +632,71 @@ registry.discover();</syntax-highlight></pre>
     }
     return module
 },</syntax-highlight></pre>
-        </div>
+                </div>
 
-        <div id="lifecycle">
-          <h2>
-            Entrance Lifecycle
-            <span class="n-color-text-weaker">& Transitions</span>
-          </h2>
+                <div id="lifecycle">
+                    <h2>
+                        Entrance Lifecycle
+                        <span class="n-color-text-weaker">& Transitions</span>
+                    </h2>
 
-          <p>
-            Web components shouldn't just "pop" into existence.
-            <code>ce-autoloader</code> provides a robust
-            <strong>lifecycle state machine</strong> that allows you to style
-            components as they transition from placeholders to interactive
-            elements, effectively eliminating
-            <strong>Cumulative Layout Shift (CLS)</strong>.
-          </p>
+                    <p>
+                        Web components shouldn't just "pop" into existence.
+                        <code>ce-autoloader</code> provides a robust
+                        <strong>lifecycle state machine</strong> that allows you
+                        to style components as they transition from placeholders
+                        to interactive elements, effectively eliminating
+                        <strong>Cumulative Layout Shift (CLS)</strong>.
+                    </p>
 
-          <h3>The Discovery Lifecycle</h3>
-          <p>
-            Every component moves through three distinct states, that you can
-            style using CSS.
-          </p>
+                    <h3>The Discovery Lifecycle</h3>
+                    <p>
+                        Every component moves through three distinct states,
+                        that you can style using CSS.
+                    </p>
 
-          <dl class="n-dl">
-            <dt><code>:not(:defined)</code></dt>
-            <dd>
-              <strong>Placeholder State.</strong>
-              The custom element is in the DOM but the browser doesn't know its
-              behavior yet. Use this to set <i>min-height</i> or
-              <i>aspect-ratio</i> to reserve space on the page.
-            </dd>
+                    <dl class="n-dl">
+                        <dt><code>:not(:defined)</code></dt>
+                        <dd>
+                            <strong>Placeholder State.</strong>
+                            The custom element is in the DOM but the browser
+                            doesn't know its behavior yet. Use this to set
+                            <i>min-height</i> or <i>aspect-ratio</i> to reserve
+                            space on the page.
+                        </dd>
 
-            <dt><code>[ce="loading"]</code></dt>
-            <dd>
-              <strong>Activation State.</strong>
-              Triggered when the library begins fetching the module. This is the
-              perfect time to show a <i>Skeleton Loader</i> or a progress
-              indicator.
-            </dd>
+                        <dt><code>[ce="loading"]</code></dt>
+                        <dd>
+                            <strong>Activation State.</strong>
+                            Triggered when the library begins fetching the
+                            module. This is the perfect time to show a
+                            <i>Skeleton Loader</i> or a progress indicator.
+                        </dd>
 
-            <dt><code>[ce="defined"]</code></dt>
-            <dd>
-              <strong>interactive State.</strong>
-              The component is defined and upgraded. Use this to trigger a final
-              "fade-in" or entrance animation.
-            </dd>
-          </dl>
+                        <dt><code>[ce="defined"]</code></dt>
+                        <dd>
+                            <strong>interactive State.</strong>
+                            The component is defined and upgraded. Use this to
+                            trigger a final "fade-in" or entrance animation.
+                        </dd>
+                    </dl>
 
-          <p>
-            Besides the lifecycle states, <strong>view transitions</strong> are
-            supported out of the box.
-          </p>
+                    <p>
+                        Besides the lifecycle states,
+                        <strong>view transitions</strong> are supported out of
+                        the box.
+                    </p>
 
-          <p>
-            You can use the <code>view-transition-name</code> attribute to
-            include a view transition
-          </p>
+                    <p>
+                        You can use the
+                        <code>view-transition-name</code> attribute to include a
+                        view transition
+                    </p>
 
-          <br />
+                    <br />
 
-          <!-- prettier-ignore -->
-          <vi-example class="equal-size">
+                    <!-- prettier-ignore -->
+                    <vi-example class="equal-size">
             <div slot="example">
 <observable-plot-wrapper loading="click" view-transition-name="plot-example">
 🌜 Phases of the moon 🌛
@@ -609,7 +704,7 @@ registry.discover();</syntax-highlight></pre>
             </div>
           </vi-example>
 
-          <!--
+                    <!--
 				<h3>CSS Transitions</h3>
 				<p>Use the following css as a starting point:</p>
 
@@ -651,104 +746,130 @@ registry.discover();</syntax-highlight></pre>
 </syntax-highlight>
 </pre>
 -->
-        </div>
+                </div>
 
-        <div id="telemetry">
-          <h2>
-            Native Telemetry <span class="n-color-text-weaker">& Insights</span>
-          </h2>
+                <div id="telemetry">
+                    <h2>
+                        Native Telemetry
+                        <span class="n-color-text-weaker">& Insights</span>
+                    </h2>
 
-          <p>
-            Performance is built into the core. <code>ce-autoloader</code> uses
-            the native <strong>User Timing API</strong> to provide granular
-            metrics for every stage of your components' lifecycle. This allows
-            you to quantify the exact impact of your loading strategies on
-            <strong>Core Web Vitals</strong>.
-          </p>
+                    <p>
+                        Performance is built into the core.
+                        <code>ce-autoloader</code> uses the native
+                        <strong>User Timing API</strong> to provide granular
+                        metrics for every stage of your components' lifecycle.
+                        This allows you to quantify the exact impact of your
+                        loading strategies on <strong>Core Web Vitals</strong>.
+                    </p>
 
-          <img
-            src="assets/observability.jpg"
-            alt="Observability has native integration into performance devtools"
-            width="1024"
-            height="768"
-            loading="lazy"
-            style="margin: 1rem 0" />
+                    <img
+                        src="assets/observability.jpg"
+                        alt="Observability has native integration into performance devtools"
+                        width="1024"
+                        height="768"
+                        loading="lazy"
+                        style="margin: 1rem 0"
+                    />
 
-          <div class="grid-3">
-            <div class="leftcenter">
-              <h3>High-resolution markers</h3>
-              <p>
-                Granular metrics for every stage of the lifecycle, visible in
-                the
-                <strong>Performance Tab</strong>.
-              </p>
-              <ul
-                style="
-                  margin-top: 1rem;
-                  display: grid;
-                  gap: 0.5rem;
-                  font-size: 0.9rem;
-                ">
-                <li><strong>load:tag-name</strong>: Fetch duration.</li>
-                <li><strong>define:tag-name</strong>: JS registration time.</li>
-                <li><strong>transition</strong>: Animation duration.</li>
-              </ul>
-            </div>
-            <div class="right">
-              <h3>Performance Measure</h3>
-              <pre style="margin-top: 1rem; font-size: 11px">
+                    <div class="grid-3">
+                        <div class="leftcenter">
+                            <h3>High-resolution markers</h3>
+                            <p>
+                                Granular metrics for every stage of the
+                                lifecycle, visible in the
+                                <strong>Performance Tab</strong>.
+                            </p>
+                            <ul
+                                style="
+                                    margin-top: 1rem;
+                                    display: grid;
+                                    gap: 0.5rem;
+                                    font-size: 0.9rem;
+                                "
+                            >
+                                <li>
+                                    <strong>load:tag-name</strong>: Fetch
+                                    duration.
+                                </li>
+                                <li>
+                                    <strong>define:tag-name</strong>: JS
+                                    registration time.
+                                </li>
+                                <li>
+                                    <strong>transition</strong>: Animation
+                                    duration.
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="right">
+                            <h3>Performance Measure</h3>
+                            <pre style="margin-top: 1rem; font-size: 11px">
 <syntax-highlight language="js">// Export all load times
 performance.getEntriesByType('measure')
     .filter(e => e.name.startsWith('load:'));
 </syntax-highlight>
 </pre>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <performance-metrics-plot></performance-metrics-plot>
+                    </div>
+                </div>
             </div>
-          </div>
 
-          <div class="card">
-            <performance-metrics-plot></performance-metrics-plot>
-          </div>
-        </div>
-      </div>
+            <div class="brazilian-card prose" style="margin-top: 4rem" id="faq">
+                <h1 style="border-bottom: 0; margin-bottom: 2rem">
+                    FAQ
+                    <span class="n-color-text-weaker"
+                        >(Perguntas Frequentes)</span
+                    >
+                </h1>
 
-      <div class="brazilian-card prose" style="margin-top: 4rem" id="faq">
-        <h1 style="border-bottom: 0; margin-bottom: 2rem">
-          FAQ <span class="n-color-text-weaker">(Perguntas Frequentes)</span>
-        </h1>
+                <div style="display: flex; flex-direction: column; gap: 2rem">
+                    <div>
+                        <h3>Why web components?</h3>
+                        <p>
+                            Web components with light-dom&css variables are the
+                            GOAT! They are the only way to reuse components
+                            across frameworks, and since they're part of HTML
+                            spec, they'll still work in 20 years.
+                        </p>
+                        <p>
+                            Aren't you tired of recreating the same components
+                            over and over again every 5 years with the new shiny
+                            framework? Let's stop this madness!
+                        </p>
+                    </div>
 
-        <div style="display: grid; gap: 2rem">
-          <div>
-            <h3>Why web components?</h3>
-            <p>
-              Web components with light-dom&css variables are the GOAT! They are
-              the only way to reuse components across frameworks, and since
-              they're part of HTML spec, they'll still work in 20 years.
-            </p>
-            <p>
-              Aren't you tired of recreating the same components over and over
-              again every 5 years with the new shiny framework? Let's stop this
-              madness!
-            </p>
-          </div>
+                    <div>
+                        <h3>⚛️ How to use this with react/vue/svelte/etç?</h3>
 
-          <div>
-            <h3>⚛️ How to use this with react/vue/svelte/etç?</h3>
-
-            <p>
-              <a href="https://vuejs.org/guide/extras/web-components">Vue</a>
-              and
-              <a href="https://svelte.dev/blog/web-components">Svelte</a>
-              already export web-components out of the box!
-            </p>
-            <p>
-              Only React is purposefully missing this feature, so you need to
-              use a library like
-              <a href="https://github.com/rstacruz/remount">remount</a> or
-              <a href="https://github.com/bitovi/react-to-web-component"
-                >react-to-web-component</a
-              >.
-            </p>
-            <pre>
+                        <p>
+                            <a
+                                href="https://vuejs.org/guide/extras/web-components"
+                                >Vue</a
+                            >
+                            and
+                            <a href="https://svelte.dev/blog/web-components"
+                                >Svelte</a
+                            >
+                            already export web-components out of the box!
+                        </p>
+                        <p>
+                            Only React is purposefully missing this feature, so
+                            you need to use a library like
+                            <a href="https://github.com/rstacruz/remount"
+                                >remount</a
+                            >
+                            or
+                            <a
+                                href="https://github.com/bitovi/react-to-web-component"
+                                >react-to-web-component</a
+                            >.
+                        </p>
+                        <pre>
 <syntax-highlight language="js">import r2wc from "@r2wc/react-to-web-component"
 
 const Greeter = ({ name }) => {
@@ -762,125 +883,158 @@ export default r2wc(Greeter, {
 });
 </syntax-highlight>
 					</pre>
-          </div>
+                    </div>
 
-          <div>
-            <h3
-              style="
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                margin-bottom: 0.5rem;
-              ">
-              <span style="font-size: 1.5rem">🚀</span> Wait, isn't this like
-              Astro?
-            </h3>
-            <p>
-              <strong>Yes and No.</strong> Both use the "Island Architecture"
-              concept to reduce JS bloat, but they are :
-            </p>
-            <ul style="margin-top: 0.5rem; display: grid; gap: 0.25rem">
-              <li>
-                <strong>Astro (Server-First):</strong> Renders at
-                <strong>build time</strong> or at server. Great for new apps.
-              </li>
-              <li>
-                <strong>ce-autoloader (Client-First):</strong> Runs at
-                <strong>runtime</strong>. Great for adding islands to
-                <em>existing</em> Python, Ruby, Elixir or static HTML pages.
-              </li>
-            </ul>
-          </div>
+                    <div>
+                        <h3
+                            style="
+                                display: flex;
+                                align-items: center;
+                                gap: 0.5rem;
+                                margin-bottom: 0.5rem;
+                            "
+                        >
+                            <span style="font-size: 1.5rem">🚀</span> Wait,
+                            isn't this like Astro?
+                        </h3>
+                        <p>
+                            <strong>Yes and No.</strong> Both use the "Island
+                            Architecture" concept to reduce JS bloat, but they
+                            are :
+                        </p>
+                        <ul
+                            style="
+                                margin-top: 0.5rem;
+                                display: grid;
+                                gap: 0.25rem;
+                            "
+                        >
+                            <li>
+                                <strong>Astro (Server-First):</strong> Renders
+                                at <strong>build time</strong> or at server.
+                                Great for new apps.
+                            </li>
+                            <li>
+                                <strong>ce-autoloader (Client-First):</strong>
+                                Runs at <strong>runtime</strong>. Great for
+                                adding islands to <em>existing</em> Python,
+                                Ruby, Elixir or static HTML pages.
+                            </li>
+                        </ul>
+                    </div>
 
-          <div>
-            <h3
-              style="
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                margin-bottom: 0.5rem;
-              ">
-              <span style="font-size: 1.5rem">🚀</span> What's the performance
-              like?
-            </h3>
-            <p>
-              Glad you asked! Core Web Vitals with ce-autoloader matches or
-              exceeds SSR frameworks like Next.js. Don't believe me? This is the
-              score of the page you're reading now:
-            </p>
+                    <div>
+                        <h3
+                            style="
+                                display: flex;
+                                align-items: center;
+                                gap: 0.5rem;
+                                margin-bottom: 0.5rem;
+                            "
+                        >
+                            <span style="font-size: 1.5rem">🚀</span> What's the
+                            performance like?
+                        </h3>
+                        <p>
+                            Glad you asked! Core Web Vitals with ce-autoloader
+                            matches or exceeds SSR frameworks like Next.js.
+                            Don't believe me? This is the score of the page
+                            you're reading now:
+                        </p>
 
-            <img
-              src="assets/core-web-vitals.jpg"
-              alt="Core Web Vitals"
-              width="735"
-              height="629"
-              loading="lazy" />
-          </div>
-        </div>
-      </div>
-    </main>
+                        <img
+                            src="assets/core-web-vitals.jpg"
+                            alt="Core Web Vitals"
+                            width="735"
+                            height="629"
+                            loading="lazy"
+                        />
+                    </div>
+                </div>
+            </div>
+        </main>
 
-    <footer
-      style="
-        background: var(--color-bg-dark);
-        border-top: 1px solid var(--color-bg-dark);
-        padding: 4rem 0;
-      ">
-      <div class="body-container" style="padding: 0 2rem">
-        <div class="grid-3">
-          <div class="leftcenter">
-            <p class="footer-text" style="font-weight: 700; font-size: 1.5rem">
-              Feito com carinho no 🇧🇷
-            </p>
-            <p style="font-size: 1rem; opacity: 0.6; margin-top: 0.5rem">
-              ce-autoloader is released under the GPL-3.0 License.<br />
-              Just for the fun of it, and for a faster web.
-            </p>
-            <p>
-              <a
-                href="https://github.com/vitocal/ce-autoloader"
-                target="_blank"
-                class="github-star-button"
-                style="
-                  margin-top: 0.5rem;
-                  margin-bottom: 0.5rem;
-                  background: var(--color-bg);
-                  color: var(--color-fg);
-                  border: 1px solid var(--color-fg);
-                ">
-                <svg
-                  viewBox="0 0 24 24"
-                  width="20"
-                  height="20"
-                  fill="currentColor">
-                  <path
-                    d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z" />
-                </svg>
-                Star on GitHub
-              </a>
-            </p>
-          </div>
-          <div
-            class="right"
-            style="display: flex; flex-direction: column; align-items: center">
-            <span
-              class="relaxed-badge"
-              style="background: var(--color-blue); color: #fff"
-              >Apoie o projeto</span
-            >
-            <pix-qrcode style="margin-top: 1rem"></pix-qrcode>
-            <p
-              style="
-                font-size: 0.8rem;
-                opacity: 0.5;
-                margin-top: 0.5rem;
-                text-align: right;
-              ">
-              Escaneie para apoiar com PIX
-            </p>
-          </div>
-        </div>
-      </div>
-    </footer>
-  </body>
+        <footer
+            style="
+                background: var(--color-bg-dark);
+                border-top: 1px solid var(--color-bg-dark);
+                padding: 4rem 0;
+            "
+        >
+            <div class="body-container" style="padding: 0 2rem">
+                <div class="grid-3">
+                    <div class="leftcenter">
+                        <p
+                            class="footer-text"
+                            style="font-weight: 700; font-size: 1.5rem"
+                        >
+                            Feito com carinho no 🇧🇷
+                        </p>
+                        <p
+                            style="
+                                font-size: 1rem;
+                                opacity: 0.6;
+                                margin-top: 0.5rem;
+                            "
+                        >
+                            ce-autoloader is released under the GPL-3.0
+                            License.<br />
+                            Just for the fun of it, and for a faster web.
+                        </p>
+                        <p>
+                            <a
+                                href="https://github.com/vitocal/ce-autoloader"
+                                target="_blank"
+                                class="github-star-button"
+                                style="
+                                    margin-top: 0.5rem;
+                                    margin-bottom: 0.5rem;
+                                    background: var(--color-bg);
+                                    color: var(--color-fg);
+                                    border: 1px solid var(--color-fg);
+                                "
+                            >
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    width="20"
+                                    height="20"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"
+                                    />
+                                </svg>
+                                Star on GitHub
+                            </a>
+                        </p>
+                    </div>
+                    <div
+                        class="right"
+                        style="
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                        "
+                    >
+                        <span
+                            class="relaxed-badge"
+                            style="background: var(--color-blue); color: #fff"
+                            >Apoie o projeto</span
+                        >
+                        <pix-qrcode style="margin-top: 1rem"></pix-qrcode>
+                        <p
+                            style="
+                                font-size: 0.8rem;
+                                opacity: 0.5;
+                                margin-top: 0.5rem;
+                                text-align: right;
+                            "
+                        >
+                            Escaneie para apoiar com PIX
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </body>
 </html>
