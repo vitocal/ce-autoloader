@@ -40,10 +40,6 @@ export default class PerformanceMetricsPlot extends HTMLElement {
     const entries = performance
       .getEntriesByType("measure")
       .filter((e) => e.name.startsWith("load:") || e.name === "transition")
-      .map((e) => {
-        console.log(e);
-        return e;
-      })
       .map((e) => ({
         name: e.name.replace("load:", ""),
         start: e.startTime,
@@ -62,9 +58,9 @@ export default class PerformanceMetricsPlot extends HTMLElement {
     const [nav] = performance.getEntriesByType("navigation");
     const milestones = nav
       ? [
-          { x: nav.domInteractive, label: "TTI" },
-          { x: nav.domComplete, label: "DCL" },
-        ]
+        { x: nav.domInteractive, label: "TTI" },
+        { x: nav.domComplete, label: "DCL" },
+      ]
       : [];
 
     if (entries.length === 0) {

@@ -50,6 +50,16 @@
     gap: var(--space-md);
 }
 
+.px-md {
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+}
+
+.py-md {
+    padding-top: var(--space-md);
+    padding-bottom: var(--space-md);
+}
+
 .text-center {
     text-align: center;
 }

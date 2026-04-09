@@ -18,6 +18,9 @@ let catalog = {
   "pix-qrcode": () => import("./pix/qrcode.ts"),
 
   "react-example": () => import("./vi/react-example.tsx"),
+  "react-counter": () => import("./vi/react-counter.tsx"),
+  "vue-counter": () => import("./vi/vue-counter.ts"),
+  "svelte-counter": () => import("./vi/svelte-counter.ts"),
 
   "vi-error": () => import("./vi/vi-error.ts"),
 
