@@ -7,25 +7,28 @@
     "file": "assets/_commonjsHelpers-CE1G-McA.js",
     "name": "_commonjsHelpers"
   },
-  "_preload-helper-DpCfWECk.js": {
-    "file": "assets/preload-helper-DpCfWECk.js",
+  "_preload-helper-DUcKg3xa.js": {
+    "file": "assets/preload-helper-DUcKg3xa.js",
     "name": "preload-helper"
+  },
+  "_react-to-web-component-KwXRUZS_.js": {
+    "file": "assets/react-to-web-component-KwXRUZS_.js",
+    "name": "react-to-web-component",
+    "imports": [
+      "__commonjsHelpers-CE1G-McA.js"
+    ]
   },
   "assets/core-web-vitals.jpg": {
     "file": "assets/core-web-vitals-DBb9bc-d.jpg",
     "src": "assets/core-web-vitals.jpg"
   },
-  "assets/observability.jpg": {
-    "file": "assets/observability-D7OwlOYm.jpg",
-    "src": "assets/observability.jpg"
-  },
   "index.html": {
-    "file": "assets/main-C7x2jf82.js",
+    "file": "assets/main-C04mCJoC.js",
     "name": "main",
     "src": "index.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-DpCfWECk.js"
+      "_preload-helper-DUcKg3xa.js"
     ],
     "dynamicImports": [
       "src/components/hero-example.js",
@@ -36,31 +39,35 @@
       "src/components/observable-plot-wrapper.js",
       "src/components/performance-metrics-plot.js",
       "src/components/pix/qrcode.ts",
-      "src/components/vi/react-example.tsx"
+      "src/components/vi/react-example.tsx",
+      "src/components/vi/react-counter.tsx",
+      "src/components/vi/vue-counter.ts",
+      "src/components/vi/svelte-counter.ts",
+      "src/components/vi/vi-error.ts",
+      "src/components/vi/vi-defined.tsx"
     ],
     "assets": [
-      "assets/observability-D7OwlOYm.jpg",
       "assets/core-web-vitals-DBb9bc-d.jpg"
     ]
   },
   "single.html": {
-    "file": "assets/single-CKnd6j5L.js",
+    "file": "assets/single-DBDRzhU-.js",
     "name": "single",
     "src": "single.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-DpCfWECk.js",
+      "_preload-helper-DUcKg3xa.js",
       "_SlotController-Z6eG7LSZ-paOtwl-R.js"
     ]
   },
   "src/components/confetti-button.ts": {
-    "file": "assets/confetti-button-7A__TEGy.js",
+    "file": "assets/confetti-button-Lx0GH3GX.js",
     "name": "confetti-button",
     "src": "src/components/confetti-button.ts",
     "isDynamicEntry": true
   },
   "src/components/hero-example.js": {
-    "file": "assets/hero-example-NukptXVg.js",
+    "file": "assets/hero-example-Dl4fJjHX.js",
     "name": "hero-example",
     "src": "src/components/hero-example.js",
     "isDynamicEntry": true,
@@ -75,7 +82,7 @@
     "isDynamicEntry": true
   },
   "src/components/performance-metrics-plot.js": {
-    "file": "assets/performance-metrics-plot-BkHPYENy.js",
+    "file": "assets/performance-metrics-plot-BdEpM-uY.js",
     "name": "performance-metrics-plot",
     "src": "src/components/performance-metrics-plot.js",
     "isDynamicEntry": true
@@ -107,13 +114,48 @@
     "src": "src/components/vi/gl-globe.ts",
     "isDynamicEntry": true
   },
+  "src/components/vi/react-counter.tsx": {
+    "file": "assets/react-counter-DZ050zm6.js",
+    "name": "react-counter",
+    "src": "src/components/vi/react-counter.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_react-to-web-component-KwXRUZS_.js",
+      "__commonjsHelpers-CE1G-McA.js"
+    ]
+  },
   "src/components/vi/react-example.tsx": {
-    "file": "assets/react-example-DVyXWbLX.js",
+    "file": "assets/react-example-CipS6kKK.js",
     "name": "react-example",
     "src": "src/components/vi/react-example.tsx",
     "isDynamicEntry": true,
     "imports": [
+      "_react-to-web-component-KwXRUZS_.js",
       "__commonjsHelpers-CE1G-McA.js"
     ]
+  },
+  "src/components/vi/svelte-counter.ts": {
+    "file": "assets/svelte-counter-JQOGsg45.js",
+    "name": "svelte-counter",
+    "src": "src/components/vi/svelte-counter.ts",
+    "isDynamicEntry": true
+  },
+  "src/components/vi/vi-defined.tsx": {
+    "file": "assets/vi-defined-Bvd24Ixg.js",
+    "name": "vi-defined",
+    "src": "src/components/vi/vi-defined.tsx",
+    "isDynamicEntry": true
+  },
+  "src/components/vi/vi-error.ts": {
+    "file": "assets/vi-error-1qW4Liwa.js",
+    "name": "vi-error",
+    "src": "src/components/vi/vi-error.ts",
+    "isDynamicEntry": true
+  },
+  "src/components/vi/vue-counter.ts": {
+    "file": "assets/vue-counter-BQ7lXRrx.js",
+    "name": "vue-counter",
+    "src": "src/components/vi/vue-counter.ts",
+    "isDynamicEntry": true
   }
 }

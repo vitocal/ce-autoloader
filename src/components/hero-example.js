@@ -168,7 +168,7 @@ export default class HeroExample extends LitElement {
   render() {
     let preview = demos[this.demo];
 
-    return html` <div class="left window flex-y">
+    return html` <div class="left window flex-y no-wrap">
         <h4 class="flex-x">
           Demo
 
@@ -186,8 +186,8 @@ export default class HeroExample extends LitElement {
           </nord-select>
         </h4>
         <pre><syntax-highlight language="js" view-transition-name="hero-demo-code">${unsafeStatic(
-          this.js_template(),
-        )}</syntax-highlight></pre>
+      this.js_template(),
+    )}</syntax-highlight></pre>
       </div>
 
       <div class="right preview flex-y" mode=${this.mode}>${preview}</div>`;

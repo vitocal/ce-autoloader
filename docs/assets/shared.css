@@ -10,6 +10,8 @@
 /* flex utilities */
 .flex-x {
     display: flex;
+    flex-wrap: wrap;
+
     gap: var(--space-sm);
     flex-direction: row;
     align-items: center;
@@ -17,8 +19,14 @@
 
 .flex-y {
     display: flex;
+    flex-wrap: wrap;
+
     gap: var(--space-sm);
     flex-direction: column;
+}
+
+.no-wrap {
+    flex-wrap: nowrap;
 }
 
 .ai-center {
@@ -50,8 +58,27 @@
     gap: var(--space-md);
 }
 
+.px-md {
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
+}
+
+.py-md {
+    padding-top: var(--space-md);
+    padding-bottom: var(--space-md);
+}
+
 .text-center {
     text-align: center;
+}
+
+.grid {
+    display: grid;
+    grid-auto-flow: column;
+
+    @media (max-width: 100ch) {
+        grid-auto-flow: row;
+    }
 }
 
 /** Component utilities */

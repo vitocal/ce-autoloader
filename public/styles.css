@@ -94,9 +94,9 @@
             margin-top: 4rem;
         }
 
-        &>*:not(.fold) {
+        /* &>*:not(.fold) {
             content-visibility: auto;
-        }
+        } */
     }
 
     .fold {
@@ -124,6 +124,7 @@
     }
 
     .prose {
+        color: var(--color-fg);
 
         h1,
         h2,
@@ -132,7 +133,6 @@
             font-family: var(--font-display);
             font-weight: 700;
             line-height: 1.1;
-            color: var(--color-fg);
         }
 
         h1 {

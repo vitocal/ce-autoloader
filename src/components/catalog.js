@@ -23,6 +23,11 @@ let catalog = {
   "svelte-counter": () => import("./vi/svelte-counter.ts"),
 
   "vi-error": () => import("./vi/vi-error.ts"),
+  "vi-notloaded": async (full_name, args) => {
+    let timeout = Number(args.timeout || 900 * 1000);
+    await new Promise(resolve => setTimeout(resolve, timeout));
+  },
+  "vi-defined": () => import("./vi/vi-defined.tsx"),
 
   "playground-ide":
     "https://cdn.jsdelivr.net/npm/playground-elements@0.18.1/+esm",

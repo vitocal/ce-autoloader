@@ -119,7 +119,7 @@
         display: block;
       }
 
-      ::view-transition-image-pair(plot-example),
+      /* ::view-transition-image-pair(plot-example),
       ::view-transition-image-pair(three-cube),
       ::view-transition-image-pair(gl-globe),
       ::view-transition-image-pair(confetti-button),
@@ -127,7 +127,7 @@
         transform-style: preserve-3d;
         perspective-origin: center;
         perspective: 1000px;
-      }
+      } */
 
       ::view-transition-old(plot-example),
       ::view-transition-new(plot-example),
@@ -141,6 +141,11 @@
       ::view-transition-new(model-viewer) {
         height: 100%;
         overflow: clip;
+        animation-timing-function: ease-in-out;
+      }
+
+      ::view-transition-group(plot-example) {
+        animation-duration: 5000ms;
         animation-timing-function: ease-in-out;
       }
     </style>
@@ -160,6 +165,8 @@
           "lit/directives/if-defined.js": "./assets/vendor.js",
           "lit/directives/unsafe-html.js": "./assets/vendor.js",
           "lit/directives/style-map.js": "./assets/vendor.js",
+          "lit/directives/class-map.js": "./assets/vendor.js",
+          "lit/directives/repeat.js": "./assets/vendor.js",
           "lit-html": "./assets/vendor.js",
           "lit-html/is-server.js": "./assets/vendor.js",
           "@lit/reactive-element": "./assets/vendor.js",
@@ -318,27 +325,20 @@
 
       <div id="get-started">
         <h1>Get started</h1>
+        <p>It's just 3 steps. No build tools required!</p>
 
-        <div class="grid-3" style="margin-top: 2rem">
-          <div class="left">
-            <p>It's just 3 steps. No build tools required (but recommended).</p>
-            <ol
-              style="
-                margin-top: 1rem;
-                margin-left: 1rem;
-                display: grid;
-                gap: 0.5rem;
-              ">
-              <li><strong>Install</strong> via npm or CDN</li>
-              <li><strong>Define</strong> your catalog</li>
-              <li><strong>Sprinkle</strong> your web components on the page</li>
-            </ol>
+        <div style="margin: 2em 0">
+          <div class="grid gap-md">
+            <span><strong>Install</strong> via npm or CDN</span>
+            <div>
+              <pre><syntax-highlight language="bash">npm install ce-autoloader</syntax-highlight></pre>
+            </div>
           </div>
-          <div class="centerright flex-y gap-md">
-            <pre><syntax-highlight language="bash">npm install ce-autoloader</syntax-highlight></pre>
-
-            <!-- prettier-ignore -->
-            <pre><syntax-highlight language="javascript">import CERegistry from 'ce-autoloader';
+          <div class="grid gap-md">
+            <span><strong>Define</strong> your catalog</span>
+            <div>
+              <!-- prettier-ignore -->
+              <pre><syntax-highlight language="javascript">import CERegistry from 'ce-autoloader';
 
 const registry = new CERegistry({
 	catalog: {
@@ -346,9 +346,16 @@ const registry = new CERegistry({
 	}
 });
 </syntax-highlight></pre>
-
-            <!-- prettier-ignore -->
-            <pre><syntax-highlight language="html">&lt;p>Hello &lt;my-component loading="visible">World&lt;/my-component>&lt;/p></syntax-highlight></pre>
+            </div>
+          </div>
+          <div class="grid gap-md">
+            <span
+              ><strong>Sprinkle</strong> your web components on the page</span
+            >
+            <div>
+              <!-- prettier-ignore -->
+              <pre><syntax-highlight language="html">&lt;my-component loading="visible">World&lt;/my-component></syntax-highlight></pre>
+            </div>
           </div>
         </div>
       </div>
@@ -357,10 +364,11 @@ const registry = new CERegistry({
         <h1>Documentation</h1>
 
         <div id="universal-components">
-          <h2>
-            Universal Frameworks
-            <span class="n-color-text-weaker">(Any framework, one loader)</span>
-          </h2>
+          <h2>Universal</h2>
+          <h3 class="n-color-text-weaker">
+            Built to load any standard Web Component, regardless of origin.
+          </h3>
+          <hr />
 
           <p>
             Because <code>ce-autoloader</code> targets the standard
@@ -372,136 +380,117 @@ const registry = new CERegistry({
             build step.
           </p>
 
+          <p>
+            The examples below are three separate components, each using a
+            different framework's internal logic and state management, but all
+            orchestrated by a single instance of <code>ce-autoloader</code>.
+          </p>
+
           <div class="grid-3">
             <react-counter loading="visible" class="left"></react-counter>
             <vue-counter loading="visible" class="center"></vue-counter>
             <svelte-counter loading="visible" class="right"></svelte-counter>
           </div>
-
-          <p>
-            The examples above are three separate components, each using a
-            different framework's internal logic and state management, but all
-            orchestrated by a single instance of <code>ce-autoloader</code>.
-          </p>
         </div>
 
         <div id="activation-triggers">
-          <h2>
-            Activation Triggers
-            <span class="n-color-text-weaker">(Loading Strategies)</span>
-          </h2>
+          <h2>Loading Strategies</h2>
+          <h3 class="n-color-text-weaker">
+            Fine-tune component loading for every unique use case.
+          </h3>
+          <hr />
 
           <p>
             The <code>loading</code> attribute defines the
-            <strong>strategy</strong> for when a component is activated. By
+            <strong>strategy</strong> for when a component is loaded. By
             default, components use the <code>visible</code> strategy to
             maximize initial performance.
           </p>
 
-          <dl class="n-dl">
-            <dt>
-              visible
-              <span class="n-color-text-weaker">(Default)</span>
-            </dt>
-            <dd>
-              <strong>Lazy-loading via Intersection Observer.</strong>
-              Components are downloaded and defined only when they enter the
-              viewport. Perfect for content "below the fold" to keep initial
-              page weight low.
-            </dd>
+          <table>
+            <thead>
+              <tr>
+                <th>Strategy</th>
+                <th>Mechanism</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>visible</strong> (Default)</td>
+                <td>Intersection Observer</td>
+                <td>
+                  Components are downloaded and defined only when they enter the
+                  viewport. Perfect for content "below the fold" to keep initial
+                  page weight low.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>click</strong></td>
+                <td>onClick or onTouch</td>
+                <td>
+                  The module is fetched when a user clicks or touches the
+                  element. Ideal for heavy UI widgets like maps, complex
+                  editors, or modal content.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>eager</strong></td>
+                <td>Immediate activation</td>
+                <td>
+                  Downloads the module as soon as it's found in the DOM. Use
+                  this for critical "above the fold" components like navigation
+                  headers or hero sections.
+                </td>
+              </tr>
+              <tr>
+                <td><em>*custom*</em></td>
+                <td>Manual/Programmatic mode</td>
+                <td>
+                  You can specify any custom string (e.g., loading="lazy-load")
+                  and trigger it manually via registry.upgrade('lazy-load').
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-            <dt>click</dt>
-            <dd>
-              <strong>Hydrate on demand.</strong>
-              The module is fetched when a user clicks or touches the element.
-              Ideal for heavy UI widgets like maps, complex editors, or modal
-              content.
-            </dd>
-
-            <dt>eager</dt>
-            <dd>
-              <strong>Immediate activation.</strong>
-              Downloads the module as soon as the loader discovery starts. Use
-              this for critical "above the fold" components like navigation
-              headers or hero sections.
-            </dd>
-
-            <dt>*custom*</dt>
-            <dd>
-              <strong>Manual/Programmatic mode.</strong>
-              You can specify any custom string (e.g.,
-              <code>loading="lazy-load"</code>) and trigger it manually via
-              <code>registry.upgrade('lazy-load')</code>.
-            </dd>
-          </dl>
-
-          <!-- prettier-ignore -->
-          <vi-example>
+          <vi-example class="card">
+            <!-- prettier-ignore -->
             <div slot="example" class="flex-y">
-              <nord-banner variant="success" loading="visible">Nord-banner was loaded.</nord-banner>
+<nord-button variant="primary">Visible by default</nord-button>
 
-              <three-cube loading="click" view-transition-name="three-cube">Click me to load</three-cube>
+<three-cube loading="click" view-transition-name="three-cube">Click to load</three-cube>
 
-              <confetti-button loading="manual" id="confetti" onClick="registry.upgrade('manual')">
-                🎉 Click me to throw confetti 🎉
-              </confetti-button>
+<confetti-button loading="manual" id="confetti" onClick="registry.upgrade('manual')">
+  * custom (click) *
+</confetti-button>
             </div>
           </vi-example>
         </div>
 
-        <div id="dynamic-resolvers">
-          <h2>
-            Dynamic Resolvers
-            <span class="n-color-text-weaker">(Wildcard Loaders)</span>
-          </h2>
+        <div id="custom-loaders">
+          <h2>Custom Loaders</h2>
+          <h3 class="n-color-text-weaker">
+            Tailor the loader to your specific workflow.
+          </h3>
+          <hr />
 
           <p>
-            Don't want to register 50 components one by one?
-            <strong>Pode crer</strong>, we got you. Dynamic Resolvers (or
-            Wildcard Loaders) allow you to register a function that "resolves"
-            any tag matching a specific pattern.
+            Don't want to register 250 components one by one?
+            <strong>we got you</strong>. Wildcard Loaders allow you to customize
+            the loader to fit your needs.
           </p>
 
-          <div class="grid-3" style="margin-top: 2rem">
-            <div class="leftcenter">
-              <p>
-                In this example, we registered a resolver for
-                <code>nord-*</code>. The browser sees
-                <code>&lt;nord-qrcode&gt;</code>, and our resolver instantly
-                fetches the Correct module from the CDN.
-              </p>
-              <ul style="margin-top: 1rem; display: grid; gap: 0.5rem">
-                <li>
-                  <strong>No Giant Bundles</strong>: Only the components on the
-                  page are downloaded.
-                </li>
-                <li>
-                  <strong>Pure HTML Workflow</strong>: Add a tag, and it just
-                  works.
-                </li>
-                <li>
-                  <strong>Industry Standard</strong>: Same pattern used by Vite
-                  and Auto-import plugins.
-                </li>
-              </ul>
-            </div>
-
-            <figure class="right flex-y ai-center">
-              <nord-qrcode
-                value="https://vitocal.github.io/ce-autoloader/"
-                view-transition-name="qr-code"></nord-qrcode>
-              <figcaption>Leve e rápido. (Light and fast)</figcaption>
-            </figure>
-          </div>
-
           <p>
-            Here is an example of a
-            <strong>Wildcard Resolver</strong> for the Nord design system:
+            In this example, we registered a loader for
+            <code>nord-*</code>. The browser sees
+            <code>&lt;nord-qrcode&gt;</code>, and our loader is called. It
+            fetches the Correct module from the esm CDN.
           </p>
 
           <!-- prettier-ignore -->
           <pre><syntax-highlight language="js">/**
- * Pattern-based Resolver for Nord Health components
+ * Custom loader for the Nord Health components
  */
 "nord-*": async (full_name) => {
     // 1. Extract the specific component name (e.g., 'qrcode' from 'nord-qrcode')
@@ -516,74 +505,145 @@ const registry = new CERegistry({
     }
     return module
 },</syntax-highlight></pre>
+
+          <p>
+            Now, every time the browser sees a tag with prefix <code>nord</code>
+            tag, it will automatically load the component from the esm CDN.
+          </p>
+
+          <div class="flex-x">
+            <figure>
+              <nord-qrcode
+                value="https://vitocal.github.io/ce-autoloader/"
+                view-transition-name="qr-code"></nord-qrcode>
+              <figcaption><code>&lt;nord-qrcode&gt;</code></figcaption>
+            </figure>
+            <figure>
+              <nord-select size="m" autocomplete="off"
+                ><option value="">Choose...</option>
+                <option value="1">Option 1</option>
+                <option value="2">Option 2</option>
+                <option value="3">Option 3</option></nord-select
+              >
+              <figcaption><code>&lt;nord-select&gt;</code></figcaption>
+            </figure>
+            <figure>
+              <nord-date-picker size="m"></nord-date-picker>
+              <figcaption><code>&lt;nord-date-picker&gt;</code></figcaption>
+            </figure>
+
+            <figure>
+              <div>
+                <nord-command-menu id="command-menu"></nord-command-menu>
+                <nord-button
+                  variant="primary"
+                  onclick="document.getElementById('command-menu').show()"
+                  >Open menu (⌘+K)</nord-button
+                >
+              </div>
+              <figcaption><code>&lt;nord-command-menu&gt;</code></figcaption>
+            </figure>
+
+            <figure>
+              <nord-tag-group
+                aria-labelledby="label"
+                variant="default"
+                direction="vertical">
+                <nord-tag variant="selectable">Canine</nord-tag>
+                <nord-tag variant="selectable">Feline</nord-tag>
+                <nord-tag variant="selectable" checked="">Rodents</nord-tag>
+              </nord-tag-group>
+              <figcaption><code>&lt;nord-tag-group&gt;</code></figcaption>
+            </figure>
+          </div>
         </div>
 
         <div id="lifecycle">
           <h2>
-            Entrance Lifecycle
+            Animations
             <span class="n-color-text-weaker">& Transitions</span>
           </h2>
+          <h3 class="n-color-text-weaker">
+            Define exactly how and when components surface.
+          </h3>
 
           <p>
-            Web components shouldn't just "pop" into existence.
-            <code>ce-autoloader</code> provides a robust
-            <strong>lifecycle state machine</strong> that allows you to style
-            components as they transition from placeholders to interactive
-            elements, effectively eliminating
-            <strong>Cumulative Layout Shift (CLS)</strong>.
+            Web components should feel like a native part of the page, not an
+            afterthought. Orchestrate how elements surface with coordinated
+            entry patterns that eliminate layout shift and create a fluid,
+            intentional experience from the first frame.
           </p>
-
-          <h3>The Discovery Lifecycle</h3>
           <p>
-            Every component moves through three distinct states, that you can
-            style using CSS.
+            Every component moves through two states
+            <code>not-defined → defined</code>, that you can style using CSS
+            selectors:
           </p>
 
           <dl class="n-dl">
             <dt><code>:not(:defined)</code></dt>
             <dd>
               <strong>Placeholder State.</strong>
-              The custom element is in the DOM but the browser doesn't know its
-              behavior yet. Use this to set
-              <i>min-height</i> or <i>aspect-ratio</i> to reserve space on the
-              page.
+              <p>
+                The custom element is in the DOM but the browser doesn't know
+                its behavior yet. Use this to set
+                <i>min-height</i> or <i>aspect-ratio</i> to reserve space on the
+                page.
+              </p>
+              <div class="card grid">
+                <vi-notloaded loading="click"
+                  >A forever not-loaded element</vi-notloaded
+                >
+              </div>
             </dd>
 
-            <dt><code>[ce="loading"]</code></dt>
+            <dt><code>:not(:defined)[ce="loading"]</code></dt>
             <dd>
-              <strong>Activation State.</strong>
-              Triggered when the library begins fetching the module. This is the
-              perfect time to show a
-              <i>Skeleton Loader</i> or a progress indicator.
+              <strong>Loading State.</strong>
+              <p>
+                Triggered when the module is being loaded. This is the perfect
+                time to show a <i>Skeleton Loader</i> or a progress indicator.
+              </p>
+
+              <div class="card grid">
+                <vi-notloaded>A loading element</vi-notloaded>
+              </div>
             </dd>
 
-            <dt><code>[ce="defined"]</code></dt>
+            <dt><code>ce="defined"</code></dt>
             <dd>
-              <strong>interactive State.</strong>
-              The component is defined and upgraded. Use this to trigger a final
-              "fade-in" or entrance animation.
+              <strong>Interactive State.</strong>
+              <p>
+                The component is defined and upgraded. Use this to trigger a
+                final "fade-in" or entrance animation.
+              </p>
+              <div class="card grid">
+                <vi-defined>A interactive element</vi-defined>
+              </div>
             </dd>
           </dl>
 
           <p>
-            Besides the lifecycle states,
-            <strong>view transitions</strong> are supported out of the box.
+            The CSS <strong>view transitions</strong> are supported out of the
+            box, and you can name them using
+            <code>view-transition-name</code> attribute.
           </p>
 
           <p>
-            You can use the
-            <code>view-transition-name</code> attribute to include a view
-            transition
+            This allows you to create seamless transitions between states, and
+            make them smoothly animate to it's place
           </p>
 
+          <observable-plot-wrapper
+            loading="click"
+            view-transition-name="plot-example">
+            🌜 (click to load) 🌛
+          </observable-plot-wrapper>
           <br />
 
           <!-- prettier-ignore -->
           <vi-example class="equal-size">
                     <div slot="example">
-                        <observable-plot-wrapper loading="click" view-transition-name="plot-example">
-                            🌜 (click to load) 🌛
-                        </observable-plot-wrapper>
+
                     </div>
                 </vi-example>
 
@@ -636,14 +696,12 @@ const registry = new CERegistry({
             Native Telemetry
             <span class="n-color-text-weaker">& Insights</span>
           </h2>
-
+          <h3 class="n-color-text-weaker">Performance as a Standard.</h3>
           <p>
-            Performance is built into the core.
-            <code>ce-autoloader</code> uses the native
-            <strong>User Timing API</strong> to provide granular metrics for
-            every stage of your components' lifecycle. This allows you to
-            quantify the exact impact of your loading strategies on
-            <strong>Core Web Vitals</strong>.
+            Stop guessing how your islands perform. With telemetry baked into
+            the core, you get deep visibility into load times and execution
+            overhead using native browser APIs—keeping your overhead near zero
+            while your insights stay sharp.
           </p>
 
           <!--
@@ -691,17 +749,13 @@ const registry = new CERegistry({
             Error Fallbacks
             <span class="n-color-text-weaker">& Resilience</span>
           </h2>
+          <h3 class="n-color-text-weaker">Built for the Real-World Web.</h3>
+          <hr />
 
+          <p>The network is unreliable, but your UI shouldn't be.</p>
           <p>
-            The web is a messy place. Network failures, broken modules, or
-            unexpected errors can happen. Define a custom fallback component via
-            <code>fallback</code> that will be displayed if a module fails to
-            load or throws an error during upgrade.
-          </p>
-
-          <p>
-            This ensures that your users always have a graceful experience, even
-            when things go wrong.
+            Define a custom fallback component via <code>fallback</code> that is
+            displayed when a module throws an error during loading.
           </p>
 
           <div class="card">

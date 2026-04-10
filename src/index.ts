@@ -4,7 +4,7 @@
  */
 export type CEAutoLoaderModule =
   | string
-  | ((name?: string) => Promise<CustomElementConstructor>);
+  | ((name?: string, attrs?: Record<string, any>) => Promise<CustomElementConstructor>);
 export type CEAutoLoaderCatalog = Record<string, CEAutoLoaderModule>;
 
 export type CEAutoLoaderLoadResult = {
@@ -17,7 +17,7 @@ export type CEAutoLoaderLoadResult = {
 export type CEAutoLoaderDirectives = "eager" | "visible" | "click" | string;
 export type CEAutoLoaderOptions = {
   /* The component catalog */
-  catalog: CEAutoLoaderCatalog;
+  catalog?: CEAutoLoaderCatalog;
   /* The root element to search for custom elements */
   root?: HTMLElement;
   /** Watch for new custom elements in the page? */
@@ -82,7 +82,7 @@ function matchCustomElement(root: Element) {
 
 class CEAutoLoader {
   options: CEAutoLoaderOptions;
-  catalog: CEAutoLoaderCatalog = {};
+  catalog?: CEAutoLoaderCatalog;
 
   // Resolvers matched against tags at runtime.
   _resolvers: Record<string, CEAutoLoaderModule> = {};
@@ -94,11 +94,7 @@ class CEAutoLoader {
   // Active view transition
   activeTransition?: ViewTransition;
 
-  constructor(options: CEAutoLoaderOptions) {
-    if (!options.catalog) {
-      throw new Error("CEAutoLoader needs a catalog to start");
-    }
-
+  constructor(options: Partial<CEAutoLoaderOptions> = {}) {
     this.options = {
       live: true,
       root: document.body,
@@ -107,7 +103,14 @@ class CEAutoLoader {
       transition: true,
       ...options,
     };
+
+    if (!this.options.catalog) {
+      throw new Error("CEAutoLoader needs a catalog to start");
+    }
     this.catalog = options.catalog;
+
+    // Ensure globalThis.catalog reflects the same reference
+    // globalThis.catalog = this.options.catalog;
 
     if (!globalThis.DEFINE) {
       monkeyPatchDefine();
@@ -182,6 +185,7 @@ class CEAutoLoader {
    * Discover the custom elements in the `root` and upgrade them lazily
    */
   async discover() {
+    console.log("catalog", this.catalog)
     if (!this.#initialized && this.options.live) {
       this.watchDOMMutations();
     }
@@ -212,27 +216,36 @@ class CEAutoLoader {
     const ce_elements = matchCustomElement(this.options.root || document.body);
     const elements = this.filterByDirective(ce_elements, directive);
 
+    const when_in_viewport_loadanddefine: IntersectionObserverCallback = (entries) => {
+      let html_elements = entries
+        .filter((entry) => entry.isIntersecting)
+        .filter(
+          (entry) =>
+            !customElements.get(entry.target.tagName.toLowerCase()),
+        )
+        .map((entry) => entry.target as HTMLElement);
+
+      if (html_elements.length > 0) {
+        this.loadAndDefine(html_elements, "visible");
+      }
+    }
+
     const visible = (elements: HTMLElement[]) => {
       // Create observer if it doesn't exist
       if (!this.#observers["intersection"]) {
-        this.#observers["intersection"] = new IntersectionObserver(
-          (entries) => {
-            let html_elements = entries
-              .filter((entry) => entry.isIntersecting)
-              .filter(
-                (entry) =>
-                  !customElements.get(entry.target.tagName.toLowerCase()),
-              )
-              .map((entry) => entry.target as HTMLElement);
-
-            if (html_elements.length > 0) {
-              this.loadAndDefine(html_elements, "visible");
-            }
-          },
-        );
+        this.#observers["intersection"] = new IntersectionObserver(when_in_viewport_loadanddefine);
+      } else {
+        // If the observer already exists, we need to check if there are any pending entries
+        let mutations = this.#observers["intersection"].takeRecords() as IntersectionObserverEntry[];
+        if (mutations.length > 0) {
+          when_in_viewport_loadanddefine(mutations, this.#observers["intersection"] as IntersectionObserver);
+        }
       }
 
-      return elements.map((el) => this.#observers["intersection"].observe(el));
+      return elements.map((el) => {
+        this.#observers["intersection"].unobserve(el)
+        this.#observers["intersection"].observe(el)
+      });
     };
 
     const interaction = (elements: HTMLElement[]) => {
@@ -301,7 +314,7 @@ class CEAutoLoader {
 
           // We must clone, because browsers don't allow to define the same class twice
           let fallback_cloned = class ClonedFallback extends (this.options
-            .fallback!) {};
+            .fallback!) { };
 
           origin.el.setAttribute("error", result.reason.message);
           origin.el.setAttribute("stack", result.reason.stack);
@@ -382,7 +395,8 @@ class CEAutoLoader {
   async load(el: HTMLElement): Promise<CEAutoLoaderLoadResult> {
     const name = el.tagName.toLowerCase();
 
-    let loader = this.catalog[name] || this.getWildcardResolver(name);
+    console.log("load", el, this.catalog)
+    let loader = this.catalog?.[name] || this.getWildcardResolver(name);
     if (!loader) {
       throw new CEError(`Component ${name} not found in catalog`, { name, el });
     }
@@ -399,7 +413,12 @@ class CEAutoLoader {
       if (typeof loader === "string") {
         module = await import(/* @vite-ignore */ loader);
       } else if (typeof loader === "function") {
-        module = await loader(name);
+        const attrs = el.attributes;
+        const attrs_obj = Array.from(attrs).reduce((acc, attr) => {
+          acc[attr.name] = attr.value;
+          return acc;
+        }, {} as Record<string, string>);
+        module = await loader(name, attrs_obj);
       } else {
         throw new CEError(
           `Loader of ${name} is invalid! Should be a url or a function`,
@@ -408,12 +427,13 @@ class CEAutoLoader {
       }
     } catch (error: any) {
       load_error = error;
-      throw new CEError(`${name} - ${error.message}`, {
-        name,
-        el,
-        module,
-        error,
-      });
+      throw error;
+      // throw new CEError(`${name} - ${error.message}`, {
+      //   name,
+      //   el,
+      //   module,
+      //   error,
+      // });
     } finally {
       performance.mark(`load:${name}:end`);
       performance.measure(`load:${name}`, {
@@ -459,6 +479,10 @@ class CEAutoLoader {
     try {
       performance.mark(`define:${name}:start`);
 
+      if (module[Symbol.toStringTag] === "Module") {
+        console.log("module", module)
+        module = module.default;
+      }
       DEFINE(name, module, {});
     } catch (error: any) {
       define_error = error;
