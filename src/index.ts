@@ -316,6 +316,7 @@ class CEAutoLoader {
           let fallback_cloned = class ClonedFallback extends (this.options
             .fallback!) { };
 
+          origin.el.setAttribute("ce", "error")
           origin.el.setAttribute("error", result.reason.message);
           origin.el.setAttribute("stack", result.reason.stack);
           this.define({
@@ -329,6 +330,7 @@ class CEAutoLoader {
       load_fail.forEach((result) => {
         const origin = result.reason.details;
         console.error(result.reason.message);
+        origin.el.setAttribute("ce", "error");
         origin.el.setAttribute("error", result.reason.message);
       });
       throw load_fail[0].reason;
@@ -427,13 +429,12 @@ class CEAutoLoader {
       }
     } catch (error: any) {
       load_error = error;
-      throw error;
-      // throw new CEError(`${name} - ${error.message}`, {
-      //   name,
-      //   el,
-      //   module,
-      //   error,
-      // });
+      throw new CEError(`${name} - ${error.message}`, {
+        name,
+        el,
+        module,
+        error,
+      });
     } finally {
       performance.mark(`load:${name}:end`);
       performance.measure(`load:${name}`, {

@@ -12,7 +12,7 @@ globalThis.registry = new CERegistry({
   catalog: globalThis.catalog,
   root: document.body,
   live: true,
-  fallback: ErrorFallback,
+  // fallback: ErrorFallback,
   defaultDirective: "visible",
   transition: true,
 });
