@@ -22,7 +22,17 @@ let catalog = {
   "vue-counter": () => import("./vi/vue-counter.ts"),
   "svelte-counter": () => import("./vi/svelte-counter.ts"),
 
-  "vi-error": () => import("./vi/vi-error.ts"),
+  "vi-error": (name, attrs) => {
+    let count = globalThis.viErrorCount || 0;
+    if (count < 3) {
+      globalThis.viErrorCount = count + 1;
+      throw new Error(
+        `This component needs ${3 - count} more tries (${globalThis.viErrorCount}/3)`,
+      );
+    } else {
+      return import("./vi/vi-error.ts");
+    }
+  },
   "vi-notloaded": async (full_name, args) => {
     let timeout = Number(args.timeout || 900 * 1000);
     await new Promise(resolve => setTimeout(resolve, timeout));

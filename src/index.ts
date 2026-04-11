@@ -74,7 +74,7 @@ function debounceMutations(
  * CSS selector to match custom elements
  */
 function matchCustomElement(root: Element) {
-  const selector = ":not(:defined)";
+  const selector = ":not(:defined):not([ce='error'])";
   return [...new Set([root, ...root.querySelectorAll(selector)])].filter((el) =>
     isCustomElement(el),
   ) as HTMLElement[];
@@ -312,18 +312,17 @@ class CEAutoLoader {
           const origin = result.reason.details;
           console.error(result.reason.message);
 
-          // We must clone, because browsers don't allow to define the same class twice
-          let fallback_cloned = class ClonedFallback extends (this.options
-            .fallback!) { };
-
-          origin.el.setAttribute("ce", "error")
+          origin.el.setAttribute("ce", "error");
           origin.el.setAttribute("error", result.reason.message);
           origin.el.setAttribute("stack", result.reason.stack);
-          this.define({
-            name: origin.name,
-            el: origin.el,
-            module: fallback_cloned,
-          });
+
+          // Instantiate and append fallback instead of defining the tag
+          const fallback_instance = new (this.options.fallback!)();
+          fallback_instance.setAttribute("error", result.reason.message);
+          fallback_instance.setAttribute("stack", result.reason.stack);
+
+          origin.el.innerHTML = "";
+          origin.el.appendChild(fallback_instance);
         }),
       );
     } else if (load_fail.length > 0) {
@@ -514,6 +513,20 @@ class CEAutoLoader {
   private getWildcardResolver(name: string): CEAutoLoaderModule | null {
     const [prefix, _comp_name] = name.split("-");
     return this.catalog[`${prefix}-*`];
+  }
+
+  /**
+   * Retry loading a component that previously failed
+   */
+  async retry(el: HTMLElement) {
+    if (el.getAttribute("ce") !== "error") return;
+
+    el.removeAttribute("ce");
+    el.removeAttribute("error");
+    el.removeAttribute("stack");
+    el.innerHTML = "";
+
+    return await this.loadAndDefine([el], el.getAttribute("loading") || "retry");
   }
 
   /**
