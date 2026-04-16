@@ -39,11 +39,11 @@
 
     <style>
       /** To avoid FOUC (Flash of Unstyled Content) or Layout Shifts,
-			we should style early our components, before the first render of page.
+      	we should style early our components, before the first render of page.
 
-			I like to just match the size/aspect ratio, aligning before/after to avoid layout shifts.
-			See `:not(:defined)` for more info on how to style every component at once.
-		*/
+      	I like to just match the size/aspect ratio, aligning before/after to avoid layout shifts.
+      	See `:not(:defined)` for more info on how to style every component at once.
+      */
       hero-example {
         width: 100%;
         height: 50svh;
@@ -64,6 +64,11 @@
         aspect-ratio: 1;
         width: 196px;
         height: 196px;
+      }
+
+      my-component {
+        display: inline-flex;
+        width: fit-content;
       }
 
       @media (max-width: 100ch) {
@@ -120,14 +125,14 @@
       }
 
       /* ::view-transition-image-pair(plot-example),
-      ::view-transition-image-pair(three-cube),
-      ::view-transition-image-pair(gl-globe),
-      ::view-transition-image-pair(confetti-button),
-      ::view-transition-image-pair(model-viewer) {
-        transform-style: preserve-3d;
-        perspective-origin: center;
-        perspective: 1000px;
-      } */
+          ::view-transition-image-pair(three-cube),
+          ::view-transition-image-pair(gl-globe),
+          ::view-transition-image-pair(confetti-button),
+          ::view-transition-image-pair(model-viewer) {
+            transform-style: preserve-3d;
+            perspective-origin: center;
+            perspective: 1000px;
+          } */
 
       ::view-transition-old(plot-example),
       ::view-transition-new(plot-example),
@@ -349,9 +354,11 @@ const registry = new CERegistry({
             </div>
           </div>
           <div class="grid gap-md">
-            <span
-              ><strong>Sprinkle</strong> your web components on the page</span
-            >
+            <div>
+              <strong>Add</strong>
+              <my-component>&lt;my-component&gt;</my-component>
+              on the body HTML
+            </div>
             <div>
               <!-- prettier-ignore -->
               <pre><syntax-highlight language="html">&lt;my-component loading="visible">World&lt;/my-component></syntax-highlight></pre>

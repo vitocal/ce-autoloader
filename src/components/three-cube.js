@@ -22,7 +22,7 @@ export default class ThreeCube extends HTMLElement {
 
         // Scene
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x000000);
+        scene.background = new THREE.Color(0x00f0f0);
 
         // Camera
         const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 100);

@@ -19,11 +19,10 @@ const VueCounter = defineCustomElement({
                 <span class="count">{{ count }}</span>
                 <button type="button" @click="count++">+</button>
             </div>
-            <style>
-                .vue h3 { color: #42b883; }
-            </style>
         </div>
-    `
+    `,
+
+    styles: [`.vue h3 { color: #42b883; }`]
 }, { shadowRoot: false });
 
 export default VueCounter;

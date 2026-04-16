@@ -5,6 +5,8 @@ import path from "path";
 
 import { readdirSync, statSync } from "fs";
 
+import { hmrPlugin, presets } from 'vite-plugin-web-components-hmr';
+
 // Helper – collect every *.ts file under src/components/vi (recursively)
 function collectComponentEntries(dir) {
   const entries = {};
@@ -24,6 +26,16 @@ function collectComponentEntries(dir) {
 }
 
 export default defineConfig({
+  plugins: [
+    hmrPlugin({
+      include: [
+        './src/components/**/*.ts', './src/components/**/*.js',
+        './src/components/**/*.tsx', './src/components/**/*.jsx',
+        './src/*.tsx',
+      ],
+      presets: [presets.lit],
+    })
+  ],
   build: {
     lib: {
       // We'll use a custom rollupOptions to create a chunk per file
@@ -46,5 +58,5 @@ export default defineConfig({
     },
     outDir: "dist/components/vi",
     emptyOutDir: false,
-  },
+  }
 });
