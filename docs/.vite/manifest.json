@@ -7,8 +7,12 @@
     "file": "assets/_commonjsHelpers-CE1G-McA.js",
     "name": "_commonjsHelpers"
   },
-  "_preload-helper-DUcKg3xa.js": {
-    "file": "assets/preload-helper-DUcKg3xa.js",
+  "_confetti.module-oQXWb4Lk.js": {
+    "file": "assets/confetti.module-oQXWb4Lk.js",
+    "name": "confetti.module"
+  },
+  "_preload-helper-7o-uo1iS.js": {
+    "file": "assets/preload-helper-7o-uo1iS.js",
     "name": "preload-helper"
   },
   "_react-to-web-component-KwXRUZS_.js": {
@@ -23,16 +27,17 @@
     "src": "assets/core-web-vitals.jpg"
   },
   "index.html": {
-    "file": "assets/main-C04mCJoC.js",
+    "file": "assets/main-D8OYzs-Q.js",
     "name": "main",
     "src": "index.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-DUcKg3xa.js"
+      "_preload-helper-7o-uo1iS.js"
     ],
     "dynamicImports": [
       "src/components/hero-example.js",
       "src/components/vi-example.js",
+      "src/components/my-component.js",
       "src/components/confetti-button.ts",
       "src/components/three-cube.js",
       "src/components/vi/gl-globe.ts",
@@ -51,20 +56,23 @@
     ]
   },
   "single.html": {
-    "file": "assets/single-DBDRzhU-.js",
+    "file": "assets/single-BnaeJpNf.js",
     "name": "single",
     "src": "single.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-DUcKg3xa.js",
+      "_preload-helper-7o-uo1iS.js",
       "_SlotController-Z6eG7LSZ-paOtwl-R.js"
     ]
   },
   "src/components/confetti-button.ts": {
-    "file": "assets/confetti-button-Lx0GH3GX.js",
+    "file": "assets/confetti-button-Dv63vFTJ.js",
     "name": "confetti-button",
     "src": "src/components/confetti-button.ts",
-    "isDynamicEntry": true
+    "isDynamicEntry": true,
+    "imports": [
+      "_confetti.module-oQXWb4Lk.js"
+    ]
   },
   "src/components/hero-example.js": {
     "file": "assets/hero-example-Dl4fJjHX.js",
@@ -73,6 +81,15 @@
     "isDynamicEntry": true,
     "imports": [
       "_SlotController-Z6eG7LSZ-paOtwl-R.js"
+    ]
+  },
+  "src/components/my-component.js": {
+    "file": "assets/my-component-Cjp14JcL.js",
+    "name": "my-component",
+    "src": "src/components/my-component.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_confetti.module-oQXWb4Lk.js"
     ]
   },
   "src/components/observable-plot-wrapper.js": {
@@ -97,7 +114,7 @@
     ]
   },
   "src/components/three-cube.js": {
-    "file": "assets/three-cube-X0r6WzKj.js",
+    "file": "assets/three-cube-BZnZ1Ca_.js",
     "name": "three-cube",
     "src": "src/components/three-cube.js",
     "isDynamicEntry": true
@@ -147,13 +164,13 @@
     "isDynamicEntry": true
   },
   "src/components/vi/vi-error.ts": {
-    "file": "assets/vi-error-1qW4Liwa.js",
+    "file": "assets/vi-error-BArtcoJg.js",
     "name": "vi-error",
     "src": "src/components/vi/vi-error.ts",
     "isDynamicEntry": true
   },
   "src/components/vi/vue-counter.ts": {
-    "file": "assets/vue-counter-BQ7lXRrx.js",
+    "file": "assets/vue-counter-C65rWPV8.js",
     "name": "vue-counter",
     "src": "src/components/vi/vue-counter.ts",
     "isDynamicEntry": true

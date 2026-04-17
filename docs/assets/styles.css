@@ -553,6 +553,15 @@ footer {
                 animation: shimmer 1.5s ease-in-out infinite;
             }
         }
+
+        &[ce="error"] {
+            background-color: red;
+
+            &::before {
+                content: attr(error);
+                color: white;
+            }
+        }
     }
 
     .counter-card {
