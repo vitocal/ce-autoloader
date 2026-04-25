@@ -1,31 +1,27 @@
-import { LitElement, css, html } from "lit";
+import { LitElement, css } from "lit";
+import SlottedElement from "./vi/slotted-element.js";
+
 import { styleMap } from "lit/directives/style-map.js";
+import { html, unsafeStatic } from "lit/static-html.js";
 
 import confetti from "canvas-confetti";
 
-export default class MyComponent extends LitElement {
+export default class MyComponent extends SlottedElement {
     static styles = css`
     @layer components {
       my-component {
         position: relative;
         display: inline-block;
-        font-family: var(--n-font-family-code, "Outfit", sans-serif);
-        font-size: 1.5rem;
+        font-family: var(--n-font-family-code, monospace);
         font-weight: 900;
         color: var(--n-color-accent, #ff3e00);
 
         padding: 0.1em 0.2em;
         margin: 0.2em 0;
-        box-shadow: inset 0 0 0 2px var(--color-bg-dark),
-                          var(--shadow-md);
         border-radius: 8px;
 
-        cursor: default;
-        user-select: none;
         white-space: nowrap;
 
-        outline: 2px solid transparent;
-        outline-offset: 4px;
 
         /* Initial state */
         transform-origin: center bottom;
@@ -79,12 +75,17 @@ export default class MyComponent extends LitElement {
 
     constructor() {
         super();
-        this._stars = this._generateStars(7);
+        this._stars = this._generateStars(3);
         this._confettis = {
-            particleCount: 15,
-            shapes: confetti.shapeFromText({ text: "✨", scalar: 2 }),
-            scalar: 2,
-            gravity: 0
+            spread: 360,
+            ticks: 50,
+            gravity: 0,
+            decay: 0.94,
+            startVelocity: 30,
+            colors: ['FFE400', 'FFBD00', 'E89400', 'FFCA6C', 'FDFFB8'],
+            particleCount: 40,
+            scalar: 1.2,
+            shapes: ['star']
         }
 
         // In light-dom mode, adopt styles to the document
@@ -108,7 +109,7 @@ export default class MyComponent extends LitElement {
             // Position around the center
             top: `${(Math.random() * 100) - 50}%`,
             left: `${(Math.random() * 100) - 10}%`,
-            delay: `${0.5 + i * 0.21}s`,
+            delay: `${0.5 + i * 0.23}s`,
             scale: 0.6 + Math.random() * 0.7
         }));
     }
@@ -120,7 +121,8 @@ export default class MyComponent extends LitElement {
             y: (bb.y + bb.height / 2) / window.innerHeight
         };
         confetti({
-            origin: { x, y }
+            origin: { x, y },
+            ...this._confettis
         });
     }
 
@@ -129,10 +131,13 @@ export default class MyComponent extends LitElement {
     }
 
     render() {
-        setTimeout(this._shootStars.bind(this), 150);
+        this._shootStars();
+        const [slot, _rest] = this.slottedChildren;
+        this.innerHTML = ''
+
 
         return html`
-            <slot></slot>
+            <a href=${import.meta.url} target="_blank">${slot}</a>
             ${this._stars.map(star => html`
                 <span class="star" style=${styleMap({
             top: star.top,
