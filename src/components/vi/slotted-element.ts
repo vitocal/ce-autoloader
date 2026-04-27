@@ -16,6 +16,9 @@ import { LitElement } from 'lit';
  little more code, but they're edge cases I can live with.
 */
 class SlottedElement extends LitElement {
+    slottedChildren: Node[];
+    namedSlotContent: NodeListOf<Element>;
+
     constructor() {
         super();
         this.slottedChildren = [...this.childNodes];
@@ -35,24 +38,24 @@ class SlottedElement extends LitElement {
         });
     }
 
-    _fillNamedSlot(slot) {
+    _fillNamedSlot(slot: Element) {
         const content = [...this.namedSlotContent].find(
             (el) => el.getAttribute('slot') === slot.getAttribute('name')
         );
         if (content) {
-            slot.parentElement.replaceChild(content, slot);
+            slot.parentElement?.replaceChild(content, slot);
         }
         slot.setAttribute('filled', '');
     }
 
-    _fillAnonSlot(slot) {
+    _fillAnonSlot(slot: Element) {
         this.slottedChildren.forEach((child) => {
             if (child === slot) {
                 return;
             }
-            slot.parentElement.insertBefore(child, slot);
+            slot.parentElement?.insertBefore(child, slot);
         });
-        slot.parentElement.removeChild(slot);
+        slot.parentElement?.removeChild(slot);
         slot.setAttribute('filled', '');
     }
 

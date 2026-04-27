@@ -27,15 +27,9 @@ let catalog = {
   "svelte-counter": () => import("./vi/svelte-counter.ts"),
 
   "vi-error": (name, attrs) => {
-    let count = globalThis.viErrorCount || 0;
-    if (count < 3) {
-      globalThis.viErrorCount = count + 1;
-      throw new Error(
-        `This component needs ${3 - count} more tries (${globalThis.viErrorCount}/3)`,
-      );
-    } else {
-      return import("./vi/vi-error.ts");
-    }
+    throw new Error(
+      `This component failed to load`,
+    );
   },
   "vi-notloaded": async (full_name, args) => {
     let timeout = Number(args.timeout || 900 * 1000);

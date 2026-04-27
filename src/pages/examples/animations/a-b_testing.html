@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <script type="importmap">
       {
@@ -73,19 +73,25 @@
       loadCSSLayer("/shared.css", "ds");
       loadCSSLayer("https://nordcdn.net/ds/css/4.2.0/nord.min.css", "ds");
 
-      const loaderA = async () => {
-        return await import(/* @vite-ignore */ `./a.js`);
-      };
-      const loaderB = async () => {
-        return await import(/* @vite-ignore */ `./b.js`);
+      const loaders = {
+        a: async () => {
+          return await import(/* @vite-ignore */ `./a.js`);
+        },
+        b: async () => {
+          return await import(/* @vite-ignore */ `./b.js`);
+        },
       };
 
       globalThis.catalog = catalog;
       function registerComponents(event) {
-        const loader = event.target.textContent.includes("A")
-          ? loaderA
-          : loaderB;
-        globalThis.catalog["my-component"] = loader;
+        const loader = loaders[event.target.getAttribute("loader")];
+        if (!loader) {
+          throw new Error("Invalid loader");
+        }
+
+        debugger;
+
+        globalThis.catalog["ab-component"] = loader;
         globalThis.registry.discover();
       }
       document
@@ -100,13 +106,14 @@
         live: true,
         defaultDirective: "visible",
         transition: true,
+        fallback: false,
       });
     </script>
   </head>
 
   <body>
-    <button>register A</button>
-    <button>register B</button>
-    <my-component>Hello World</my-component>
+    <button loader="a">register A component</button>
+    <button loader="b">register B component</button>
+    <ab-component>I'm a AB component</ab-component>
   </body>
 </html>

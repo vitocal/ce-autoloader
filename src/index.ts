@@ -22,8 +22,10 @@ export type CEAutoLoaderOptions = {
   root?: HTMLElement;
   /** Watch for new custom elements in the page? */
   live?: boolean;
+
   /** Fallback for components with errors */
   fallback?: CustomElementConstructor;
+
   /** Directives are triggers to when the component should be loaded */
   directives?: CEAutoLoaderDirectives[];
   /** Overwrite the default directive */
@@ -74,7 +76,7 @@ function debounceMutations(
  * CSS selector to match custom elements
  */
 function matchCustomElement(root: Element) {
-  const selector = ":not(:defined):not([ce='error'])";
+  const selector = ":not(:defined)";
   return [...new Set([root, ...root.querySelectorAll(selector)])].filter((el) =>
     isCustomElement(el),
   ) as HTMLElement[];
@@ -109,9 +111,6 @@ class CEAutoLoader {
     }
     this.catalog = options.catalog;
 
-    // Ensure globalThis.catalog reflects the same reference
-    // globalThis.catalog = this.options.catalog;
-
     if (!globalThis.DEFINE) {
       monkeyPatchDefine();
     }
@@ -138,7 +137,6 @@ class CEAutoLoader {
     return;
   }
   private async watcher(mutations: MutationRecord[]) {
-    // await this.discover();
     for (const mutation of mutations.filter((m) => m.type === "childList")) {
       for (const node of mutation.addedNodes) {
         if (node.nodeType != 1) {
@@ -216,6 +214,8 @@ class CEAutoLoader {
     const ce_elements = matchCustomElement(this.options.root || document.body);
     const elements = this.filterByDirective(ce_elements, directive);
 
+    console.debug("upgrade elements:", elements)
+
     const when_in_viewport_loadanddefine: IntersectionObserverCallback = (entries) => {
       let html_elements = entries
         .filter((entry) => entry.isIntersecting)
@@ -281,6 +281,29 @@ class CEAutoLoader {
     }
   }
 
+  /**
+   * Handle components that failed to load
+   */
+  handleComponentLoadError(rejection: PromiseRejectedResult) {
+    const { message, stack, details } = rejection.reason;
+    const origin = details.el as HTMLElement;
+    origin.setAttribute("ce", "error");
+    origin.setAttribute("error", message);
+    origin.setAttribute("stack", stack);
+
+    if (this.options.fallback) {
+      // Instantiate and append fallback instead of defining the tag
+      const fallback_instance = new (this.options.fallback!)();
+      fallback_instance.setAttribute("error", message);
+      fallback_instance.setAttribute("stack", stack);
+
+      origin.innerHTML = "";
+      origin.appendChild(fallback_instance);
+    } else {
+      throw rejection.reason;
+    }
+  }
+
   /*
    * Load and define components
    */
@@ -294,45 +317,13 @@ class CEAutoLoader {
       return [];
     }
 
-    const load_result = await Promise.allSettled(
-      elements.map((el) => this.load(el)),
-    );
-
-    const load_success = load_result.filter(
-      (result) => result.status === "fulfilled",
-    );
-    const load_fail = load_result.filter(
-      (result) => result.status === "rejected",
-    );
+    const load_result = await Promise.allSettled(elements.map((el) => this.load(el)));
+    const load_success = load_result.filter((result) => result.status === "fulfilled");
+    const load_fail = load_result.filter((result) => result.status === "rejected");
 
     // Fallback for failed loads
-    if (this.options.fallback) {
-      await Promise.allSettled(
-        load_fail.map((result) => {
-          const origin = result.reason.details;
-          console.error(result.reason.message);
-
-          origin.el.setAttribute("ce", "error");
-          origin.el.setAttribute("error", result.reason.message);
-          origin.el.setAttribute("stack", result.reason.stack);
-
-          // Instantiate and append fallback instead of defining the tag
-          const fallback_instance = new (this.options.fallback!)();
-          fallback_instance.setAttribute("error", result.reason.message);
-          fallback_instance.setAttribute("stack", result.reason.stack);
-
-          origin.el.innerHTML = "";
-          origin.el.appendChild(fallback_instance);
-        }),
-      );
-    } else if (load_fail.length > 0) {
-      load_fail.forEach((result) => {
-        const origin = result.reason.details;
-        console.error(result.reason.message);
-        origin.el.setAttribute("ce", "error");
-        origin.el.setAttribute("error", result.reason.message);
-      });
-      throw load_fail[0].reason;
+    if (load_fail.length > 0) {
+      await Promise.allSettled(load_fail.map((rejection) => this.handleComponentLoadError(rejection)));
     }
 
     const defineComponents = async (_source?: string) => {
