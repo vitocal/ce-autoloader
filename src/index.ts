@@ -3,11 +3,9 @@
  * A module can be a URL or a function that returns a Promise<CustomElementConstructor>
  */
 export type Module =
-  | string
-  | ((
-      name?: string,
-      attrs?: Record<string, any>,
-    ) => Promise<CustomElementConstructor>);
+  string |
+  ((name?: string, el?: HTMLElement) => Promise<CustomElementConstructor>);
+
 export type Catalog = Record<string, Module>;
 
 export type LoadResult = {
@@ -119,7 +117,7 @@ class CEAutoLoader {
       root: document.body,
       directives: ["eager", "visible", "click"],
       defaultDirective: "visible",
-      transition: true,
+      transition: 'startViewTransition' in document,
       ...options,
     };
 
@@ -214,9 +212,7 @@ class CEAutoLoader {
 
     // Load everyone else right away
     const result = await this.upgrade();
-
     this.#initialized = true;
-
     return result;
   }
 
@@ -275,8 +271,7 @@ class CEAutoLoader {
 
     const interaction = (elements: HTMLElement[]) => {
       return elements.map((el) => {
-        return el.addEventListener(
-          "click",
+        return el.addEventListener("click",
           async () => {
             await this.loadAndDefine([el], "click");
           },
@@ -342,6 +337,34 @@ class CEAutoLoader {
     }
   }
 
+  /**
+   * Perform a view transition of `components`
+   */
+  async runViewTransition(components: LoadResult[], defineFunction: () => Promise<void>) {
+    const elements = components.map(({ el }) => {
+      const transitionName = el.getAttribute("view-transition-name");
+      const transitionClass = el.getAttribute("view-transition-class");
+
+      if (transitionName) { el.style.viewTransitionName = transitionName; }
+      if (transitionClass) { el.style.viewTransitionClass = transitionClass; }
+
+      return el;
+    });
+
+    if (this.activeTransition) {
+      await this.activeTransition.finished;
+    }
+
+    this.activeTransition = document.startViewTransition(async () => await defineFunction());
+    await this.activeTransition.updateCallbackDone;
+
+    elements.map((el) => {
+      el.style.viewTransitionName = "";
+      el.style.viewTransitionClass = "";
+    });
+
+  }
+
   /*
    * Load and define components
    */
@@ -355,73 +378,24 @@ class CEAutoLoader {
       return [];
     }
 
-    const load_result = await Promise.allSettled(
-      elements.map((el) => this.load(el)),
-    );
-    const load_success = load_result.filter(
-      (result) => result.status === "fulfilled",
-    );
-    const load_fail = load_result.filter(
-      (result) => result.status === "rejected",
-    );
+    const load_result = await Promise.allSettled(elements.map((el) => this.load(el)));
+    const load_success = load_result.filter((result) => result.status === "fulfilled");
+    const load_fail = load_result.filter((result) => result.status === "rejected");
 
     // Fallback for failed loads
     if (load_fail.length > 0) {
-      await Promise.allSettled(
-        load_fail.map((rejection) => this.handleComponentLoadError(rejection)),
-      );
+      await Promise.allSettled(load_fail.map(this.handleComponentLoadError.bind(this)));
     }
 
-    const defineComponents = async (_source?: string) => {
-      await Promise.allSettled([
-        ...load_success.map(async (result) => this.define(result.value)),
-      ]);
+    const defineComponents = async () => {
+      await Promise.allSettled(load_success.map((result) => this.define(result.value)));
     };
 
-    if (this.options.transition && document.startViewTransition) {
-      const transitions = load_success
-        .map((result) => result.value)
-        .map((result) => {
-          const { el } = result;
-          const transitionName = el.getAttribute("view-transition-name");
-          const transitionClass = el.getAttribute("view-transition-class");
 
-          if (transitionName) {
-            el.style.viewTransitionName = transitionName;
-          }
-          if (transitionClass) {
-            el.style.viewTransitionClass = transitionClass;
-          }
-
-          return result;
-        });
-
-      if (this.activeTransition) {
-        await this.activeTransition.finished;
-      }
-
-      // const transition_name = transitions.map((result) => result.el.getAttribute('view-transition-name')).join('-');
-      const transition_name = "wherever";
-      performance.mark(`transition-${transition_name}:start`);
-      this.activeTransition = document.startViewTransition(
-        async () => await defineComponents(source),
-      );
-      await this.activeTransition.updateCallbackDone;
-      performance.mark(`transition-${transition_name}:end`);
-      performance.measure(
-        "transition",
-        `transition-${transition_name}:start`,
-        `transition-${transition_name}:end`,
-      );
-
-      transitions
-        .map((result) => result.el)
-        .map((el) => {
-          el.style.viewTransitionName = "";
-          el.style.viewTransitionClass = "";
-        });
+    if (this.options.transition) {
+      this.runViewTransition(load_success.map((result) => result.value), defineComponents);
     } else {
-      await defineComponents(source);
+      await defineComponents();
     }
 
     return load_result;
@@ -450,29 +424,13 @@ class CEAutoLoader {
       if (typeof loader === "string") {
         module = await import(/* @vite-ignore */ loader);
       } else if (typeof loader === "function") {
-        const attrs = el.attributes;
-        const attrs_obj = Array.from(attrs).reduce(
-          (acc, attr) => {
-            acc[attr.name] = attr.value;
-            return acc;
-          },
-          {} as Record<string, string>,
-        );
-        module = await loader(name, attrs_obj);
+        module = await loader(name, el);
       } else {
-        throw new CEError(
-          `Loader of ${name} is invalid! Should be a url or a function`,
-          { name, el, module },
-        );
+        throw new CEError(`Loader of ${name} is invalid! Should be a url or a function`, { name, el, module });
       }
     } catch (error: any) {
       load_error = error;
-      throw new CEError(`${name} - ${error.message}`, {
-        name,
-        el,
-        module,
-        error,
-      });
+      throw new CEError(`${name} - ${error.message}`, { name, el, module, error, });
     } finally {
       performance.mark(`load:${name}:end`);
       performance.measure(`load:${name}`, {
@@ -482,9 +440,8 @@ class CEAutoLoader {
       });
     }
 
-    // Support for components defining it's dependencies upfront
-    let after_imports = customElements.waiting;
-    let diff_imports = Object.keys(after_imports)
+    // Support for components that defines others components
+    let diff_imports = Object.keys(customElements.waiting)
       .filter((key) => !Object.keys(before_imports).includes(key))
       .filter((key) => key !== name);
 
@@ -511,10 +468,7 @@ class CEAutoLoader {
       }
 
       if (!module) {
-        throw new CEError(
-          `Component ${name} wasn't defined! This is a bug and should not have reached here!!`,
-          { name, el, module },
-        );
+        throw new CEError(`Component ${name} wasn't defined! This is a bug and should not have reached here!!`, { name, el, module });
       }
     }
 
@@ -525,12 +479,7 @@ class CEAutoLoader {
       DEFINE(name, module, {});
     } catch (error: any) {
       define_error = error;
-      throw new CEError(`${name} - ${error.message}`, {
-        name,
-        el,
-        module,
-        error,
-      });
+      throw new CEError(`${name} - ${error.message}`, { name, el, module, error, });
     } finally {
       el.setAttribute("ce", "defined");
 

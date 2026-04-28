@@ -10,8 +10,8 @@ let catalog = {
   "hero-example": () => import("./hero-example.js"),
   "vi-example": () => import("./vi-example.js"),
   "my-component": async () => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return import("./my-component.js")
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    return import("./my-component.js");
   },
 
   "confetti-button": () => import("./confetti-button.ts"),
@@ -27,13 +27,11 @@ let catalog = {
   "svelte-counter": () => import("./vi/svelte-counter.ts"),
 
   "vi-error": (name, attrs) => {
-    throw new Error(
-      `This component failed to load`,
-    );
+    throw new Error(`This component failed to load`);
   },
-  "vi-notloaded": async (full_name, args) => {
-    let timeout = Number(args.timeout || 900 * 1000);
-    await new Promise(resolve => setTimeout(resolve, timeout));
+  "vi-notloaded": async (full_name, el) => {
+    let timeout = Number(el.getAttribute("timeout") || 900 * 1000);
+    await new Promise((resolve) => setTimeout(resolve, timeout));
   },
   "vi-defined": () => import("./vi/vi-defined.tsx"),
 
