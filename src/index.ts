@@ -2,22 +2,32 @@
 /**
  * A module can be a URL or a function that returns a Promise<CustomElementConstructor>
  */
-export type CEAutoLoaderModule =
+export type Module =
   | string
-  | ((name?: string, attrs?: Record<string, any>) => Promise<CustomElementConstructor>);
-export type CEAutoLoaderCatalog = Record<string, CEAutoLoaderModule>;
+  | ((
+      name?: string,
+      attrs?: Record<string, any>,
+    ) => Promise<CustomElementConstructor>);
+export type Catalog = Record<string, Module>;
 
-export type CEAutoLoaderLoadResult = {
+export type LoadResult = {
   name: string;
   el: HTMLElement;
-  loader?: CEAutoLoaderModule;
+  loader?: Module;
   module?: CustomElementConstructor;
 };
 
-export type CEAutoLoaderDirectives = "eager" | "visible" | "click" | string;
-export type CEAutoLoaderOptions = {
+export type LoadError = {
+  name: string;
+  el: HTMLElement;
+  error: CEError;
+  retries?: number;
+};
+
+export type Directives = "eager" | "visible" | "click" | string;
+export type Options = {
   /* The component catalog */
-  catalog?: CEAutoLoaderCatalog;
+  catalog: Catalog;
   /* The root element to search for custom elements */
   root?: HTMLElement;
   /** Watch for new custom elements in the page? */
@@ -27,9 +37,9 @@ export type CEAutoLoaderOptions = {
   fallback?: CustomElementConstructor;
 
   /** Directives are triggers to when the component should be loaded */
-  directives?: CEAutoLoaderDirectives[];
+  directives?: Directives[];
   /** Overwrite the default directive */
-  defaultDirective?: CEAutoLoaderDirectives;
+  defaultDirective?: Directives;
 
   /** Use View Transitions API to animate the component upgrade */
   transition?: boolean;
@@ -38,7 +48,7 @@ export type CEAutoLoaderOptions = {
 /**
  * Error thrown by CEAutoLoader
  */
-class CEError extends Error {
+export class CEError extends Error {
   details: any;
 
   constructor(message: string, details: any) {
@@ -49,6 +59,10 @@ class CEError extends Error {
 
 function isCustomElement(element: Element) {
   return element instanceof HTMLElement && element.tagName.includes("-");
+}
+
+function isModule(m: any): m is { default: any } {
+  return m?.[Symbol.toStringTag] === "Module";
 }
 
 function debounceMutations(
@@ -83,11 +97,11 @@ function matchCustomElement(root: Element) {
 }
 
 class CEAutoLoader {
-  options: CEAutoLoaderOptions;
-  catalog?: CEAutoLoaderCatalog;
+  options: Options;
+  catalog: Catalog;
 
   // Resolvers matched against tags at runtime.
-  _resolvers: Record<string, CEAutoLoaderModule> = {};
+  _resolvers: Record<string, Module> = {};
 
   // Mutation and Interaction Observers
   #observers: Record<string, MutationObserver | IntersectionObserver> = {};
@@ -96,7 +110,10 @@ class CEAutoLoader {
   // Active view transition
   activeTransition?: ViewTransition;
 
-  constructor(options: Partial<CEAutoLoaderOptions> = {}) {
+  // Components that failed to load
+  #errors: Record<string, LoadError> = {};
+
+  constructor(options: Options = { catalog: {} }) {
     this.options = {
       live: true,
       root: document.body,
@@ -138,6 +155,12 @@ class CEAutoLoader {
   }
   private async watcher(mutations: MutationRecord[]) {
     for (const mutation of mutations.filter((m) => m.type === "childList")) {
+      // Ignore mutations on elements that failed to load
+      const name = (mutation.target as HTMLElement).tagName.toLowerCase();
+      if (this.#errors[name]) {
+        continue;
+      }
+
       for (const node of mutation.addedNodes) {
         if (node.nodeType != 1) {
           continue;
@@ -159,10 +182,7 @@ class CEAutoLoader {
   /**
    * Some filters to avoid duplicates
    */
-  private filterByDirective(
-    elements: HTMLElement[],
-    directive?: CEAutoLoaderDirectives,
-  ) {
+  private filterByDirective(elements: HTMLElement[], directive?: Directives) {
     if (!directive) {
       return elements.filter((el) => !el.hasAttribute("loading"));
     }
@@ -183,7 +203,6 @@ class CEAutoLoader {
    * Discover the custom elements in the `root` and upgrade them lazily
    */
   async discover() {
-    console.log("catalog", this.catalog)
     if (!this.#initialized && this.options.live) {
       this.watchDOMMutations();
     }
@@ -210,41 +229,47 @@ class CEAutoLoader {
    * To manually upgrade elements, use the `loading="manual"` attribute, but it
    * can be any string really. Then call `registry.upgrade("manual")` to upgrade all elements with that attribute.
    */
-  async upgrade(directive?: CEAutoLoaderDirectives) {
+  async upgrade(directive?: Directives) {
     const ce_elements = matchCustomElement(this.options.root || document.body);
     const elements = this.filterByDirective(ce_elements, directive);
 
-    console.debug("upgrade elements:", elements)
-
-    const when_in_viewport_loadanddefine: IntersectionObserverCallback = (entries) => {
+    const when_in_viewport_loadanddefine: IntersectionObserverCallback = (
+      entries,
+    ) => {
       let html_elements = entries
         .filter((entry) => entry.isIntersecting)
         .filter(
-          (entry) =>
-            !customElements.get(entry.target.tagName.toLowerCase()),
+          (entry) => !customElements.get(entry.target.tagName.toLowerCase()),
         )
         .map((entry) => entry.target as HTMLElement);
 
       if (html_elements.length > 0) {
         this.loadAndDefine(html_elements, "visible");
       }
-    }
+    };
 
     const visible = (elements: HTMLElement[]) => {
       // Create observer if it doesn't exist
       if (!this.#observers["intersection"]) {
-        this.#observers["intersection"] = new IntersectionObserver(when_in_viewport_loadanddefine);
+        this.#observers["intersection"] = new IntersectionObserver(
+          when_in_viewport_loadanddefine,
+        );
       } else {
         // If the observer already exists, we need to check if there are any pending entries
-        let mutations = this.#observers["intersection"].takeRecords() as IntersectionObserverEntry[];
+        let mutations = this.#observers[
+          "intersection"
+        ].takeRecords() as IntersectionObserverEntry[];
         if (mutations.length > 0) {
-          when_in_viewport_loadanddefine(mutations, this.#observers["intersection"] as IntersectionObserver);
+          when_in_viewport_loadanddefine(
+            mutations,
+            this.#observers["intersection"] as IntersectionObserver,
+          );
         }
       }
 
       return elements.map((el) => {
-        this.#observers["intersection"].unobserve(el)
-        this.#observers["intersection"].observe(el)
+        this.#observers["intersection"].unobserve(el);
+        this.#observers["intersection"].observe(el);
       });
     };
 
@@ -287,15 +312,28 @@ class CEAutoLoader {
   handleComponentLoadError(rejection: PromiseRejectedResult) {
     const { message, stack, details } = rejection.reason;
     const origin = details.el as HTMLElement;
+    const name = origin.tagName.toLowerCase();
+
+    const retries = (this.#errors[name]?.retries || 0) + 1;
+
+    this.#errors[name] = {
+      name: name,
+      el: origin,
+      error: rejection.reason,
+      retries: retries,
+    };
+
     origin.setAttribute("ce", "error");
     origin.setAttribute("error", message);
     origin.setAttribute("stack", stack);
+    origin.setAttribute("retries", retries.toString());
 
     if (this.options.fallback) {
       // Instantiate and append fallback instead of defining the tag
-      const fallback_instance = new (this.options.fallback!)();
+      const fallback_instance = new this.options.fallback!();
       fallback_instance.setAttribute("error", message);
       fallback_instance.setAttribute("stack", stack);
+      fallback_instance.setAttribute("retries", retries.toString());
 
       origin.innerHTML = "";
       origin.appendChild(fallback_instance);
@@ -317,13 +355,21 @@ class CEAutoLoader {
       return [];
     }
 
-    const load_result = await Promise.allSettled(elements.map((el) => this.load(el)));
-    const load_success = load_result.filter((result) => result.status === "fulfilled");
-    const load_fail = load_result.filter((result) => result.status === "rejected");
+    const load_result = await Promise.allSettled(
+      elements.map((el) => this.load(el)),
+    );
+    const load_success = load_result.filter(
+      (result) => result.status === "fulfilled",
+    );
+    const load_fail = load_result.filter(
+      (result) => result.status === "rejected",
+    );
 
     // Fallback for failed loads
     if (load_fail.length > 0) {
-      await Promise.allSettled(load_fail.map((rejection) => this.handleComponentLoadError(rejection)));
+      await Promise.allSettled(
+        load_fail.map((rejection) => this.handleComponentLoadError(rejection)),
+      );
     }
 
     const defineComponents = async (_source?: string) => {
@@ -384,10 +430,9 @@ class CEAutoLoader {
   /**
    * Load a single component
    */
-  async load(el: HTMLElement): Promise<CEAutoLoaderLoadResult> {
+  async load(el: HTMLElement): Promise<LoadResult> {
     const name = el.tagName.toLowerCase();
 
-    console.log("load", el, this.catalog)
     let loader = this.catalog?.[name] || this.getWildcardResolver(name);
     if (!loader) {
       throw new CEError(`Component ${name} not found in catalog`, { name, el });
@@ -406,10 +451,13 @@ class CEAutoLoader {
         module = await import(/* @vite-ignore */ loader);
       } else if (typeof loader === "function") {
         const attrs = el.attributes;
-        const attrs_obj = Array.from(attrs).reduce((acc, attr) => {
-          acc[attr.name] = attr.value;
-          return acc;
-        }, {} as Record<string, string>);
+        const attrs_obj = Array.from(attrs).reduce(
+          (acc, attr) => {
+            acc[attr.name] = attr.value;
+            return acc;
+          },
+          {} as Record<string, string>,
+        );
         module = await loader(name, attrs_obj);
       } else {
         throw new CEError(
@@ -450,7 +498,7 @@ class CEAutoLoader {
   /**
    * Define a single component
    */
-  async define({ name, el, module }: CEAutoLoaderLoadResult) {
+  async define({ name, el, module }: LoadResult) {
     /**
      * The loader may return a `HTMLCustomElement`,
      * or it may define the element itself (customElements.define).
@@ -458,6 +506,10 @@ class CEAutoLoader {
     if (customElements.waiting[name]) {
       module = customElements.waiting[name]["ctor"];
     } else {
+      if (isModule(module)) {
+        module = module.default;
+      }
+
       if (!module) {
         throw new CEError(
           `Component ${name} wasn't defined! This is a bug and should not have reached here!!`,
@@ -470,10 +522,6 @@ class CEAutoLoader {
     try {
       performance.mark(`define:${name}:start`);
 
-      if (module[Symbol.toStringTag] === "Module") {
-        console.log("module", module)
-        module = module.default;
-      }
       DEFINE(name, module, {});
     } catch (error: any) {
       define_error = error;
@@ -501,7 +549,7 @@ class CEAutoLoader {
    * Matches a component name to a wildcard resolver (if exists)
    * e.g. "nord-button" -> "nord-*"
    */
-  private getWildcardResolver(name: string): CEAutoLoaderModule | null {
+  private getWildcardResolver(name: string): Module | null {
     const [prefix, _comp_name] = name.split("-");
     return this.catalog[`${prefix}-*`];
   }
@@ -515,9 +563,13 @@ class CEAutoLoader {
     el.removeAttribute("ce");
     el.removeAttribute("error");
     el.removeAttribute("stack");
+    el.removeAttribute("retries");
     el.innerHTML = "";
 
-    return await this.loadAndDefine([el], el.getAttribute("loading") || "retry");
+    return await this.loadAndDefine(
+      [el],
+      el.getAttribute("loading") || "retry",
+    );
   }
 
   /**
@@ -533,8 +585,6 @@ class CEAutoLoader {
     });
   }
 }
-
-console.log("CE-autoloader linked");
 
 /**
  * The original customElements.define is patched to allow queueing.

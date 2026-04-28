@@ -5,6 +5,6 @@ export default class MyBButton extends HTMLElement {
     }
 
     render() {
-        this.innerHTML = `<b>B</b> component`
+        this.innerHTML = `I'm the version <b>B</b>`
     }
 }

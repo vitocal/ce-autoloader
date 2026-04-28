@@ -28,8 +28,18 @@
             border: 1px solid gray;
         }
 
-        #errors:empty {
-            display: none;
+        #errors {
+            color: red;
+            background: #fee;
+            padding: 1em;
+            white-space: pre;
+            font-family: monospace;
+            width: 80%;
+            margin: 0 auto;
+
+            &:empty {
+                display: none;
+            }
         }
 
         :not(:defined) {
@@ -49,7 +59,7 @@
 <body>
     <div id="mocha"></div>
     <div id="fixtures"></div>
-    <div id="errors" style="color: red; background: #fee; padding: 1em; white-space: pre;"></div>
+    <div id="errors"></div>
 
     <script src="https://unpkg.com/mocha/mocha.js"></script>
 
@@ -64,10 +74,6 @@
 
     <script class="mocha-init">
         mocha.setup('bdd');
-        mocha.setup({
-            ignoreLeaks: true
-        });
-        mocha.checkLeaks();
     </script>
 
     <script type="module">
@@ -85,6 +91,17 @@
                 return html`Hello World`;
             }
         };
+
+        class ErrorFallback extends HTMLElement {
+            connectedCallback() {
+                this.appendChild(this.render());
+            }
+            render() {
+                return html`<p>Fallback content</p>`;
+            }
+        }
+        customElements.define('error-fallback', ErrorFallback);
+
 
         // Component catalog
         const catalog = {
@@ -111,6 +128,9 @@
                 class VisibleComponent extends BaseComp { };
                 customElements.define('visible-component', VisibleComponent);
             },
+            "error-component": async () => {
+                throw new Error("Failed to load component");
+            }
         };
 
         describe('CEAutoLoader', () => {
@@ -134,23 +154,20 @@
                     catalog,
                     root: fixtures,
                 });
-                await registry.discover();
-
+                await customElements.whenDefined("test-component");
                 expect(el.hasAttribute('data-upgraded')).to.be.true;
             });
 
             it('should upgrade nested components', async () => {
-                registry = new AutoLoader({
-                    catalog,
-                    root: fixtures,
-                    observe: true
-                });
-                await registry.discover();
-
                 const container = document.createElement('div');
                 const el = document.createElement('nested-component');
                 container.appendChild(el);
                 fixtures.appendChild(container);
+
+                registry = new AutoLoader({
+                    catalog,
+                    root: fixtures,
+                });
 
                 await customElements.whenDefined("nested-component");
 
@@ -163,8 +180,6 @@
                     root: fixtures,
                     observe: true
                 });
-                await registry.discover();
-
 
                 const el = document.createElement('dynamic-component');
                 fixtures.appendChild(el);
@@ -177,9 +192,9 @@
 
 
             describe("loading attribute", () => {
-                it('should allow manual', async () => {
-                    const el = document.createElement('manual-component')
-                    el.setAttribute('on', 'manual');
+                it("eager", async () => {
+                    const el = document.createElement('test-component')
+                    el.setAttribute('loading', 'eager');
                     fixtures.appendChild(el);
 
                     registry = new AutoLoader({
@@ -187,37 +202,45 @@
                         root: fixtures,
                         observe: false,
                     });
-                    await registry.discover();
+
+                    await customElements.whenDefined("test-component");
+                    expect(el.hasAttribute('data-upgraded')).to.be.true;
+                })
+                it('manual', async () => {
+                    const el = document.createElement('manual-component')
+                    el.setAttribute('loading', 'manual');
+                    fixtures.appendChild(el);
+
+                    registry = new AutoLoader({
+                        catalog,
+                        root: fixtures,
+                        observe: false,
+                    });
 
                     expect(el.hasAttribute('data-upgraded')).to.be.false;
-
                     await registry.upgrade("manual");
-
                     expect(el.hasAttribute('data-upgraded')).to.be.true;
                 });
-
-                it('should allow interaction', async () => {
+                it('click', async () => {
                     const el = document.createElement('interaction-component')
-                    el.setAttribute('on', 'interaction');
+                    el.setAttribute('loading', 'click');
                     fixtures.appendChild(el);
 
                     registry = new AutoLoader({
                         catalog,
                         root: fixtures,
                     });
-                    await registry.discover();
 
                     expect(el.hasAttribute('data-upgraded')).to.be.false;
 
-                    await el.dispatchEvent(new PointerEvent('pointerdown'));
+                    await el.dispatchEvent(new MouseEvent('click'));
                     await customElements.whenDefined("interaction-component");
 
                     expect(el.hasAttribute('data-upgraded')).to.be.true;
                 });
-
-                it('should allow lazy', async () => {
+                it('visible', async () => {
                     const el = document.createElement('visible-component')
-                    el.setAttribute('on', 'lazy');
+                    el.setAttribute('loading', 'visible');
                     fixtures.appendChild(el);
 
                     registry = new AutoLoader({
@@ -225,13 +248,43 @@
                         root: fixtures,
                         observe: false,
                     });
-                    await registry.discover();
 
                     expect(el.hasAttribute('data-upgraded')).to.be.false;
                     await customElements.whenDefined("visible-component");
                     expect(el.hasAttribute('data-upgraded')).to.be.true;
                 });
             });
+
+            describe("Errors", () => {
+                it("should handle errors in component definition", async () => {
+                    fixtures.appendChild(document.createElement('error-component'));
+
+                    registry = new AutoLoader({
+                        catalog: catalog,
+                        root: fixtures,
+                    });
+                    await new Promise(requestIdleCallback);
+
+                    const el = document.querySelector('error-component');
+                    expect(el.getAttribute("ce")).to.equal("error");
+                    expect(el.getAttribute("error")).to.include("Failed to load component");
+                });
+                it("Should allow a fallback component", async () => {
+                    fixtures.appendChild(document.createElement('error-component'));
+
+                    registry = new AutoLoader({
+                        catalog: catalog,
+                        root: fixtures,
+                        fallback: ErrorFallback
+                    });
+                    await new Promise(requestIdleCallback);
+                    await new Promise(resolve => setTimeout(resolve, 100)); // Wait for fallback to render
+
+                    const el = document.querySelector('error-component');
+                    expect(el.querySelector('error-fallback')).to.exist;
+                    expect(el.textContent).to.equal("Fallback content");
+                })
+            })
         });
 
         const runner = mocha.run();

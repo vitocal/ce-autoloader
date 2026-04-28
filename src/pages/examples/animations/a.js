@@ -5,7 +5,7 @@ export default class MyAButton extends HTMLElement {
     }
 
     render() {
-        this.innerHTML = `<b>A</b> component`
+        this.innerHTML = `Im the version <b>A</b>`
     }
 }
 

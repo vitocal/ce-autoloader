@@ -82,31 +82,27 @@
         },
       };
 
-      globalThis.catalog = catalog;
       function registerComponents(event) {
         const loader = loaders[event.target.getAttribute("loader")];
         if (!loader) {
           throw new Error("Invalid loader");
         }
 
-        debugger;
-
-        globalThis.catalog["ab-component"] = loader;
-        globalThis.registry.discover();
+        catalog["ab-component"] = loader;
+        registry.discover();
       }
+
       document
         .querySelectorAll("button")
         .forEach((button) =>
           button.addEventListener("click", registerComponents),
         );
 
-      globalThis.registry = new CERegistry({
-        catalog: globalThis.catalog,
-        root: document.body,
-        live: true,
+      const registry = new CERegistry({
+        catalog: catalog,
         defaultDirective: "visible",
+        live: true,
         transition: true,
-        fallback: false,
       });
     </script>
   </head>
@@ -114,6 +110,8 @@
   <body>
     <button loader="a">register A component</button>
     <button loader="b">register B component</button>
-    <ab-component>I'm a AB component</ab-component>
+    <ab-component loading="visible"
+      >I'm a AB component, not yet defined!</ab-component
+    >
   </body>
 </html>

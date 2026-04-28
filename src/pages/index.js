@@ -6,10 +6,8 @@ import ErrorFallback from "/src/components/error-fallback.js";
 import CERegistry from "/src/index.js";
 import catalog from "/src/components/catalog.js";
 
-globalThis.catalog = catalog;
-
 globalThis.registry = new CERegistry({
-  catalog: globalThis.catalog,
+  catalog: catalog,
   root: document.body,
   live: true,
   fallback: ErrorFallback,
