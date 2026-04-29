@@ -1,4 +1,4 @@
-class e extends HTMLElement{#t=0;#i;constructor(){super()}connectedCallback(){this.#c()}#n(){this.#t++,this.#e()}#s(){this.#t--,this.#e()}#e(){const t=this.querySelector(".count");t&&(t.textContent=this.#t.toString())}#c(){this.innerHTML=`
+class e extends HTMLElement{#t=0;constructor(){super()}connectedCallback(){this.#c()}#n(){this.#t++,this.#e()}#s(){this.#t--,this.#e()}#e(){const t=this.querySelector(".count");t&&(t.textContent=this.#t.toString())}#c(){this.innerHTML=`
             <div class="counter-card svelte">
                 <h3>VanillaJS Counter</h3>
                 <div class="controls">

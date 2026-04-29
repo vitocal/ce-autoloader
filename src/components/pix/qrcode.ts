@@ -33,7 +33,6 @@ export default class PixQRCode extends LitElement {
     const qrCodePix = QrCodePix(this.transaction);
     this.pix = qrCodePix.payload();
     this.qrCodeB64 = await qrCodePix.base64();
-    console.log(this.qrCodeB64);
   }
 
   render() {

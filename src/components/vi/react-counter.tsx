@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import r2wc from "@r2wc/react-to-web-component"
 
 const ReactCounter = () => {

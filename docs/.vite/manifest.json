@@ -11,8 +11,8 @@
     "file": "assets/confetti.module-oQXWb4Lk.js",
     "name": "confetti.module"
   },
-  "_preload-helper-7o-uo1iS.js": {
-    "file": "assets/preload-helper-7o-uo1iS.js",
+  "_preload-helper-BfVdv7YT.js": {
+    "file": "assets/preload-helper-BfVdv7YT.js",
     "name": "preload-helper"
   },
   "_react-to-web-component-KwXRUZS_.js": {
@@ -22,17 +22,21 @@
       "__commonjsHelpers-CE1G-McA.js"
     ]
   },
+  "_slotted-element-e_Tah3RU.js": {
+    "file": "assets/slotted-element-e_Tah3RU.js",
+    "name": "slotted-element"
+  },
   "assets/core-web-vitals.jpg": {
     "file": "assets/core-web-vitals-DBb9bc-d.jpg",
     "src": "assets/core-web-vitals.jpg"
   },
   "index.html": {
-    "file": "assets/main-D8OYzs-Q.js",
+    "file": "assets/main-UVdjeRkB.js",
     "name": "main",
     "src": "index.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-7o-uo1iS.js"
+      "_preload-helper-BfVdv7YT.js"
     ],
     "dynamicImports": [
       "src/components/hero-example.js",
@@ -48,7 +52,6 @@
       "src/components/vi/react-counter.tsx",
       "src/components/vi/vue-counter.ts",
       "src/components/vi/svelte-counter.ts",
-      "src/components/vi/vi-error.ts",
       "src/components/vi/vi-defined.tsx"
     ],
     "assets": [
@@ -56,12 +59,12 @@
     ]
   },
   "single.html": {
-    "file": "assets/single-BnaeJpNf.js",
+    "file": "assets/single-CkXc8niU.js",
     "name": "single",
     "src": "single.html",
     "isEntry": true,
     "imports": [
-      "_preload-helper-7o-uo1iS.js",
+      "_preload-helper-BfVdv7YT.js",
       "_SlotController-Z6eG7LSZ-paOtwl-R.js"
     ]
   },
@@ -84,11 +87,12 @@
     ]
   },
   "src/components/my-component.js": {
-    "file": "assets/my-component-Cjp14JcL.js",
+    "file": "assets/my-component-VYS7UlqI.js",
     "name": "my-component",
     "src": "src/components/my-component.js",
     "isDynamicEntry": true,
     "imports": [
+      "_slotted-element-e_Tah3RU.js",
       "_confetti.module-oQXWb4Lk.js"
     ]
   },
@@ -120,13 +124,16 @@
     "isDynamicEntry": true
   },
   "src/components/vi-example.js": {
-    "file": "assets/vi-example-Bsaf35nv.js",
+    "file": "assets/vi-example-CYs-hR0H.js",
     "name": "vi-example",
     "src": "src/components/vi-example.js",
-    "isDynamicEntry": true
+    "isDynamicEntry": true,
+    "imports": [
+      "_slotted-element-e_Tah3RU.js"
+    ]
   },
   "src/components/vi/gl-globe.ts": {
-    "file": "assets/gl-globe-DHkakV00.js",
+    "file": "assets/gl-globe-BHBINrHR.js",
     "name": "gl-globe",
     "src": "src/components/vi/gl-globe.ts",
     "isDynamicEntry": true
@@ -152,7 +159,7 @@
     ]
   },
   "src/components/vi/svelte-counter.ts": {
-    "file": "assets/svelte-counter-JQOGsg45.js",
+    "file": "assets/svelte-counter-CB71A_4P.js",
     "name": "svelte-counter",
     "src": "src/components/vi/svelte-counter.ts",
     "isDynamicEntry": true
@@ -161,12 +168,6 @@
     "file": "assets/vi-defined-Bvd24Ixg.js",
     "name": "vi-defined",
     "src": "src/components/vi/vi-defined.tsx",
-    "isDynamicEntry": true
-  },
-  "src/components/vi/vi-error.ts": {
-    "file": "assets/vi-error-BArtcoJg.js",
-    "name": "vi-error",
-    "src": "src/components/vi/vi-error.ts",
     "isDynamicEntry": true
   },
   "src/components/vi/vue-counter.ts": {

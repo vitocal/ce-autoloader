@@ -42,12 +42,10 @@ let catalog = {
   "fireworks-js": () => import("https://esm.sh/@fireworks-js/web"),
 
   "model-viewer": async () => {
-    // await new Promise((resolve) => setTimeout(resolve, 60000 + Math.random() * 1000));
     await import("https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js");
   },
 
   "syntax-highlight": async () => {
-    // loadCSSLayer('https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css', 'scoped');
     return import("https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm");
   },
 
