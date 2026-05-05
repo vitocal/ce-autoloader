@@ -14,8 +14,8 @@
 </p>
 
 <p align="center">
-  <strong>A webcomponent lazy loader and registry for the web.</strong><br>
-  <em>The missing parts of the <code>customElements</code> API.</em>
+  <strong>A webcomponent lazy loader</strong><br>
+  Load web components on demand <em>if and when</em> they're needed.
 </p>
 
 <p align="center">
@@ -23,21 +23,23 @@
   <a href="https://vitocal.github.io/ce-autoloader/"><strong>📖 Documentation</strong></a>
 </p>
 
-- Automatically Load any web-component on demand, if and when they're used in the page.
-- A centralized registry for your components, skip the tedious and error-prone manual registration.
-- **Activation Triggers**: Native support for loading strategies like `on="visible"`, `on="click"`, or eager loading.
-- **Dynamic Resolvers**: Effortlessly resolve entire component libraries (e.g., `nord-*`) using pattern-based loaders.
-- Supports for CSS animations and even view-transitions!
-- Framework-independent: React, Lit, Svelte, Vue, Angular...
-- No dependencies, <10kb (3kb gzip), and fast!
+The ce-autoloader is a lightweight library to lazy-load Web Components on demand. If a component isn't used on the page, it won't be downloaded.
+
+- Universal: Anything that exports a Web Component works (React, Vue, Lit, Svelte, etc.).
+- Shared Catalog: Define your components in a single place and re-use it across multiple pages.
+- Custom Loader Strategy: Use loading attribute to customize when a component should be loaded.
+- Polished Animations: Use the lifecycle states and [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API) to animate components as they load/render.
+- Smart Scheduling: Batches custom element upgrades into single animation frames to prevent layout thrashing.
+- Native Telemetry: Built-in performance markers for every stage of the lifecycle, deep visibility into load times.
+- Error Handling: Define a custom fallback component to show when a module fails to load.
+- Zero Friction: 3kb gzipped without dependencies and no build/bundler required.
 
 ### Use Cases
 
 - Hackers tired of frontend fatigue, react madness and hydration issues.
-- Markdown blogs: hey, webcomponents are already supported natively!
-- Progressive enhancement for static sites and CMS.
-- Multi-page applications with interactive islands.
-- Smart editors like Obsidian, Notion, LogSeq.
+- Universal alternative for next/nuxtjs
+- Server rendered sites with interactive islands/progressive enhancements.
+- Markdown powered sites: hey, webcomponents are already supported out-of-the-box!
 
 ## Installation
 
@@ -61,33 +63,27 @@ const registry = new CERegistry({
 		"confetti-button": () => import('./confetti-button.ts'),
 	}
 });
-
-// Use the component in your HTML, just like any other element
-// &lt;model-viewer camera-controls auto-rotate
-// src="https://modelviewer.dev/shared-assets/models/shishkebab.glb">&lt;/model-viewer>
 ```
 
-Now you can use any component from these libraries, and they will be activated only when used.
+Now you can use any component from these libraries, and they will be loaded only when used.
 
 ```html
-<body>
-    <sl-alert variant="error">Error</sl-alert>
-</body>
+    <model-viewer src="..."></model-viewer>
 ```
 
-## Gotchas
+## Demos
 
-#### De-duplicating dependencies with `?external`
+Try the demos online at [ce-autoloader](https://vitocal.github.io/ce-autoloader/)
 
-We can deduplicate by marking core dependencies as **external**, and loading them once.
+## Documentation
 
- - For CDN's, there's generally and `external` option: `esm.sh?external`.
- - Rollup or other bundlers always has an `external` config
+
+
 
 ## Browser support
 
 Latest Chrome, Firefox, Safari, Edge for view transition support.
 
-## Documentation
+## License
 
-See documentation at [ce-autoloader](https://vitocal.github.io/ce-autoloader/)
+`ce-autoloader` is released under the GNU v3. See the enclosed [`LICENSE`](./LICENSE) for more information.

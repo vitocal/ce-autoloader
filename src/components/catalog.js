@@ -17,7 +17,12 @@ let catalog = {
   "confetti-button": () => import("./confetti-button.ts"),
   "three-cube": () => import("./three-cube.js"),
   "gl-globe": () => import("./vi/gl-globe.ts"),
-  "observable-plot-wrapper": () => import("./observable-plot-wrapper.js"),
+  "observable-plot-wrapper": async () => {
+    await new Promise((resolve) => {
+      import("./observable-plot-wrapper.js");
+      setTimeout(resolve, 1250);
+    });
+  },
   "performance-metrics-plot": () => import("./performance-metrics-plot.js"),
   "pix-qrcode": () => import("./pix/qrcode.ts"),
 

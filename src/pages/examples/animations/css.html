@@ -72,8 +72,6 @@
             await new Promise(resolve => setTimeout(resolve, 3000));
             const module = await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/Button.js`);
         }
-
-        await registry.discover();
     </script>
 </head>
 

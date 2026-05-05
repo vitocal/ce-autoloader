@@ -31,6 +31,9 @@ export type Options = {
   /** Watch for new custom elements in the page? */
   live?: boolean;
 
+  /** Disable the automatic component discovery when instantiating CERegistry  */
+  autoDiscover?: boolean;
+
   /** Fallback for components with errors */
   fallback?: CustomElementConstructor;
 
@@ -41,6 +44,14 @@ export type Options = {
 
   /** Use View Transitions API to animate the component upgrade */
   transition?: boolean;
+
+  /** Lifecycle hooks of each component */
+  hooks?: {
+    viewTransition: {
+      ready?: () => Promise<void>,
+      finished?: () => Promise<void>,
+    }
+  }
 };
 
 /**
@@ -118,6 +129,7 @@ class CEAutoLoader {
       directives: ["eager", "visible", "click"],
       defaultDirective: "visible",
       transition: 'startViewTransition' in document,
+      autoDiscover: true,
       ...options,
     };
 
@@ -130,7 +142,8 @@ class CEAutoLoader {
       monkeyPatchDefine();
     }
 
-    this.discover();
+    if (this.options.autoDiscover)
+      this.discover();
   }
 
   /**
@@ -356,12 +369,20 @@ class CEAutoLoader {
     }
 
     this.activeTransition = document.startViewTransition(async () => await defineFunction());
+    if (this.options.hooks?.viewTransition?.ready) {
+      this.activeTransition.ready.then(this.options.hooks.viewTransition.ready);
+    }
+
     await this.activeTransition.updateCallbackDone;
 
     elements.map((el) => {
       el.style.viewTransitionName = "";
       el.style.viewTransitionClass = "";
     });
+
+    if (this.options.hooks?.viewTransition.finished) {
+      this.activeTransition.finished.then(this.options.hooks.viewTransition.finished)
+    }
 
   }
 
@@ -390,7 +411,6 @@ class CEAutoLoader {
     const defineComponents = async () => {
       await Promise.allSettled(load_success.map((result) => this.define(result.value)));
     };
-
 
     if (this.options.transition) {
       this.runViewTransition(load_success.map((result) => result.value), defineComponents);

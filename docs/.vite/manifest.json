@@ -1,19 +1,7 @@
 {
-  "_SlotController-Z6eG7LSZ-paOtwl-R.js": {
-    "file": "assets/SlotController-Z6eG7LSZ-paOtwl-R.js",
-    "name": "SlotController-Z6eG7LSZ"
-  },
   "__commonjsHelpers-CE1G-McA.js": {
     "file": "assets/_commonjsHelpers-CE1G-McA.js",
     "name": "_commonjsHelpers"
-  },
-  "_confetti.module-oQXWb4Lk.js": {
-    "file": "assets/confetti.module-oQXWb4Lk.js",
-    "name": "confetti.module"
-  },
-  "_preload-helper-BfVdv7YT.js": {
-    "file": "assets/preload-helper-BfVdv7YT.js",
-    "name": "preload-helper"
   },
   "_react-to-web-component-KwXRUZS_.js": {
     "file": "assets/react-to-web-component-KwXRUZS_.js",
@@ -31,13 +19,10 @@
     "src": "assets/core-web-vitals.jpg"
   },
   "index.html": {
-    "file": "assets/main-UVdjeRkB.js",
+    "file": "assets/main-BpYvK3yP.js",
     "name": "main",
     "src": "index.html",
     "isEntry": true,
-    "imports": [
-      "_preload-helper-BfVdv7YT.js"
-    ],
     "dynamicImports": [
       "src/components/hero-example.js",
       "src/components/vi-example.js",
@@ -58,46 +43,29 @@
       "assets/core-web-vitals-DBb9bc-d.jpg"
     ]
   },
-  "single.html": {
-    "file": "assets/single-CkXc8niU.js",
-    "name": "single",
-    "src": "single.html",
-    "isEntry": true,
-    "imports": [
-      "_preload-helper-BfVdv7YT.js",
-      "_SlotController-Z6eG7LSZ-paOtwl-R.js"
-    ]
-  },
   "src/components/confetti-button.ts": {
-    "file": "assets/confetti-button-Dv63vFTJ.js",
+    "file": "assets/confetti-button-DqoyFYpO.js",
     "name": "confetti-button",
     "src": "src/components/confetti-button.ts",
-    "isDynamicEntry": true,
-    "imports": [
-      "_confetti.module-oQXWb4Lk.js"
-    ]
+    "isDynamicEntry": true
   },
   "src/components/hero-example.js": {
-    "file": "assets/hero-example-Dl4fJjHX.js",
+    "file": "assets/hero-example-DW-2NKLR.js",
     "name": "hero-example",
     "src": "src/components/hero-example.js",
-    "isDynamicEntry": true,
-    "imports": [
-      "_SlotController-Z6eG7LSZ-paOtwl-R.js"
-    ]
+    "isDynamicEntry": true
   },
   "src/components/my-component.js": {
-    "file": "assets/my-component-VYS7UlqI.js",
+    "file": "assets/my-component-BiUS-fR-.js",
     "name": "my-component",
     "src": "src/components/my-component.js",
     "isDynamicEntry": true,
     "imports": [
-      "_slotted-element-e_Tah3RU.js",
-      "_confetti.module-oQXWb4Lk.js"
+      "_slotted-element-e_Tah3RU.js"
     ]
   },
   "src/components/observable-plot-wrapper.js": {
-    "file": "assets/observable-plot-wrapper-BGmSK2ei.js",
+    "file": "assets/observable-plot-wrapper-Chob4qeQ.js",
     "name": "observable-plot-wrapper",
     "src": "src/components/observable-plot-wrapper.js",
     "isDynamicEntry": true
@@ -109,7 +77,7 @@
     "isDynamicEntry": true
   },
   "src/components/pix/qrcode.ts": {
-    "file": "assets/qrcode-zEs-PjNP.js",
+    "file": "assets/qrcode-BVNQKIt4.js",
     "name": "qrcode",
     "src": "src/components/pix/qrcode.ts",
     "isDynamicEntry": true,
@@ -133,7 +101,7 @@
     ]
   },
   "src/components/vi/gl-globe.ts": {
-    "file": "assets/gl-globe-BHBINrHR.js",
+    "file": "assets/gl-globe-Bi3SJeJs.js",
     "name": "gl-globe",
     "src": "src/components/vi/gl-globe.ts",
     "isDynamicEntry": true

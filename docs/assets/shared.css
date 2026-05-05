@@ -4,178 +4,199 @@
  * Shared styles between all components
  */
 .hidden {
-    display: none;
+  display: none;
 }
 
 /* flex utilities */
 .flex-x {
-    display: flex;
-    flex-wrap: wrap;
+  display: flex;
+  flex-wrap: wrap;
 
-    gap: var(--space-sm);
-    flex-direction: row;
-    align-items: center;
+  gap: var(--space-sm);
+  flex-direction: row;
+  align-items: center;
 }
 
 .flex-y {
-    display: flex;
-    flex-wrap: wrap;
+  display: flex;
+  flex-wrap: wrap;
 
-    gap: var(--space-sm);
-    flex-direction: column;
+  gap: var(--space-sm);
+  flex-direction: column;
 }
 
 .no-wrap {
-    flex-wrap: nowrap;
+  flex-wrap: nowrap;
 }
 
 .ai-center {
-    align-items: center;
+  align-items: center;
 }
 
 .j-center {
-    justify-content: center;
+  justify-content: center;
 }
 
 .ml-auto {
-    margin-left: auto;
+  margin-left: auto;
 }
 
 .full-w {
-    width: 100%;
+  width: 100%;
 }
 
 .font-display {
-    font-family: var(--font-display);
-    font-size-adjust: 0.52;
+  font-family: var(--font-display);
+  font-size-adjust: 0.52;
 }
 
 .gap-sm {
-    gap: var(--space-sm);
+  gap: var(--space-sm);
 }
 
 .gap-md {
-    gap: var(--space-md);
+  gap: var(--space-md);
 }
 
 .px-md {
-    padding-left: var(--space-md);
-    padding-right: var(--space-md);
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
 }
 
 .py-md {
-    padding-top: var(--space-md);
-    padding-bottom: var(--space-md);
+  padding-top: var(--space-md);
+  padding-bottom: var(--space-md);
 }
 
 .text-center {
-    text-align: center;
+  text-align: center;
 }
 
 .grid {
-    display: grid;
-    grid-auto-flow: column;
+  display: grid;
+  grid-auto-flow: column;
 
-    @media (max-width: 100ch) {
-        grid-auto-flow: row;
-    }
+  @media (max-width: 100ch) {
+    grid-auto-flow: row;
+  }
 }
 
 /** Component utilities */
 .card {
-    background-color: var(--color-bg-light);
-    border-radius: var(--radius-md);
-    padding: var(--space-sm);
+  background-color: var(--color-bg-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
 
-    --bg-color: var(--color-bg-light);
-    background-color: var(--bg-color);
+  --bg-color: var(--color-bg-light);
+  background-color: var(--bg-color);
 
-    &[variant="primary"] {
-        --bg-color: var(--color-primary);
-    }
+  &[variant="primary"] {
+    --bg-color: var(--color-primary);
+  }
 
-    &[border] {
-        --color: oklch(from var(--bg-color) calc(l - 0.2) calc(c + 0.1) h);
-        /* border: 1px solid color-mix(in oklch, var(--color-primary), black 20%); */
-        border: 1px solid var(--color);
-    }
+  &[border] {
+    --color: oklch(from var(--bg-color) calc(l - 0.2) calc(c + 0.1) h);
+    /* border: 1px solid color-mix(in oklch, var(--color-primary), black 20%); */
+    border: 1px solid var(--color);
+  }
+}
+
+.callout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1em;
+
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--color-primary), transparent 30%);
+  background-color: color-mix(
+    in srgb,
+    var(--color-primary),
+    oklch(0.93 0.12 141.19) 95%
+  );
+
+  padding: 1em;
+
+  svg {
+    flex-shrink: 0;
+    margin-top: 0.25em;
+  }
 }
 
 .window {
-    gap: 0.5em;
+  gap: 0.5em;
 
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-        padding: var(--space-sm);
-        margin: 0;
-    }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    padding: var(--space-sm);
+    margin: 0;
+  }
 
-    pre,
-    syntax-highlight {
-        border: 1px solid var(--color-bg-dark);
-        border-radius: var(--radius-sm);
-        margin: 0;
+  pre,
+  syntax-highlight {
+    border: 1px solid var(--color-bg-dark);
+    border-radius: var(--radius-sm);
+    margin: 0;
 
-        overflow: clip;
-        overflow-clip-margin: 4em;
+    overflow: clip;
+    overflow-clip-margin: 4em;
 
-        box-shadow: var(--shadow-md);
-
-    }
+    box-shadow: var(--shadow-md);
+  }
 }
-
 
 /* Shimmer/skeleton */
 @keyframes shimmer {
-    to {
-        transform: translateX(100%);
-    }
+  to {
+    transform: translateX(100%);
+  }
 }
 
 @keyframes line-shadow {
-    0% {
-        background-position: 0;
-    }
+  0% {
+    background-position: 0;
+  }
 
-    100% {
-        background-position: 100% 100%;
-    }
+  100% {
+    background-position: 100% 100%;
+  }
 }
 
 @keyframes pulse {
-    0% {
-        transform: scale(0.95);
-    }
+  0% {
+    transform: scale(0.95);
+  }
 
-    70% {
-        transform: scale(1);
-    }
+  70% {
+    transform: scale(1);
+  }
 
-    100% {
-        transform: scale(0.95);
-    }
+  100% {
+    transform: scale(0.95);
+  }
 }
 
 @keyframes fade-in {
-    0% {
-        opacity: 0;
-    }
+  0% {
+    opacity: 0;
+  }
 
-    100% {
-        opacity: 1;
-    }
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes fade-out {
-    0% {
-        opacity: 1;
-    }
+  0% {
+    opacity: 1;
+  }
 
-    100% {
-        opacity: 0;
-    }
+  100% {
+    opacity: 0;
+  }
 }
