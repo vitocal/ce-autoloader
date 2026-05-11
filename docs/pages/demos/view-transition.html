@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CE-autoloader - View transitions</title>
+
+
+
+
+    <link rel="stylesheet" href="/ce-autoloader/styles.css" />
+
+    <style>
+      body {
+        margin: 0px;
+      }
+
+      :not(:defined) {
+        visibility: visible;
+      }
+
+      :root {
+        view-transition-name: none;
+        --duration: 1.5s;
+      }
+
+      ::view-transition {
+        pointer-events: none;
+      }
+
+      .preview {
+        width: 100%;
+        min-height: 600px;
+        overflow: hidden;
+        position: relative;
+
+        display: grid;
+        place-items: center;
+        /* display: flex;
+            align-items: center;
+            justify-content: center; */
+      }
+
+      .timeline {
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
+        height: 36px;
+
+        #scrub {
+          width: 100%;
+        }
+      }
+
+      #big-play-btn {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      observable-plot-wrapper:not(:defined) {
+        width: 100%;
+        height: 50%;
+        display: block;
+        text-align: center;
+        overflow: clip;
+      }
+
+      ::view-transition-group(plot-example) {
+        overflow: clip;
+        animation-duration: var(--duration);
+        animation-timing-function: ease-in-out;
+      }
+
+      ::view-transition-old(plot-example) {
+        width: 100%;
+        object-fit: none;
+        object-position: top left;
+        z-index: 1;
+      }
+
+      ::view-transition-new(plot-example) {
+        height: 100%;
+        overflow: clip;
+
+        object-fit: none;
+        object-position: top left;
+        z-index: 0;
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "syntax-highlight": "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm",
+
+          "lit": "/assets/vendor.js",
+          "lit/static-html.js": "/assets/vendor.js",
+          "lit/decorators.js": "/assets/vendor.js",
+          "lit/directives/ref.js": "/assets/vendor.js",
+          "lit/directives/if-defined.js": "/assets/vendor.js",
+          "lit/directives/unsafe-html.js": "/assets/vendor.js",
+          "lit/directives/style-map.js": "/assets/vendor.js",
+          "lit/directives/class-map.js": "/assets/vendor.js",
+          "lit/directives/repeat.js": "/assets/vendor.js",
+          "lit-html": "/assets/vendor.js",
+          "lit-html/is-server.js": "/assets/vendor.js",
+          "@lit/reactive-element": "/assets/vendor.js",
+          "lit-element": "/assets/vendor.js",
+
+          "globe.gl": "https://cdn.jsdelivr.net/npm/globe.gl",
+          "three": "https://cdn.jsdelivr.net/npm/three",
+          "canvas-confetti": "https://esm.sh/canvas-confetti"
+        }
+      }
+    </script>
+    <script type="module" crossorigin src="/ce-autoloader/assets/view-transition.html-DYmhkl_W.js"></script>
+    <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/index-DEGNX6Db.js">
+    <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/utils-DdhJlFZJ.js">
+  </head>
+
+  <body>
+    <div class="">
+      <div class="preview">
+        <observable-plot-wrapper view-transition-name="plot-example" loading="manual">
+          🌜 Phases of the Moon 🌛
+        </observable-plot-wrapper>
+        <nord-button square id="big-play-btn" type="button" variant="primary" size="l">
+          <nord-icon name="interface-play"></nord-icon>
+        </nord-button>
+      </div>
+      <div class="timeline">
+        <nord-button-group>
+          <nord-button square id="play" mode="play" type="button" variant="primary">
+            <nord-icon name="interface-play"></nord-icon>
+          </nord-button>
+          <nord-button square id="reload" type="button">
+            <nord-icon name="arrow-refresh"></nord-icon>
+          </nord-button>
+        </nord-button-group>
+
+        <input id="scrub" type="range" min="0" max="1" step="0.01" value="0" />
+
+        <nord-select size="s" autocomplete="off" hide-label value="1500" id="speed">
+          <option value="750">Fast(750ms)</option>
+          <option value="1500">Normal(1.5s)</option>
+          <option value="5000">Slow(5s)</option>
+        </nord-select>
+      </div>
+    </div>
+  </body>
+</html>

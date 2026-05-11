@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html>
   <head>
     <script type="importmap">
       {
@@ -48,12 +48,7 @@
           width: 100%;
           height: 100%;
           animation: shimmer 1s ease-out infinite;
-          background: linear-gradient(
-            to right,
-            transparent 10%,
-            #0006 50%,
-            transparent 90%
-          );
+          background: linear-gradient(to right, transparent 10%, #0006 50%, transparent 90%);
           background-size: 100% 100%;
         }
       }
@@ -65,53 +60,21 @@
       }
     </style>
 
+    <script type="module" src="@/index.js" defer></script>
     <script type="module" defer>
-      import { loadCSSLayer } from "/src/utils.ts";
-      import CERegistry from "/src/index.js";
-      import catalog from "/src/components/catalog.js";
+      import { loadCSSLayer } from "@/utils.ts";
 
       loadCSSLayer("/shared.css", "ds");
       loadCSSLayer("https://nordcdn.net/ds/css/4.2.0/nord.min.css", "ds");
 
-      const loaders = {
-        a: async () => {
-          return await import(/* @vite-ignore */ `./a.js`);
-        },
-        b: async () => {
-          return await import(/* @vite-ignore */ `./b.js`);
-        },
+      globalThis.catalog["nord-button"] = async () => {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        const module = await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/Button.js`);
       };
-
-      function registerComponents(event) {
-        const loader = loaders[event.target.getAttribute("loader")];
-        if (!loader) {
-          throw new Error("Invalid loader");
-        }
-
-        catalog["ab-component"] = loader;
-        registry.discover();
-      }
-
-      document
-        .querySelectorAll("button")
-        .forEach((button) =>
-          button.addEventListener("click", registerComponents),
-        );
-
-      const registry = new CERegistry({
-        catalog: catalog,
-        defaultDirective: "visible",
-        live: true,
-        transition: true,
-      });
     </script>
   </head>
 
   <body>
-    <button loader="a">register A component</button>
-    <button loader="b">register B component</button>
-    <ab-component loading="visible"
-      >I'm a AB component, not yet defined!</ab-component
-    >
+    <nord-button>nord-button</nord-button>
   </body>
 </html>

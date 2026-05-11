@@ -1,10 +1,11 @@
 /** We import it before the registry, so it's
  * loaded before the first discover.
  */
-import ErrorFallback from "/src/components/error-fallback.js";
 
 import CERegistry from "/src/index.js";
-import catalog from "/src/components/catalog.js";
+import catalog from "@/components/catalog.js";
+
+import ErrorFallback from "@/components/error-fallback.js";
 
 globalThis.registry = new CERegistry({
   catalog: catalog,

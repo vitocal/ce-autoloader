@@ -20,7 +20,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": resolve(__dirname, "src/"),
       "/assets/vendor.js": resolve(__dirname, "src/vendor.js"),
     },
   },
@@ -41,10 +40,10 @@ export default defineConfig({
     emptyOutDir: false,
   },
 
-  server: {
-    cors: true,
-    host: "0.0.0.0",
-    allowedHosts: true,
-    debug: true,
-  },
+  // server: {
+  //   cors: true,
+  //   host: "0.0.0.0",
+  //   allowedHosts: true,
+  //   debug: true,
+  // },
 });

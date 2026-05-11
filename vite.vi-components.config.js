@@ -2,23 +2,20 @@
 // Each component will be compiled as a separate chunk.
 import { defineConfig } from "vite";
 import path from "path";
-
 import { readdirSync, statSync } from "fs";
 
-import { hmrPlugin, presets } from 'vite-plugin-web-components-hmr';
+import { hmrPlugin, presets } from "vite-plugin-web-components-hmr";
 
 // Helper – collect every *.ts file under src/components/vi (recursively)
-function collectComponentEntries(dir) {
+function collectEntries(dir, fileExt = `.ts`) {
   const entries = {};
   readdirSync(dir).forEach((file) => {
     const full = path.resolve(dir, file);
     if (statSync(full).isDirectory()) {
-      Object.assign(entries, collectComponentEntries(full));
-    } else if (file.endsWith(".ts")) {
+      Object.assign(entries, collectEntries(full, fileExt));
+    } else if (file.endsWith(fileExt)) {
       // entry name without extension & without the leading path
-      const name = path
-        .relative(path.resolve(__dirname, "src/components/vi"), full)
-        .replace(/\.ts$/, "");
+      const name = path.relative(path.resolve(__dirname, dir), full).replace(/\.ts$/, "");
       entries[name] = full;
     }
   });
@@ -29,21 +26,23 @@ export default defineConfig({
   plugins: [
     hmrPlugin({
       include: [
-        './src/components/**/*.ts', './src/components/**/*.js',
-        './src/components/**/*.tsx', './src/components/**/*.jsx',
-        './src/*.tsx',
+        "pages/components/**/*.ts",
+        "pages/components/**/*.js",
+        "pages/components/**/*.tsx",
+        "pages/components/**/*.jsx",
+        "pages/components/*.js",
+        "pages/components/*.tsx",
+        "pages/components/*.jsx",
       ],
       presets: [presets.lit],
-    })
+    }),
   ],
   build: {
     lib: {
       // We'll use a custom rollupOptions to create a chunk per file
       name: "vi-components",
       formats: ["es"],
-      entry: collectComponentEntries(
-        path.resolve(__dirname, "src/components/vi"),
-      ),
+      entry: collectEntries("pages/components/vi"),
     },
     rollupOptions: {
       output: {
@@ -56,7 +55,8 @@ export default defineConfig({
       },
       external: ["globe.gl", "three"],
     },
-    outDir: "dist/components/vi",
+    outDir: "docs/assets/components/vi",
     emptyOutDir: false,
-  }
+    manifest: true,
+  },
 });

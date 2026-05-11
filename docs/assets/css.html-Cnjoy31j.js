@@ -1,0 +1,1 @@
+import"./index-DEGNX6Db.js";import"./index-B1q_Fq_p.js";import{l as s,_ as t}from"./utils-DdhJlFZJ.js";s("/shared.css","ds");s("https://nordcdn.net/ds/css/4.2.0/nord.min.css","ds");globalThis.catalog["nord-button"]=async()=>{await new Promise(o=>setTimeout(o,3e3)),await t(()=>import("https://esm.sh/@nordhealth/components/lib/Button.js"),[])};

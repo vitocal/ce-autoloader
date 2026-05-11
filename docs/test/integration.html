@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>CEAutoLoader Integration Tests</title>
+    <link rel="stylesheet" href="https://unpkg.com/mocha/mocha.css" />
+    <style>
+        :root {
+            --color-primary: #e31;
+            --color-secondary: rgb(0 172 172 / 34%);
+            --color-accent: #333;
+            --color-bg-dark: #ddd;
+            --color-bg: #eee;
+            --color-bg-light: #fff;
+            --color-fg: #333;
+        }
+
+        #fixtures {
+            display: grid;
+            width: auto;
+            height: 320px;
+            align-content: center;
+            gap: 8px;
+            justify-items: center;
+            justify-content: center;
+            margin: 50px;
+            border: 1px solid gray;
+        }
+
+        #errors {
+            color: red;
+            background: #fee;
+            padding: 1em;
+            white-space: pre;
+            font-family: monospace;
+            width: 80%;
+            margin: 0 auto;
+
+            &:empty {
+                display: none;
+            }
+        }
+
+        :not(:defined) {
+            display: block;
+            border: 1px dashed var(--color-accent);
+            background-color: var(--color-secondary);
+            color: var(--color-fg);
+            opacity: 0.8;
+            width: auto;
+            min-height: 1em;
+            padding: 1em 0.5em;
+            border-radius: 0.33em;
+        }
+    </style>
+  <script type="module" crossorigin src="/ce-autoloader/assets/integration.html-ztGJaRfc.js"></script>
+  <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/index-DEGNX6Db.js">
+</head>
+
+<body>
+    <div id="mocha"></div>
+    <div id="fixtures"></div>
+    <div id="errors"></div>
+
+    <script src="https://unpkg.com/mocha/mocha.js"></script>
+
+    <script>
+        window.onerror = function (msg, url, line, col, error) {
+            document.getElementById('errors').textContent += `Error: ${msg}\nAt: ${url}:${line}:${col}\nStack: ${error?.stack}\n\n`;
+        };
+        window.addEventListener('unhandledrejection', function (event) {
+            document.getElementById('errors').textContent += `Unhandled Rejection: ${event.reason}\n\n`;
+        });
+    </script>
+
+    <script class="mocha-init">
+        mocha.setup('bdd');
+    </script>
+
+
+
+</body>
+
+</html>

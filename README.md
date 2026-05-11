@@ -84,6 +84,17 @@ Try the demos online at [ce-autoloader](https://vitocal.github.io/ce-autoloader/
 
 Latest Chrome, Firefox, Safari, Edge for view transition support.
 
+## Development
+
+To build the library, run `npm run build`
+To run the dev server, run `npm run serve`
+
+To publish the library, run `npm publish`
+To test it, run `npm run test`
+
+To publish the demos/docs, run `NODE_ENV=production npm run build:docs`, 
+add the "docs/" changes and push to github. 
+
 ## License
 
 `ce-autoloader` is released under the GNU v3. See the enclosed [`LICENSE`](./LICENSE) for more information.

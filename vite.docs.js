@@ -1,18 +1,30 @@
-import { dirname, resolve } from "node:path";
+import path from "path";
+import { dirname, resolve, basename } from "node:path";
 import { fileURLToPath } from "node:url";
-
+import { readdirSync, statSync } from "fs";
 import { defineConfig } from "vite";
-
-import catalog from "./src/components/catalog.js";
-// import CECatalogLoader from './src/vite-plugin/ce-catalog-loader.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+function collectEntries(dir, fileExt = `.ts`) {
+  const entries = {};
+  readdirSync(dir).forEach((file) => {
+    const full = path.resolve(dir, file);
+    if (statSync(full).isDirectory()) {
+      Object.assign(entries, collectEntries(full, fileExt));
+    } else if (file.endsWith(fileExt)) {
+      // entry name without extension & without the leading path
+      const name = basename(file).replace(/fileExt$/, "");
+      entries[name] = full;
+    }
+  });
+  return entries;
+}
+
 export default defineConfig({
-  plugins: [
-    // CECatalogLoader()
-  ],
+  plugins: [],
   base: process.env.NODE_ENV === "production" ? "/ce-autoloader/" : "/",
+  appType: "mpa",
   optimizeDeps: {
     exclude: [],
     esbuildOptions: {
@@ -21,7 +33,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": resolve(__dirname, "src"),
+      "@": resolve(__dirname, "pages"),
     },
   },
   build: {
@@ -50,13 +62,17 @@ export default defineConfig({
       ],
       input: {
         main: resolve(__dirname, "index.html"),
+        ...collectEntries(path.resolve(__dirname, "pages/"), ".html"),
+        ...collectEntries(path.resolve(__dirname, "test/"), ".html"),
       },
       output: {
-        entryFileNames: "assets/[name]-[hash].js",
+        // entryFileNames: "assets/[name]-[hash].js",
+        assetFileNames: `[name].[ext]`,
+        itemNames: (chunkInfo) => `[name].[ext]`,
       },
       preserveEntrySignatures: "strict",
     },
-    manifest: true,
+    manifest: false,
     outDir: "docs/",
     emptyOutDir: true,
   },
