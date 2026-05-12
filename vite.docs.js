@@ -2,9 +2,11 @@ import path from "path";
 import { dirname, resolve, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readdirSync, statSync } from "fs";
-import { defineConfig } from "vite";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { defineConfig } from "vite";
+import viteImportMaps from "vite-import-maps";
+
+const BASE = process.env.NODE_ENV === "production" ? "/ce-autoloader/" : "/";
 
 function collectEntries(dir, fileExt = `.ts`) {
   const entries = {};
@@ -22,8 +24,40 @@ function collectEntries(dir, fileExt = `.ts`) {
 }
 
 export default defineConfig({
-  plugins: [],
-  base: process.env.NODE_ENV === "production" ? "/ce-autoloader/" : "/",
+  plugins: [
+    viteImportMaps({
+      log: true,
+      modulesOutDir: "shared",
+      imports: [
+        // Externalize these to avoid bundling them in main,
+        // they will be provided by vendor.js via import map
+        { name: "lit-html", entry: "pages/vendor.js" },
+        { name: "lit-html/is-server.js", entry: "pages/vendor.js" },
+        { name: "lit-element", entry: "pages/vendor.js" },
+        { name: "@lit/reactive-element", entry: "pages/vendor.js" },
+        { name: "lit", entry: "pages/vendor.js" },
+        { name: "lit/static-html.js", entry: "pages/vendor.js" },
+        { name: "lit/decorators.js", entry: "pages/vendor.js" },
+        { name: "lit/directives/ref.js", entry: "pages/vendor.js" },
+        { name: "lit/directives/if-defined.js", entry: "pages/vendor.js" },
+        { name: "lit/directives/unsafe-html.js", entry: "pages/vendor.js" },
+        { name: "lit/directives/style-map.js", entry: "pages/vendor.js" },
+        { name: "lit/directives/class-map.js", entry: "pages/vendor.js" },
+        { name: "lit/directives/repeat.js", entry: "pages/vendor.js" },
+
+        "globe.gl",
+        "three.js",
+        "canvas-confetti",
+        "syntax-highlight-element",
+        "@google/model-viewer",
+      ],
+      // Transform url from relative to absolute
+      importMapHtmlTransformer: ({ imports }) => ({
+        imports: Object.fromEntries(Object.entries(imports).map(([name, url]) => [name, `${BASE}${url.slice(2)}`])),
+      }),
+    }),
+  ],
+  base: BASE,
   appType: "mpa",
   optimizeDeps: {
     exclude: [],
@@ -39,26 +73,26 @@ export default defineConfig({
   build: {
     rollupOptions: {
       external: [
-        "syntax-highlight",
         // Externalize these to avoid bundling them in main,
         // they will be provided by vendor.js via import map
-        "lit-html",
-        "lit-html/is-server.js",
-        "lit-element",
-        "@lit/reactive-element",
-        "lit",
-        "lit/static-html.js",
-        "lit/decorators.js",
-        "lit/directives/ref.js",
-        "lit/directives/if-defined.js",
-        "lit/directives/unsafe-html.js",
-        "lit/directives/style-map.js",
-        "lit/directives/class-map.js",
-        "lit/directives/repeat.js",
-
-        "globe.gl",
-        "three",
-        "canvas-confetti",
+        // "lit-html",
+        // "lit-html/is-server.js",
+        // "lit-element",
+        // "@lit/reactive-element",
+        // "lit",
+        // "lit/static-html.js",
+        // "lit/decorators.js",
+        // "lit/directives/ref.js",
+        // "lit/directives/if-defined.js",
+        // "lit/directives/unsafe-html.js",
+        // "lit/directives/style-map.js",
+        // "lit/directives/class-map.js",
+        // "lit/directives/repeat.js",
+        // "globe.gl",
+        // "three.js",
+        // "canvas-confetti",
+        // "syntax-highlight-element",
+        // "@google/model-viewer",
       ],
       input: {
         main: resolve(__dirname, "index.html"),
@@ -67,8 +101,6 @@ export default defineConfig({
       },
       output: {
         // entryFileNames: "assets/[name]-[hash].js",
-        assetFileNames: `[name].[ext]`,
-        itemNames: (chunkInfo) => `[name].[ext]`,
       },
       preserveEntrySignatures: "strict",
     },

@@ -5,34 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CE-autoloader - View transitions</title>
 
-    <script type="importmap">
-      {
-        "imports": {
-          "syntax-highlight": "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm",
-
-          "lit": "/assets/vendor.js",
-          "lit/static-html.js": "/assets/vendor.js",
-          "lit/decorators.js": "/assets/vendor.js",
-          "lit/directives/ref.js": "/assets/vendor.js",
-          "lit/directives/if-defined.js": "/assets/vendor.js",
-          "lit/directives/unsafe-html.js": "/assets/vendor.js",
-          "lit/directives/style-map.js": "/assets/vendor.js",
-          "lit/directives/class-map.js": "/assets/vendor.js",
-          "lit/directives/repeat.js": "/assets/vendor.js",
-          "lit-html": "/assets/vendor.js",
-          "lit-html/is-server.js": "/assets/vendor.js",
-          "@lit/reactive-element": "/assets/vendor.js",
-          "lit-element": "/assets/vendor.js",
-
-          "globe.gl": "https://cdn.jsdelivr.net/npm/globe.gl",
-          "three": "https://cdn.jsdelivr.net/npm/three",
-          "canvas-confetti": "https://esm.sh/canvas-confetti"
-        }
-      }
-    </script>
-
-    <script type="module">
-      import CEAutoLoader from "/src/index.js";
+    <script type="module" async>
+      import CEAutoLoader from "/src/index.ts";
       import catalog from "@/components/catalog.js";
 
       import { loadCSSLayer } from "@/utils.ts";

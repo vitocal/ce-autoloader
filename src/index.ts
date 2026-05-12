@@ -2,9 +2,7 @@
 /**
  * A module can be a URL or a function that returns a Promise<CustomElementConstructor>
  */
-export type Module =
-  string |
-  ((name?: string, el?: HTMLElement) => Promise<CustomElementConstructor>);
+export type Module = string | ((name?: string, el?: HTMLElement) => Promise<CustomElementConstructor>);
 
 export type Catalog = Record<string, Module>;
 
@@ -48,10 +46,10 @@ export type Options = {
   /** Lifecycle hooks of each component */
   hooks?: {
     viewTransition: {
-      ready?: () => Promise<void>,
-      finished?: () => Promise<void>,
-    }
-  }
+      ready?: () => Promise<void>;
+      finished?: () => Promise<void>;
+    };
+  };
 };
 
 /**
@@ -74,18 +72,11 @@ function isModule(m: any): m is { default: any } {
   return m?.[Symbol.toStringTag] === "Module";
 }
 
-function debounceMutations(
-  fn: (mutations: MutationRecord[], observer: MutationObserver) => void,
-  delay = 300,
-) {
+function debounceMutations(fn: (mutations: MutationRecord[], observer: MutationObserver) => void, delay = 300) {
   let timer: ReturnType<typeof setTimeout>;
   let accumulated: MutationRecord[] = [];
 
-  return function (
-    this: any,
-    mutations: MutationRecord[],
-    observer: MutationObserver,
-  ) {
+  return function (this: any, mutations: MutationRecord[], observer: MutationObserver) {
     accumulated.push(...mutations);
     clearTimeout(timer);
     timer = setTimeout(() => {
@@ -100,9 +91,7 @@ function debounceMutations(
  */
 function matchCustomElement(root: Element) {
   const selector = ":not(:defined)";
-  return [...new Set([root, ...root.querySelectorAll(selector)])].filter((el) =>
-    isCustomElement(el),
-  ) as HTMLElement[];
+  return [...new Set([root, ...root.querySelectorAll(selector)])].filter((el) => isCustomElement(el)) as HTMLElement[];
 }
 
 class CEAutoLoader {
@@ -128,7 +117,7 @@ class CEAutoLoader {
       root: document.body,
       directives: ["eager", "visible", "click"],
       defaultDirective: "visible",
-      transition: 'startViewTransition' in document,
+      transition: "startViewTransition" in document,
       autoDiscover: true,
       ...options,
     };
@@ -142,17 +131,14 @@ class CEAutoLoader {
       monkeyPatchDefine();
     }
 
-    if (this.options.autoDiscover)
-      this.discover();
+    if (this.options.autoDiscover) this.discover();
   }
 
   /**
    * Watch for new elements in the DOM
    */
   private watchDOMMutations() {
-    const observer = new MutationObserver(
-      debounceMutations(this.watcher.bind(this), 100),
-    );
+    const observer = new MutationObserver(debounceMutations(this.watcher.bind(this), 100));
 
     observer.observe(this.options.root || document.body, {
       childList: true,
@@ -179,11 +165,7 @@ class CEAutoLoader {
 
         // Check the node itself
         // or any children that are custom elements
-        if (
-          node instanceof HTMLElement &&
-          (isCustomElement(node) ||
-            matchCustomElement(node as Element).length > 0)
-        ) {
+        if (node instanceof HTMLElement && (isCustomElement(node) || matchCustomElement(node as Element).length > 0)) {
           await this.discover();
         }
       }
@@ -242,14 +224,10 @@ class CEAutoLoader {
     const ce_elements = matchCustomElement(this.options.root || document.body);
     const elements = this.filterByDirective(ce_elements, directive);
 
-    const when_in_viewport_loadanddefine: IntersectionObserverCallback = (
-      entries,
-    ) => {
+    const when_in_viewport_loadanddefine: IntersectionObserverCallback = (entries) => {
       let html_elements = entries
         .filter((entry) => entry.isIntersecting)
-        .filter(
-          (entry) => !customElements.get(entry.target.tagName.toLowerCase()),
-        )
+        .filter((entry) => !customElements.get(entry.target.tagName.toLowerCase()))
         .map((entry) => entry.target as HTMLElement);
 
       if (html_elements.length > 0) {
@@ -260,19 +238,12 @@ class CEAutoLoader {
     const visible = (elements: HTMLElement[]) => {
       // Create observer if it doesn't exist
       if (!this.#observers["intersection"]) {
-        this.#observers["intersection"] = new IntersectionObserver(
-          when_in_viewport_loadanddefine,
-        );
+        this.#observers["intersection"] = new IntersectionObserver(when_in_viewport_loadanddefine);
       } else {
         // If the observer already exists, we need to check if there are any pending entries
-        let mutations = this.#observers[
-          "intersection"
-        ].takeRecords() as IntersectionObserverEntry[];
+        let mutations = this.#observers["intersection"].takeRecords() as IntersectionObserverEntry[];
         if (mutations.length > 0) {
-          when_in_viewport_loadanddefine(
-            mutations,
-            this.#observers["intersection"] as IntersectionObserver,
-          );
+          when_in_viewport_loadanddefine(mutations, this.#observers["intersection"] as IntersectionObserver);
         }
       }
 
@@ -284,7 +255,8 @@ class CEAutoLoader {
 
     const interaction = (elements: HTMLElement[]) => {
       return elements.map((el) => {
-        return el.addEventListener("click",
+        return el.addEventListener(
+          "click",
           async () => {
             await this.loadAndDefine([el], "click");
           },
@@ -358,8 +330,12 @@ class CEAutoLoader {
       const transitionName = el.getAttribute("view-transition-name");
       const transitionClass = el.getAttribute("view-transition-class");
 
-      if (transitionName) { el.style.viewTransitionName = transitionName; }
-      if (transitionClass) { el.style.viewTransitionClass = transitionClass; }
+      if (transitionName) {
+        el.style.viewTransitionName = transitionName;
+      }
+      if (transitionClass) {
+        el.style.viewTransitionClass = transitionClass;
+      }
 
       return el;
     });
@@ -381,9 +357,8 @@ class CEAutoLoader {
     });
 
     if (this.options.hooks?.viewTransition.finished) {
-      this.activeTransition.finished.then(this.options.hooks.viewTransition.finished)
+      this.activeTransition.finished.then(this.options.hooks.viewTransition.finished);
     }
-
   }
 
   /*
@@ -413,7 +388,10 @@ class CEAutoLoader {
     };
 
     if (this.options.transition) {
-      this.runViewTransition(load_success.map((result) => result.value), defineComponents);
+      this.runViewTransition(
+        load_success.map((result) => result.value),
+        defineComponents,
+      );
     } else {
       await defineComponents();
     }
@@ -450,7 +428,7 @@ class CEAutoLoader {
       }
     } catch (error: any) {
       load_error = error;
-      throw new CEError(`${name} - ${error.message}`, { name, el, module, error, });
+      throw new CEError(`${name} - ${error.message}`, { name, el, module, cause: error });
     } finally {
       performance.mark(`load:${name}:end`);
       performance.measure(`load:${name}`, {
@@ -488,7 +466,11 @@ class CEAutoLoader {
       }
 
       if (!module) {
-        throw new CEError(`Component ${name} wasn't defined! This is a bug and should not have reached here!!`, { name, el, module });
+        throw new CEError(`Component ${name} wasn't defined! This is a bug and should not have reached here!!`, {
+          name,
+          el,
+          module,
+        });
       }
     }
 
@@ -499,7 +481,7 @@ class CEAutoLoader {
       DEFINE(name, module, {});
     } catch (error: any) {
       define_error = error;
-      throw new CEError(`${name} - ${error.message}`, { name, el, module, error, });
+      throw new CEError(`${name} - ${error.message}`, { name, el, module, error });
     } finally {
       el.setAttribute("ce", "defined");
 
@@ -535,10 +517,7 @@ class CEAutoLoader {
     el.removeAttribute("retries");
     el.innerHTML = "";
 
-    return await this.loadAndDefine(
-      [el],
-      el.getAttribute("loading") || "retry",
-    );
+    return await this.loadAndDefine([el], el.getAttribute("loading") || "retry");
   }
 
   /**
@@ -584,14 +563,8 @@ function monkeyPatchDefine() {
 
 declare global {
   interface CustomElementRegistry {
-    waiting: Record<
-      string,
-      { ctor: CustomElementConstructor; options?: ElementDefinitionOptions }
-    >;
-    registered: Record<
-      string,
-      { ctor: CustomElementConstructor; options?: ElementDefinitionOptions }
-    >;
+    waiting: Record<string, { ctor: CustomElementConstructor; options?: ElementDefinitionOptions }>;
+    registered: Record<string, { ctor: CustomElementConstructor; options?: ElementDefinitionOptions }>;
   }
   var _DEFINE: typeof CustomElementRegistry.prototype.define;
   var DEFINE: typeof CustomElementRegistry.prototype.define;

@@ -40,18 +40,17 @@ let catalog = {
   },
   "vi-defined": () => import("./vi/vi-defined.tsx"),
 
-  "playground-ide":
-    "https://cdn.jsdelivr.net/npm/playground-elements@0.18.1/+esm",
+  "playground-ide": "https://cdn.jsdelivr.net/npm/playground-elements@0.18.1/+esm",
   "json-viewer": "https://esm.sh/@alenaksu/json-viewer",
   "wc-markdown": "https://cdn.skypack.dev/@vanillawc/wc-markdown",
   "fireworks-js": () => import("https://esm.sh/@fireworks-js/web"),
 
   "model-viewer": async () => {
-    await import("https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js");
+    await import("@google/model-viewer");
   },
 
   "syntax-highlight": async () => {
-    return import("https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm");
+    return import("syntax-highlight-element");
   },
 
   /**
@@ -59,9 +58,7 @@ let catalog = {
    */
   "nord-*": async (full_name) => {
     const [, namespace, name] = full_name.match(/^([a-z]+)-(.*)/);
-    const external = (
-      process.env.NODE_ENV === "production" ? ["lit"] : ["lit"]
-    ).join(",");
+    const external = (process.env.NODE_ENV === "production" ? ["lit"] : ["lit"]).join(",");
     // loadCSSLayer('https://nordcdn.net/ds/css/4.2.0/nord.min.css', 'ds');
 
     const module = await import(

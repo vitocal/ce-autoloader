@@ -19,7 +19,8 @@
   "scripts": {
     "dev": "vite build --mode development --watch",
     "build:vi-components": "vite build --config vite.vi-components.config.js",
-    "build:docs": "vite build --config vite.docs.js && vite build --config vite.vendor.config.js",
+    "build:docs": "vite build --config vite.docs.js",
+    "build:vendor": "vite build --config vite.vendor.config.js",
     "watch:vi-components": "vite build --config vite.vi-components.config.js --watch",
     "watch:docs": "vite build --config vite.docs.js --watch",
     "serve": "npm run build:vi-components && npm run build:docs && vite preview --config vite.docs.js --open",
@@ -49,6 +50,7 @@
   "license": "GPL-3.0",
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.11.0",
+    "@google/model-viewer": "^4.2.0",
     "@loadingio/transition.css": "^3.0.0",
     "@nordhealth/components": "^4.9.0",
     "@r2wc/react-to-web-component": "^2.1.0",
@@ -59,6 +61,7 @@
     "buffer": "^6.0.3",
     "canvas-confetti": "^1.9.4",
     "chai": "^6.2.1",
+    "cjs-module-lexer": "^2.2.0",
     "globe.gl": "^2.45.3",
     "lit": "^3.3.1",
     "mocha": "^11.7.5",
@@ -68,8 +71,10 @@
     "react-dom": "^19.2.3",
     "remount": "^1.0.0",
     "syntax-highlight-element": "^1.2.0",
+    "three.js": "^0.77.1",
     "view-transitions-toolkit": "^1.0.0",
     "vite": "^7.2.2",
+    "vite-import-maps": "^0.2.6",
     "vite-plugin-dts": "^5.0.0",
     "vite-plugin-web-components-hmr": "^0.1.3"
   }
