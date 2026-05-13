@@ -77,8 +77,101 @@ Try the demos online at [ce-autoloader](https://vitocal.github.io/ce-autoloader/
 
 ## Documentation
 
+### `CEAutoLoader` (aliased as `CERegistry`)
 
+The constructor accepts an `Options` object:
 
+```js
+const registry = new CERegistry({
+  /* The component catalog (required) */
+  catalog: {
+    "my-element": "/path/to/element.js",
+    "prefix-*": (name) => import(`/assets/${name}.js`), // Wildcard support!
+  },
+  /* Root element to observe (default: document.body) */
+  root: document.getElementById('app'),
+  /* Watch for DOM mutations (default: true) */
+  live: true,
+  /* Automatically run initial discovery (default: true) */
+  autoDiscover: true,
+  /* Fallback component class for failed loads */
+  fallback: MyErrorComponent,
+  /* List of available directives (default: ["eager", "visible", "click"]) */
+  directives: ["eager", "visible", "click", "hover"],
+  /* Default directive when loading attribute is missing (default: "visible") */
+  defaultDirective: "visible",
+  /* Use View Transitions API (default: true if supported) */
+  transition: true,
+  /* Lifecycle hooks for transitions */
+  hooks: {
+    viewTransition: {
+      ready: () => console.log("Transition ready"),
+      finished: () => console.log("Transition finished"),
+    }
+  }
+});
+```
+
+### CSS Styling & Lifecycle States
+
+Elements are decorated with a `ce` attribute reflecting their current state. You can use this for skeleton screens, spinners, or fade-ins.
+
+```css
+/* Placeholder state */
+my-component:not(:defined) {
+  min-height: 200px;
+  background: #eee;
+}
+
+/* Loading state */
+my-component[ce="loading"] {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+/* Success state */
+my-component[ce="defined"] {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* Error state */
+my-component[ce="error"] {
+  border: 1px solid red;
+}
+```
+
+### Directives (The `loading` attribute)
+
+Control exactly *when* your code is fetched:
+
+- `loading="eager"`: Fetch and define immediately.
+- `loading="visible"`: (Default) Fetches when the element enters the viewport via `IntersectionObserver`.
+- `loading="click"`: Fetches when the user first interacts with the element.
+- `loading="manual"`: Won't load automatically. Use `registry.upgrade("manual")` to trigger.
+
+### View Transitions
+
+If `transition: true` is set, `ce-autoloader` will wrap the component definition in a `document.startViewTransition()`. This allows for seamless morphing between the placeholder and the interactive component.
+
+You can customize the transition per-element using attributes:
+
+```html
+<my-chart 
+  loading="visible"
+  view-transition-name="main-chart"
+  view-transition-class="slide-up">
+</my-chart>
+```
+
+### Expert Mode: Under the hood
+
+For the hackers and performance nerds:
+
+- **Wildcard Resolvers:** Map an entire library prefix (e.g., `carbon-*`) to a dynamic import function.
+- **Batched Upgrades:** To prevent layout thrashing and jank during animations, `ce-autoloader` monkey-patches `customElements.define`. It queues definitions and flushes them in a single animation frame.
+- **Telemetry:** Every load and definition is timed using the User Timing API. Check your "Performance" tab in DevTools for `load:tag-name` and `define:tag-name` markers.
+- **Retry Logic:** If a component fails to load (e.g., flaky CDN), use `registry.retry(el)` to attempt a reload.
+- **Manual Cleanup:** Use `registry.clean()` to disconnect all observers and stop watching the DOM.
 
 ## Browser support
 

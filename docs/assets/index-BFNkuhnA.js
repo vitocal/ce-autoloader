@@ -1,4 +1,4 @@
-import{C as o}from"./index-DSM6LnrF.js";import{c as s}from"./utils-3a75qNKC.js";class e extends HTMLElement{constructor(){super(),this.error="",this.stack="",this.error=this.getAttribute("error")||"",this.stack=this.getAttribute("stack")||""}static get observedAttributes(){return["error","stack"]}attributeChangedCallback(r,i,t){r==="error"?(this.error=t,this.render()):r==="stack"&&(this.stack=t,this.render())}connectedCallback(){this.attachShadow({mode:"open"}),this.render()}render(){this.shadowRoot&&(this.shadowRoot.innerHTML=`<style>
+import{C as o}from"./index-CJeFPdEl.js";import{c as a}from"./utils-3a75qNKC.js";class e extends HTMLElement{constructor(){super(),this.error="",this.stack="",this.error=this.getAttribute("error")||"",this.stack=this.getAttribute("stack")||""}static get observedAttributes(){return["error","stack"]}attributeChangedCallback(r,i,t){r==="error"?(this.error=t,this.render()):r==="stack"&&(this.stack=t,this.render())}connectedCallback(){this.attachShadow({mode:"open"}),this.render()}render(){this.shadowRoot&&(this.shadowRoot.innerHTML=`<style>
         :host {
           display: block;
           background-color: #ff4d4d;
@@ -12,8 +12,13 @@ import{C as o}from"./index-DSM6LnrF.js";import{c as s}from"./utils-3a75qNKC.js";
         .header {
           display: flex;
           justify-content: space-between;
-          align-items: center;
+          align-items: flex-start;
           gap: 1rem;
+          width: 100%;
+          overflow: hidden;
+        }
+        details {
+          width: 100%;
         }
         summary {
           cursor: pointer;
@@ -27,6 +32,7 @@ import{C as o}from"./index-DSM6LnrF.js";import{c as s}from"./utils-3a75qNKC.js";
           font-size: 0.8rem;
           overflow-x: auto;
           margin-top: 0.5rem;
+          white-space: pre-wrap;
         }
         .retry-button {
           background: white;
@@ -52,9 +58,9 @@ import{C as o}from"./index-DSM6LnrF.js";import{c as s}from"./utils-3a75qNKC.js";
         }
       </style>
       <div class="header">
-        <details style="flex-grow: 1;">
+        <details>
           <summary>${this.error}</summary>
           ${this.stack?`<pre>${this.stack}</pre>`:""}
         </details>
         <button class="retry-button" id="retry">Retry</button>
-      </div>`,this.shadowRoot.getElementById("retry")?.addEventListener("click",()=>this.handleRetry()))}handleRetry(){const r=this.parentElement;r&&globalThis.registry&&globalThis.registry.retry(r)}}customElements.define("error-fallback",e);globalThis.registry=new o({catalog:s,root:document.body,live:!0,fallback:e,defaultDirective:"visible",transition:!0});
+      </div>`,this.shadowRoot.getElementById("retry")?.addEventListener("click",()=>this.handleRetry()))}handleRetry(){const r=this.parentElement;r&&globalThis.registry&&globalThis.registry.retry(r)}}customElements.define("error-fallback",e);globalThis.registry=new o({catalog:a,root:document.body,live:!0,fallback:e,defaultDirective:"visible",transition:!0});

@@ -65,10 +65,8 @@
     --radius-sm: 0.4rem;
 
     --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-    --shadow-md:
-      0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-    --shadow-lg:
-      0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
     --space-sm: 0.5rem;
     --space-md: 1rem;
@@ -279,11 +277,7 @@
       left: 0;
       width: 4px;
       height: 100%;
-      background: linear-gradient(
-        to bottom,
-        var(--color-primary),
-        var(--color-secondary)
-      );
+      background: linear-gradient(to bottom, var(--color-primary), var(--color-secondary));
     }
   }
 
@@ -388,7 +382,7 @@ pre {
   }
 
   syntax-highlight {
-    white-space: pre;
+    white-space: pre-wrap;
     word-break: normal;
     padding: 0.5rem 0.5rem;
     display: flex;
@@ -575,12 +569,7 @@ footer {
         transform: translateX(-100%);
         width: 100%;
 
-        background: linear-gradient(
-          to right,
-          transparent 10%,
-          var(--color-bg-dark) 50%,
-          transparent 90%
-        );
+        background: linear-gradient(to right, transparent 10%, var(--color-bg-dark) 50%, transparent 90%);
         will-change: transform;
         animation: shimmer 1.5s ease-in-out infinite;
       }
@@ -589,9 +578,9 @@ footer {
     &[ce="error"] {
       background-color: red;
 
-      &::before {
-        content: attr(error);
-        color: white;
+      /** Disable nested components */
+      & > :not(:defined) {
+        display: none;
       }
     }
   }
@@ -619,8 +608,7 @@ footer {
     & .controls {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 1.5rem;
+      justify-content: space-between;
     }
 
     & button {
@@ -646,8 +634,8 @@ footer {
     & .count {
       font-size: 2rem;
       font-weight: 700;
-      min-width: 3rem;
       display: inline-block;
+      max-width: 2ch;
     }
   }
 }

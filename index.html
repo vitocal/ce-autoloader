@@ -699,80 +699,20 @@ const registry = new CERegistry({
           <hr />
 
           <p>
-            Define a custom fallback component via
-            <code>fallback</code> that is displayed when a module throws an error during loading.
+            Define your own fallback component via
+            <code>fallback</code>, that is displayed when a module throws an error during loading.
           </p>
 
           <div class="card">
             <vi-error />
           </div>
-        </div>
 
-        <div id="constructor">
-          <h2>Configuration</h2>
-          <p>When creating a new <code>CERegistry</code>, you can pass an options object to customize its behavior.</p>
-          <div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Option</th>
-                  <th>Type</th>
-                  <th>Default</th>
-                  <th>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>catalog</code></td>
-                  <td>
-                    <code>Record&lt;string, string | function&gt;</code>
-                  </td>
-                  <td><em>Required</em></td>
-                  <td>A mapping of tag names to their respective loader functions or URLs.</td>
-                </tr>
-                <tr>
-                  <td><code>root</code></td>
-                  <td><code>HTMLElement</code></td>
-                  <td><code>document.body</code></td>
-                  <td>The root element where the loader will search for custom elements.</td>
-                </tr>
-                <tr>
-                  <td><code>live</code></td>
-                  <td><code>boolean</code></td>
-                  <td><code>true</code></td>
-                  <td>Automatically watches the DOM for new custom elements to upgrade.</td>
-                </tr>
-                <tr>
-                  <td><code>transition</code></td>
-                  <td><code>boolean</code></td>
-                  <td><code>true</code></td>
-                  <td>Enables the View Transitions API for smooth element upgrades.</td>
-                </tr>
-                <tr>
-                  <td><code>directives</code></td>
-                  <td><code>string[]</code></td>
-                  <td>
-                    <code>['eager', 'visible', 'click']</code>
-                  </td>
-                  <td>A list of supported loading triggers.</td>
-                </tr>
-                <tr>
-                  <td><code>defaultDirective</code></td>
-                  <td><code>string</code></td>
-                  <td><code>visible</code></td>
-                  <td>The default loading strategy, when it's not specified on the element.</td>
-                </tr>
-                <tr>
-                  <td><code>fallback</code></td>
-                  <td>
-                    <code>CustomElementConstructor</code>
-                  </td>
-                  <td><code>undefined</code></td>
-                  <td>A custom element class to use if a component fails to load.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <p>
+            Additionaly, the attribute <code>[ce=error]</code> is also set on the component, allowing you to style it
+            differently when an error occurs.
+          </p>
+
+          <p>And you can also handle it manually by setting <code>hooks.error</code> on the constructor</p>
         </div>
       </div>
 

@@ -96,8 +96,11 @@
         margin: 0px;
       }
 
-      :not(:defined) {
-        visibility: visible;
+      [ce="error"] {
+        &::after {
+          content: attr(error);
+          color: white;
+        }
       }
 
       :root {

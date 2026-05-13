@@ -44,8 +44,13 @@ export default class ErrorFallback extends HTMLElement {
         .header {
           display: flex;
           justify-content: space-between;
-          align-items: center;
+          align-items: flex-start;
           gap: 1rem;
+          width: 100%;
+          overflow: hidden;
+        }
+        details {
+          width: 100%;
         }
         summary {
           cursor: pointer;
@@ -59,6 +64,7 @@ export default class ErrorFallback extends HTMLElement {
           font-size: 0.8rem;
           overflow-x: auto;
           margin-top: 0.5rem;
+          white-space: pre-wrap;
         }
         .retry-button {
           background: white;
@@ -84,16 +90,14 @@ export default class ErrorFallback extends HTMLElement {
         }
       </style>
       <div class="header">
-        <details style="flex-grow: 1;">
+        <details>
           <summary>${this.error}</summary>
           ${this.stack ? `<pre>${this.stack}</pre>` : ""}
         </details>
         <button class="retry-button" id="retry">Retry</button>
       </div>`;
 
-    this.shadowRoot
-      .getElementById("retry")
-      ?.addEventListener("click", () => this.handleRetry());
+    this.shadowRoot.getElementById("retry")?.addEventListener("click", () => this.handleRetry());
   }
 
   handleRetry() {

@@ -99,9 +99,6 @@ export default defineConfig({
         ...collectEntries(path.resolve(__dirname, "pages/"), ".html"),
         ...collectEntries(path.resolve(__dirname, "test/"), ".html"),
       },
-      output: {
-        // entryFileNames: "assets/[name]-[hash].js",
-      },
       preserveEntrySignatures: "strict",
     },
     manifest: false,

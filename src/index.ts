@@ -49,6 +49,7 @@ export type Options = {
       ready?: () => Promise<void>;
       finished?: () => Promise<void>;
     };
+    error?: (error: LoadError) => Promise<void>;
   };
 };
 
@@ -296,12 +297,13 @@ class CEAutoLoader {
 
     const retries = (this.#errors[name]?.retries || 0) + 1;
 
-    this.#errors[name] = {
+    const error = {
       name: name,
       el: origin,
       error: rejection.reason,
       retries: retries,
     };
+    this.#errors[name] = error;
 
     origin.setAttribute("ce", "error");
     origin.setAttribute("error", message);
@@ -317,8 +319,8 @@ class CEAutoLoader {
 
       origin.innerHTML = "";
       origin.appendChild(fallback_instance);
-    } else {
-      throw rejection.reason;
+    } else if (this.options.hooks.error) {
+      this.options.hooks.error(error);
     }
   }
 
