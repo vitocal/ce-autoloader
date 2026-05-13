@@ -1,4 +1,4 @@
-import{C as o}from"./index-CJeFPdEl.js";import{c as a}from"./utils-3a75qNKC.js";class e extends HTMLElement{constructor(){super(),this.error="",this.stack="",this.error=this.getAttribute("error")||"",this.stack=this.getAttribute("stack")||""}static get observedAttributes(){return["error","stack"]}attributeChangedCallback(r,i,t){r==="error"?(this.error=t,this.render()):r==="stack"&&(this.stack=t,this.render())}connectedCallback(){this.attachShadow({mode:"open"}),this.render()}render(){this.shadowRoot&&(this.shadowRoot.innerHTML=`<style>
+import{C as o}from"./index-CJeFPdEl.js";import{c as a}from"./utils-D2NPMs4G.js";class e extends HTMLElement{constructor(){super(),this.error="",this.stack="",this.error=this.getAttribute("error")||"",this.stack=this.getAttribute("stack")||""}static get observedAttributes(){return["error","stack"]}attributeChangedCallback(r,i,t){r==="error"?(this.error=t,this.render()):r==="stack"&&(this.stack=t,this.render())}connectedCallback(){this.attachShadow({mode:"open"}),this.render()}render(){this.shadowRoot&&(this.shadowRoot.innerHTML=`<style>
         :host {
           display: block;
           background-color: #ff4d4d;
@@ -8,6 +8,7 @@ import{C as o}from"./index-CJeFPdEl.js";import{c as a}from"./utils-3a75qNKC.js";
           border-radius: 8px;
           box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
           margin: 1rem 0;
+          overflow: hidden;
         }
         .header {
           display: flex;
@@ -15,7 +16,6 @@ import{C as o}from"./index-CJeFPdEl.js";import{c as a}from"./utils-3a75qNKC.js";
           align-items: flex-start;
           gap: 1rem;
           width: 100%;
-          overflow: hidden;
         }
         details {
           width: 100%;

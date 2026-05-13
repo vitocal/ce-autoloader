@@ -40,6 +40,7 @@ export default class ErrorFallback extends HTMLElement {
           border-radius: 8px;
           box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
           margin: 1rem 0;
+          overflow: hidden;
         }
         .header {
           display: flex;
@@ -47,7 +48,6 @@ export default class ErrorFallback extends HTMLElement {
           align-items: flex-start;
           gap: 1rem;
           width: 100%;
-          overflow: hidden;
         }
         details {
           width: 100%;

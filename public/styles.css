@@ -551,6 +551,8 @@ footer {
     padding: 0.35em;
     border-radius: 0.5em;
 
+    opacity: 0.7;
+
     /** Nested components are hidden */
     & :not(:defined) {
       visibility: hidden;
@@ -559,6 +561,7 @@ footer {
     &[ce="loading"] {
       cursor: wait;
       overflow: hidden !important;
+      opacity: 0.85;
 
       &::after {
         pointer-events: none;
@@ -582,6 +585,10 @@ footer {
       & > :not(:defined) {
         display: none;
       }
+    }
+
+    &[ce="defined"] {
+      opacity: 1;
     }
   }
 

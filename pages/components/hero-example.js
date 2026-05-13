@@ -15,18 +15,13 @@ const demos = {
     src="https://modelviewer.dev/shared-assets/models/shishkebab.glb"
     shadow-intensity="1"
     alt="A 3D model of a shishkebab"
-    view-transition-name="model-viewer"></model-viewer>`,
+    view-transition-name="model-viewer"
+  ></model-viewer>`,
   "confetti-button": html`<confetti-button on="eager"
-    ><div class="card" view-transition-name="confetti-button">
-      🎉 Click me to throw confetti 🎉
-    </div></confetti-button
+    ><div class="card" view-transition-name="confetti-button">🎉 Click me to throw confetti 🎉</div></confetti-button
   >`,
-  "gl-globe": html`<gl-globe
-    on="eager"
-    view-transition-name="gl-globe"></gl-globe>`,
-  "fireworks-js": html`<fireworks-js
-    on="eager"
-    style="height: 600px;"></fireworks-js>`,
+  "gl-globe": html`<gl-globe on="eager" view-transition-name="gl-globe"></gl-globe>`,
+  "fireworks-js": html`<fireworks-js on="eager"></fireworks-js>`,
 };
 
 export default class HeroExample extends LitElement {
@@ -53,7 +48,7 @@ export default class HeroExample extends LitElement {
 
         .preview {
           opacity: 1;
-          animation: 1000ms ease both fade-in;
+          animation: 1300ms ease both fade-in;
           animation-delay: var(--spring-duration);
           position: relative;
         }
@@ -71,10 +66,17 @@ export default class HeroExample extends LitElement {
       }
 
       model-viewer,
-      gl-globe,
-      fireworks-js {
+      gl-globe {
         width: 100%;
         height: 100%;
+      }
+
+      fireworks-js {
+        height: 480px;
+      }
+
+      confetti-button {
+        text-align: center;
       }
 
       @media (max-width: 100ch) {
@@ -88,7 +90,6 @@ export default class HeroExample extends LitElement {
           }
           .right {
             height: auto;
-            min-height: 50vh;
           }
         }
       }
@@ -105,8 +106,11 @@ export default class HeroExample extends LitElement {
     }
 
     ::view-transition-new(hero-example) {
-      animation: var(--spring-duration) var(--spring-easing) both
-        appear-below-in;
+      animation: var(--spring-duration) var(--spring-easing) both appear-below-in;
+    }
+
+    ::view-transition-group(model-viewer) {
+      animation: var(--spring-duration) var(--spring-easing) both;
     }
   `;
 
@@ -178,7 +182,8 @@ export default class HeroExample extends LitElement {
             hide-label
             class="ml-auto"
             @change=${this.onDemoSelect}
-            view-transition-name="hero-demo-select">
+            view-transition-name="hero-demo-select"
+          >
             <option value="model-viewer">model-viewer</option>
             <option value="gl-globe">gl-globe</option>
             <option value="fireworks-js">fireworks-js</option>
@@ -186,8 +191,8 @@ export default class HeroExample extends LitElement {
           </nord-select>
         </h4>
         <pre><syntax-highlight language="js" view-transition-name="hero-demo-code">${unsafeStatic(
-      this.js_template(),
-    )}</syntax-highlight></pre>
+          this.js_template(),
+        )}</syntax-highlight></pre>
       </div>
 
       <div class="right preview flex-y" mode=${this.mode}>${preview}</div>`;

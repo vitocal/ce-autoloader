@@ -88,6 +88,14 @@
         gap: 2em;
       }
 
+      #lifecycle {
+        .animation-lifecycle-states .title h3 {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+      }
+
       observable-plot-wrapper {
         width: 100%;
         display: flex;
@@ -307,7 +315,7 @@ const registry = new CERegistry({
 
         <div id="universal-components">
           <h2>Universal</h2>
-          <h3 class="n-color-text-weaker">Built to load any standard Web Component, regardless of origin.</h3>
+          <h3 class="n-color-text-weaker">Built to load any standard Web Component, regardless of framework.</h3>
           <hr />
 
           <p>
@@ -352,10 +360,11 @@ const registry = new CERegistry({
                 <vi-example class="card">
                   <!-- prettier-ignore -->
                   <div slot="example" class="flex-y">
-                  <nord-badge variant="success" loading="eager">
-                    <nord-icon name="interface-checked-circle"></nord-icon>Eager strategy
-                  </nord-badge>
-                </div>
+<nord-badge variant="success" loading="eager">
+    <nord-icon name="interface-checked-circle"></nord-icon>
+    Eager strategy
+</nord-badge>
+                  </div>
                 </vi-example>
               </div>
             </div>
@@ -377,7 +386,9 @@ const registry = new CERegistry({
                 <vi-example class="card">
                   <!-- prettier-ignore -->
                   <div slot="example" class="flex-y">
-                  <nord-avatar size="xl" variant="default" loading="visible"></nord-avatar>
+<nord-avatar size="xl" variant="default"
+    loading="visible" >
+</nord-avatar>
                 </div>
                 </vi-example>
               </div>
@@ -395,7 +406,9 @@ const registry = new CERegistry({
                 <vi-example class="card">
                   <!-- prettier-ignore -->
                   <div slot="example" class="flex-y">
-                  <three-cube loading="click" view-transition-name="three-cube">Click to load</three-cube>
+<three-cube loading="click" view-transition-name="three-cube">
+    Click to load
+</three-cube>
                 </div>
                 </vi-example>
               </div>
@@ -415,9 +428,10 @@ const registry = new CERegistry({
                 <vi-example class="card">
                   <!-- prettier-ignore -->
                   <div slot="example" class="flex-y">
-                  <confetti-button loading="manual" id="confetti" onClick="registry.upgrade('manual')">
-                    * custom (click) *
-                  </confetti-button>
+<confetti-button loading="manual" id="confetti"
+    onclick="registry.upgrade('manual')">
+    * custom (click) *
+</confetti-button>
                 </div>
                 </vi-example>
               </div>
@@ -465,7 +479,7 @@ const registry = new CERegistry({
             tag, it will automatically load the component from the esm CDN.
           </p>
 
-          <div class="flex-x">
+          <div class="flex-x" style="align-items: end">
             <figure>
               <nord-qrcode
                 value="https://vitocal.github.io/ce-autoloader/"
@@ -542,7 +556,7 @@ const registry = new CERegistry({
           <div class="animation-lifecycle-states" style="gap: 1em; display: flex; flex-direction: column">
             <div>
               <div class="title">
-                <h3><code>:not(:defined)</code> Placeholder state</h3>
+                <h3>Placeholder state <code>:not(:defined)</code></h3>
               </div>
               <div class="description">
                 <p>
@@ -550,13 +564,13 @@ const registry = new CERegistry({
                   <b>min-height</b> or <b>aspect-ratio</b> to reserve space on the page.
                 </p>
 
-                <vi-notloaded loading="click">A forever not-loaded element</vi-notloaded>
+                <vi-notloaded loading="click">I'm a <code>:not(:defined)</code> element</vi-notloaded>
               </div>
             </div>
 
             <div>
               <div class="title">
-                <h3><code>[ce="loading"]</code> Loading state</h3>
+                <h3>Loading state <code>[ce="loading"]</code></h3>
               </div>
               <div class="description">
                 <p>
@@ -564,13 +578,13 @@ const registry = new CERegistry({
                   progress indicator.
                 </p>
 
-                <vi-notloaded>A loading element</vi-notloaded>
+                <vi-notloaded>loading element</vi-notloaded>
               </div>
             </div>
 
             <div>
               <div class="title">
-                <h3><code>[ce="defined"]</code> Interactive state</h3>
+                <h3>Interactive state <code>[ce="defined"]</code></h3>
               </div>
               <div class="description">
                 <p>
@@ -703,9 +717,7 @@ const registry = new CERegistry({
             <code>fallback</code>, that is displayed when a module throws an error during loading.
           </p>
 
-          <div class="card">
-            <vi-error />
-          </div>
+          <vi-error />
 
           <p>
             Additionaly, the attribute <code>[ce=error]</code> is also set on the component, allowing you to style it

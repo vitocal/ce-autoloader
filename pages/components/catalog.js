@@ -32,7 +32,7 @@ let catalog = {
   "svelte-counter": () => import("./vi/svelte-counter.ts"),
 
   "vi-error": (name, attrs) => {
-    throw new Error(`This component failed to load`);
+    throw new Error(`An error occurred while loading the component "${name}"`);
   },
   "vi-notloaded": async (full_name, el) => {
     let timeout = Number(el.getAttribute("timeout") || 900 * 1000);

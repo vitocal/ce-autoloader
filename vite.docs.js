@@ -44,7 +44,6 @@ export default defineConfig({
         { name: "lit/directives/style-map.js", entry: "pages/vendor.js" },
         { name: "lit/directives/class-map.js", entry: "pages/vendor.js" },
         { name: "lit/directives/repeat.js", entry: "pages/vendor.js" },
-
         "globe.gl",
         "three.js",
         "canvas-confetti",
