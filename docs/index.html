@@ -98,6 +98,10 @@
         }
       }
 
+      [id] {
+        scroll-margin-top: 80px;
+      }
+
       observable-plot-wrapper {
         width: 100%;
         display: flex;
@@ -112,6 +116,7 @@
         width: 100%;
         min-width: 0;
         overflow: hidden;
+        height: 560px;
       }
 
       performance-metrics-plot svg {
@@ -121,8 +126,8 @@
       }
 
       /**
-     * View transitions
-     */
+       * View transitions
+       */
 
       /* disable view transition root animation */
       ::view-transition-group(root),
@@ -305,6 +310,21 @@ const registry = new CERegistry({
             </div>
           </div>
         </div>
+      </div>
+
+      <div id="examples">
+        <h1>Examples</h1>
+
+        <ul>
+          <li>
+            <a href="pages/examples/animations/a-b_testing.html"> A/B Testing </a>
+            A/B Testing webcomponents is very simple!
+          </li>
+          <li>
+            <a href="pages/demos/view-transition.html"> View Transition Example </a>
+            Animations using View Transition
+          </li>
+        </ul>
       </div>
 
       <div id="docs">
@@ -714,7 +734,7 @@ const registry = new CERegistry({
             <code>fallback</code>, that is displayed when a module throws an error during loading.
           </p>
 
-          <vi-error />
+          <vi-error></vi-error>
 
           <p>
             Additionaly, the attribute <code>[ce=error]</code> is also set on the component, allowing you to style it
