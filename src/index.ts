@@ -319,7 +319,7 @@ class CEAutoLoader {
 
       origin.innerHTML = "";
       origin.appendChild(fallback_instance);
-    } else if (this.options.hooks.error) {
+    } else if (this.options.hooks?.error) {
       this.options.hooks.error(error);
     }
   }
