@@ -5,17 +5,43 @@
 
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ce-autoloader - Load web components on demand if and when they're needed</title>
+    <title>ce-autoloader: Web Components Lazy Loader | Load on Demand</title>
+    <meta
+      name="description"
+      content="A lightweight (3kb) web components lazy loader. Load custom elements on demand to boost performance using Island Architecture. Zero dependencies, works with any framework."
+    />
+    <meta
+      name="keywords"
+      content="web components lazy loader, load web components on demand, custom elements loader, island architecture, web components performance, lazy load custom elements"
+    />
+    <link rel="canonical" href="https://vitocal.github.io/ce-autoloader/" />
 
-    <meta property="og:title" content="ce-autoloader" />
-    <meta property="og:description" content="Load web components on demand if and when they're needed." />
+    <meta property="og:title" content="ce-autoloader: Web Components Lazy Loader" />
+    <meta
+      property="og:description"
+      content="Load web components on demand if and when they're needed. Lightweight, fast, and framework-agnostic."
+    />
     <meta property="og:image" content="https://vitocal.github.io/ce-autoloader/logo.svg" />
     <meta property="og:url" content="https://vitocal.github.io/ce-autoloader/" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="ce-autoloader" />
-    <meta name="twitter:description" content="Load web components on demand if and when they're needed." />
+    <meta name="twitter:title" content="ce-autoloader: Web Components Lazy Loader" />
+    <meta
+      name="twitter:description"
+      content="Load web components on demand if and when they're needed. Lightweight, fast, and framework-agnostic."
+    />
     <meta name="twitter:image" content="https://vitocal.github.io/ce-autoloader/logo.svg" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "ce-autoloader",
+        "operatingSystem": "Web",
+        "applicationCategory": "DeveloperApplication",
+        "description": "A lightweight web components lazy loader"
+      }
+    </script>
 
     <link rel="icon" type="image/svg+xml" href="/ce-autoloader/logo.svg" />
 
@@ -187,8 +213,8 @@
       <img src="/ce-autoloader/logo.svg" alt="ce-autoloader logo" class="nav-logo" />
       <a href="#about" class="nav-link">About</a>
       <a href="#get-started" class="nav-link">Get Started</a>
-      <a href="#docs" class="nav-link">Docs</a>
       <a href="#examples" class="nav-link">Examples</a>
+      <a href="#docs" class="nav-link">Docs</a>
       <a href="#faq" class="nav-link">FAQ</a>
       <a
         href="https://github.com/vitocal/ce-autoloader"
@@ -232,10 +258,7 @@
       <div class="" id="about">
         <h1 style="display: none">About</h1>
 
-        <p>
-          The <strong>ce-autoloader</strong> is a lightweight library to lazy-load Web Components on demand. If a
-          component isn't used on the page, it won't be downloaded.
-        </p>
+        <p>The <strong>ce-autoloader</strong> is a lightweight web Components lazy loader.</p>
 
         <ul>
           <li>

@@ -102,7 +102,7 @@ export default defineConfig({
     },
     manifest: false,
     outDir: "docs/",
-    emptyOutDir: true,
+    emptyOutDir: false,
   },
 
   server: {
