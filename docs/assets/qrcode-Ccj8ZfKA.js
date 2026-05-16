@@ -12,3 +12,4 @@ attempted value: ${a}
       style="display: flex; flex-direction: column; align-items: center;">
       ${this.pix?Hr` <img src=${this.qrCodeB64} alt="QR Code PIX" /> `:Hr` <p>Loading QR Code...</p> `}
     </section>`}};Ei.properties={transaction:{type:Object},pix:{type:String},qrCodeB64:{type:String}};let ui=Ei;customElements.define("pix-qrcode",ui);export{ui as default};
+//# sourceMappingURL=qrcode-Ccj8ZfKA.js.map

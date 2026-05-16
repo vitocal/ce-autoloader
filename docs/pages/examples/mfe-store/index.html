@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MFE Store Example - ce-autoloader</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@19",
+          "react-dom": "https://esm.sh/react-dom@19",
+          "@r2wc/react-to-web-component": "https://esm.sh/@r2wc/react-to-web-component@2",
+          "vue": "https://esm.sh/vue@3/dist/vue.esm-browser.prod.js",
+          "@preact/signals-core": "https://esm.sh/@preact/signals-core@1.8"
+        }
+      }
+    </script>
+    <style>
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        margin: 0;
+        display: flex;
+        height: 100vh;
+      }
+      aside {
+        width: 250px;
+        border-right: 1px solid #eee;
+        overflow: hidden;
+      }
+      main {
+        overflow-x: hidden;
+        overflow-y: auto;
+        display: grid;
+        grid-template-rows: 20% 1fr;
+      }
+      header {
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+        background: white;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .container {
+        display: grid;
+        width: 100%;
+        height: 100%;
+
+        grid-template-columns: 250px 1fr;
+        grid-template-rows: 1fr;
+      }
+
+      /* undefined states */
+      :not(:defined) {
+        display: block;
+        height: 100%;
+        width: 100%;
+      }
+
+      /* Loading states */
+      [ce="loading"] {
+        opacity: 0.5;
+        filter: grayscale(1);
+
+        background-color: #eee;
+        --color-bg-dark: #aaa;
+
+        &::after {
+          pointer-events: none;
+          content: " ";
+          position: absolute;
+          inset: 0;
+
+          transform: translateX(-100%);
+          width: 100%;
+
+          background: linear-gradient(to right, transparent 10%, var(--color-bg-dark) 50%, transparent 90%);
+          will-change: transform;
+          animation: shimmer 1.5s ease-in-out infinite;
+        }
+      }
+      [ce="defined"] {
+        opacity: 1;
+        transition: opacity 0.5s ease-in;
+      }
+
+      /* Shimmer/skeleton */
+      @keyframes shimmer {
+        to {
+          transform: translateX(100%);
+        }
+      }
+
+      total-summary {
+        position: fixed;
+        min-width: 250px;
+        min-height: 180px;
+        bottom: 20px;
+        right: 20px;
+
+        &:not(:defined) {
+          opacity: 0;
+        }
+      }
+    </style>
+    <script type="importmap">{"imports":{"lit-html":"/ce-autoloader/assets/shared/lit-html-CPzuNlCZ.js","lit-html/is-server.js":"/ce-autoloader/assets/shared/lit-html_is-server.js-BhzBOzV4.js","@lit/reactive-element":"/ce-autoloader/assets/shared/@lit_reactive-element-B9MHkaKj.js","globe.gl":"/ce-autoloader/assets/shared/globe.gl-B1hkUD7H.js","canvas-confetti":"/ce-autoloader/assets/shared/canvas-confetti-Drm5vwfp.js","syntax-highlight-element":"/ce-autoloader/assets/shared/syntax-highlight-element-uI7Ffmc_.js","@google/model-viewer":"/ce-autoloader/assets/shared/@google_model-viewer-B0MU73FQ.js","lit-element":"/ce-autoloader/assets/shared/lit-element-q-ybvMhE.js","lit":"/ce-autoloader/assets/shared/lit-B8tYZRsz.js","lit/static-html.js":"/ce-autoloader/assets/shared/lit_static-html.js-VrwtJcRp.js","lit/directives/ref.js":"/ce-autoloader/assets/shared/lit_directives_ref.js-4mVQ_XOp.js","lit/directives/if-defined.js":"/ce-autoloader/assets/shared/lit_directives_if-defined.js-uEwvEgOe.js","lit/directives/unsafe-html.js":"/ce-autoloader/assets/shared/lit_directives_unsafe-html.js-Mu35-_fj.js","lit/directives/style-map.js":"/ce-autoloader/assets/shared/lit_directives_style-map.js-7O6NhFWp.js","lit/directives/class-map.js":"/ce-autoloader/assets/shared/lit_directives_class-map.js-dj_ZroD0.js","lit/directives/repeat.js":"/ce-autoloader/assets/shared/lit_directives_repeat.js-D_WqYtij.js","three.js":"/ce-autoloader/assets/shared/three.js-tmGq3jXx.js","lit/decorators.js":"/ce-autoloader/assets/shared/lit_decorators.js-bmL9gFex.js"}}</script>
+    <script type="module" crossorigin src="/ce-autoloader/assets/index.html-CsYBB7Kr.js"></script>
+    <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/index-DTdLYAMc.js">
+    <link rel="modulepreload" crossorigin href="/ce-autoloader/assets/preload-helper-DzD11Dr3.js">
+  </head>
+  <body>
+    <div class="container" style="width: 100%">
+      <aside>
+        <category-filter loading="eager"></category-filter>
+      </aside>
+      <main>
+        <header>
+          <h1>Micro-Frontends Store</h1>
+          <p>
+            Built with <span style="color: #61dafb">React</span>, <span style="color: #42b983">Vue</span>,
+            <span style="color: #d43008">Svelte</span>, using
+            <a href="https://preactjs.com/guide/v10/signals/">signals</a> and
+            <a href="https://vitocal.github.io/ce-autoloader/">ce-autoloader</a>
+          </p>
+        </header>
+        <product-grid loading="visible"></product-grid>
+      </main>
+
+      <!-- Svelte component is floating -->
+      <total-summary loading="visible"></total-summary>
+    </div>
+
+  </body>
+</html>

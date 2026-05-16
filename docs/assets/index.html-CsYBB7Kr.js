@@ -1,0 +1,3 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/category-filter-CC9oiIEH.js","assets/_commonjsHelpers-CE1G-McA.js","assets/store-BTMrTFU6.js","assets/product-grid-qPAgU1_h.js","assets/vue.runtime.esm-bundler-D-ZmNUuX.js","assets/runtime-core.esm-bundler-Dj4MXJbn.js","assets/total-summary-DJ8ABuOv.js"])))=>i.map(i=>d[i]);
+import{C as _}from"./index-DTdLYAMc.js";import{_ as o}from"./preload-helper-DzD11Dr3.js";const r={"category-filter":()=>o(()=>import("./category-filter-CC9oiIEH.js"),__vite__mapDeps([0,1,2])),"product-grid":()=>o(()=>import("./product-grid-qPAgU1_h.js"),__vite__mapDeps([3,4,5,2])),"total-summary":()=>o(()=>import("./total-summary-DJ8ABuOv.js"),__vite__mapDeps([6,2]))};new _({catalog:r});
+//# sourceMappingURL=index.html-CsYBB7Kr.js.map

@@ -1,1 +1,2 @@
 import{a as n}from"./confetti.module-xYEAsLwP.js";class e extends HTMLElement{connectedCallback(){this.style.display="block",this.throwConfetti(),this.addEventListener("click",t=>{this.throwConfetti(t.clientX/window.innerWidth,t.clientY/window.innerHeight)})}throwConfetti(t,i){(t===void 0||i===void 0)&&(t=this.getBoundingClientRect().x/window.innerWidth,i=this.getBoundingClientRect().y/window.innerHeight),n({particleCount:150,spread:60,origin:{x:t,y:i}})}}customElements.define("confetti-button",e);export{e as default};
+//# sourceMappingURL=confetti-button-BHBlEUdc.js.map

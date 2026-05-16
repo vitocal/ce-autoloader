@@ -4,7 +4,10 @@ import { fileURLToPath } from "node:url";
 import { readdirSync, statSync } from "fs";
 
 import { defineConfig } from "vite";
+
 import viteImportMaps from "vite-import-maps";
+import vue from "@vitejs/plugin-vue";
+import { svelte } from "@sveltejs/vite-plugin-svelte";
 
 const BASE = process.env.NODE_ENV === "production" ? "/ce-autoloader/" : "/";
 
@@ -25,6 +28,8 @@ function collectEntries(dir, fileExt = `.ts`) {
 
 export default defineConfig({
   plugins: [
+    vue({ features: { customElement: true } }),
+    svelte({}),
     viteImportMaps({
       log: true,
       modulesOutDir: "shared",
@@ -98,11 +103,11 @@ export default defineConfig({
         ...collectEntries(path.resolve(__dirname, "pages/"), ".html"),
         ...collectEntries(path.resolve(__dirname, "test/"), ".html"),
       },
-      preserveEntrySignatures: "strict",
     },
     manifest: false,
     outDir: "docs/",
     emptyOutDir: false,
+    sourcemap: true,
   },
 
   server: {

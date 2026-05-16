@@ -272,15 +272,25 @@
             pages.
           </li>
           <li>
-            <strong>Custom Loader Strategy</strong>: Use <code>loading</code> attribute to customize when a component
-            should be loaded.
+            <strong>Performance</strong>: Use <code>loading</code> attribute to customize when a component should be
+            loaded, maximizing network performance with minimal overhead.
           </li>
+          <li>
+            <strong>Wildcard Loaders</strong>: Wildcard loaders allow you to load a whole design system with minimal
+            footprint.
+          </li>
+          <!--
+          <li>
+            <strong>Import maps</strong>: Native support for import-maps allow you to define modules without a
+            compiler/bundler.
+          </li>
+          -->
           <li>
             <strong>Polished Animations</strong>: Use the lifecycle states and View Transitions API to animate
-            components as they load/render.
+            components as they load/render, providing a smooth and polished user experience.
           </li>
           <li>
-            <strong>Smart Scheduling</strong>: Batches custom element upgrades into single animation frames to prevent
+            <strong>Smart Scheduling</strong>: Automatically batches upgrades into single animation frames to prevent
             layout thrashing.
           </li>
           <li>
@@ -290,7 +300,7 @@
           <li>
             <strong>Error Handling</strong>: Define a custom fallback component to show when a module fails to load.
           </li>
-          <li><strong>Zero Friction</strong>: 3kb gzipped without dependencies and no build/bundler required.</li>
+          <li><strong>Tiny</strong>: 3kb gzipped without dependencies!</li>
         </ul>
 
         <p>
@@ -365,10 +375,12 @@ const registry = new CERegistry({
             Because <code>ce-autoloader</code> targets the standard <strong>Custom Elements API</strong>, it doesn't
             care how your component was built. You can mix and match components from <strong>React</strong>,
             <strong>Vue</strong>, <strong>Svelte</strong>, <strong>Lit</strong>, or <strong>Vanilla JS</strong> in the
-            same project, without a shared build step.
+            same page without any problems.
           </p>
 
-          <p>The examples below are three separate components, each using a different framework's.</p>
+          <p>
+            The example below are three components with different frameworks but sharing the same <mark>state</mark>!
+          </p>
 
           <br />
 
@@ -904,5 +916,13 @@ export default r2wc(Greeter, {
         </div>
       </div>
     </footer>
+
+    <script>
+      window.addEventListener("error", (event) => {
+        // Check if the error came from a script involving your web component
+        console.error(event);
+        debugger;
+      });
+    </script>
   </body>
 </html>

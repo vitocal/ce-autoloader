@@ -660,6 +660,27 @@ footer {
       margin: 1em 0;
     }
   }
+
+  :where(.n-typeset mark) {
+    display: inline-block;
+    background-color: transparent;
+    padding: 0 0.5ch;
+    position: relative;
+
+    &::before {
+      content: " ";
+      background-color: var(--n-color-status-warning-weak);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      transform: rotate(-3deg);
+
+      animation: revealFromLeft 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+  }
 }
 
 /**
@@ -797,5 +818,17 @@ footer {
 
   100% {
     transform: translateX(100%);
+  }
+}
+
+@keyframes revealFromLeft {
+  0% {
+    /* crop: top, right, bottom, left */
+    /* 100% on the right means the crop mask is pushed all the way to the left (hidden) */
+    clip-path: inset(0 100% 0 0);
+  }
+  100% {
+    /* 0% on the right means no cropping at all (fully revealed) */
+    clip-path: inset(0 0% 0 0);
   }
 }

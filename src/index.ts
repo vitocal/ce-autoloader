@@ -95,6 +95,15 @@ function matchCustomElement(root: Element) {
   return [...new Set([root, ...root.querySelectorAll(selector)])].filter((el) => isCustomElement(el)) as HTMLElement[];
 }
 
+const isFulfilled = <T>(result: PromiseSettledResult<T>): result is PromiseFulfilledResult<T> =>
+  result.status === "fulfilled";
+
+const isRejected = <T>(result: PromiseSettledResult<T>): result is PromiseRejectedResult =>
+  result.status === "rejected";
+
+/**
+ * CEAutoLoader automatically loads and defines custom elements from a catalog.
+ */
 class CEAutoLoader {
   options: Options;
   catalog: Catalog;
@@ -377,8 +386,8 @@ class CEAutoLoader {
     }
 
     const load_result = await Promise.allSettled(elements.map((el) => this.load(el)));
-    const load_success = load_result.filter((result) => result.status === "fulfilled");
-    const load_fail = load_result.filter((result) => result.status === "rejected");
+    const load_success = load_result.filter(isFulfilled);
+    const load_fail = load_result.filter(isRejected);
 
     // Fallback for failed loads
     if (load_fail.length > 0) {

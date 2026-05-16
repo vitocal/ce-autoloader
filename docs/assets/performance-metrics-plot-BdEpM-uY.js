@@ -12,3 +12,4 @@ import*as o from"https://cdn.jsdelivr.net/npm/@observablehq/plot/+esm";class p e
             `,x:{label:"Time (ms) →",grid:!0},y:{grid:!0,domain:[...r.filter(e=>e.type==="load"||e.type==="error").map(e=>e.name)]},color:{legend:!0,domain:["load","error"],range:[i,l]},marks:[o.barX(r,{x1:e=>0,x2:e=>e.duration,y:e=>e.name,fill:e=>e.type,rx:4}),o.tip(r,o.pointerY({x1:e=>0,x2:e=>e.duration,y:e=>e.name,title:e=>`${e.name}
 Start:    ${e.start.toFixed(2)} ms
 Duration: ${e.duration.toFixed(2)} ms`}))]});this.innerHTML="",this.append(c)}}customElements.define("performance-metrics-plot",p);export{p as default};
+//# sourceMappingURL=performance-metrics-plot-BdEpM-uY.js.map

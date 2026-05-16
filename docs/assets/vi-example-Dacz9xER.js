@@ -50,3 +50,4 @@ import{i as t}from"./reactive-element-Cvb7jJT9.js";import"./lit-html-BQJ4ffLt.js
         <slot name="example"></slot>
       </div>
     `}}customElements.define("vi-example",r);export{r as ViExample};
+//# sourceMappingURL=vi-example-Dacz9xER.js.map

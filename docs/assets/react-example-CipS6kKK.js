@@ -1,1 +1,0 @@
-import{s as e,j as r}from"./react-to-web-component-KwXRUZS_.js";import"./_commonjsHelpers-CE1G-McA.js";const t=({name:s})=>r.jsxs("span",{children:["Hello, ",s,"!"]}),p=e(t,{props:{name:"string"}});export{p as default};

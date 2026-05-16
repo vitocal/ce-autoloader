@@ -1,0 +1,2 @@
+import"./index-DTdLYAMc.js";import"./index-DDZRd3ZH.js";import{_ as t}from"./preload-helper-DzD11Dr3.js";import{l as o}from"./utils-DkH47TkP.js";o("/shared.css","ds");o("https://nordcdn.net/ds/css/4.2.0/nord.min.css","ds");globalThis.catalog["nord-button"]=async()=>{await new Promise(s=>setTimeout(s,3e3)),await t(()=>import("https://esm.sh/@nordhealth/components/lib/Button.js"),[])};
+//# sourceMappingURL=css.html-DK4tWwp3.js.map

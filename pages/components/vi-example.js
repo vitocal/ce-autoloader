@@ -84,9 +84,7 @@ export class ViExample extends SlottedElement {
   render() {
     return html`
       <div class="left window flex-y">
-        <pre><syntax-highlight language="html">${unsafeStatic(
-          this.example_slot,
-        )}</syntax-highlight></pre>
+        <pre><syntax-highlight language="html">${unsafeStatic(this.example_slot)}</syntax-highlight></pre>
       </div>
       <div class="preview right card flex-y">
         <slot name="example"></slot>

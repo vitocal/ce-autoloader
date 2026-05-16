@@ -20,5 +20,5 @@
     /* Decorators */
     "experimentalDecorators": true,
   },
-  "include": ["src"],
+  "include": ["src", "pages/components/"],
 }

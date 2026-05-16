@@ -138,3 +138,4 @@ import{i as b}from"./reactive-element-Cvb7jJT9.js";import{B as O,E as w,x as c}f
       </div>
 
       <div class="right preview flex-y" mode=${this.mode}>${t}</div>`}}customElements.define("hero-example",tt);export{tt as default};
+//# sourceMappingURL=hero-example-eUxUjbRw.js.map

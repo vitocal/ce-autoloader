@@ -15,7 +15,7 @@ function collectEntries(dir, fileExt = `.ts`) {
       Object.assign(entries, collectEntries(full, fileExt));
     } else if (file.endsWith(fileExt)) {
       // entry name without extension & without the leading path
-      const name = path.relative(path.resolve(__dirname, dir), full).replace(/\.ts$/, "");
+      const name = path.relative(path.resolve(__dirname, dir), full).replace(/filExt$/, "");
       entries[name] = full;
     }
   });
@@ -42,7 +42,10 @@ export default defineConfig({
       // We'll use a custom rollupOptions to create a chunk per file
       name: "vi-components",
       formats: ["es"],
-      entry: collectEntries("pages/components/vi"),
+      entry: {
+        ...collectEntries("pages/components/vi", ".ts"),
+        ...collectEntries("pages/components/vi", ".tsx"),
+      },
     },
     rollupOptions: {
       output: {

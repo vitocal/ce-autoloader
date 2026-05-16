@@ -27,9 +27,14 @@ let catalog = {
   "pix-qrcode": () => import("./pix/qrcode.ts"),
 
   "react-example": () => import("./vi/react-example.tsx"),
-  "react-counter": () => import("./vi/react-counter.tsx"),
-  "vue-counter": () => import("./vi/vue-counter.ts"),
-  "svelte-counter": () => import("./vi/svelte-counter.ts"),
+
+  "react-counter": () => import("./vi/frameworks/react-counter.tsx"),
+  "svelte-counter": () => import("./vi/frameworks/svelte-counter.svelte"),
+  "vue-counter": async (name) => {
+    const { defineCustomElement } = await import("vue");
+    const VueCounter = await import("./vi/frameworks/vue-counter.ce.vue");
+    return defineCustomElement(VueCounter.default, { shadowRoot: false });
+  },
 
   "vi-error": (name, attrs) => {
     throw new Error(`An error occurred while loading the component "${name}"`);

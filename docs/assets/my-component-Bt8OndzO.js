@@ -63,3 +63,4 @@ import{i as a}from"./reactive-element-Cvb7jJT9.js";import"./lit-html-BQJ4ffLt.js
                 <span class="star" style=${i({top:e.top,left:e.left,animationDelay:e.delay,fontSize:`${e.scale}em`})}>${e.emoji}</span>
             `)}
         `}}customElements.get("my-component")||customElements.define("my-component",l);export{l as default};
+//# sourceMappingURL=my-component-Bt8OndzO.js.map

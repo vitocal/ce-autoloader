@@ -14,3 +14,4 @@ import{defineCustomElement as t}from"https://esm.sh/vue@3/dist/vue.esm-browser.p
             </style>
         </div>
     `},{shadowRoot:!1});customElements.define("vi-defined",e);export{e as default};
+//# sourceMappingURL=vi-defined-Bvd24Ixg.js.map
