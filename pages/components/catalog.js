@@ -43,7 +43,7 @@ let catalog = {
     let timeout = Number(el.getAttribute("timeout") || 900 * 1000);
     await new Promise((resolve) => setTimeout(resolve, timeout));
   },
-  "vi-defined": () => import("./vi/vi-defined.tsx"),
+  "vi-defined": () => import("./vi/vi-defined.js"),
 
   "playground-ide": "https://cdn.jsdelivr.net/npm/playground-elements@0.18.1/+esm",
   "json-viewer": "https://esm.sh/@alenaksu/json-viewer",

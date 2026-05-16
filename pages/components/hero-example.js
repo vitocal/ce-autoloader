@@ -172,7 +172,7 @@ export default class HeroExample extends LitElement {
   render() {
     let preview = demos[this.demo];
 
-    return html` <div class="left window flex-y no-wrap">
+    return html`<div class="left window flex-y no-wrap">
         <h4 class="flex-x">
           Demo
 

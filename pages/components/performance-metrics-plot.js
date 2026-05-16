@@ -25,13 +25,9 @@ export default class PerformanceMetricsPlot extends HTMLElement {
 
   #render() {
     const style = getComputedStyle(document.documentElement);
-    const colorPrimary =
-      style.getPropertyValue("--color-primary").trim() || "oklch(70% 0.15 145)";
-    const colorSecondary =
-      style.getPropertyValue("--color-secondary").trim() ||
-      "oklch(85% 0.15 85)";
-    const colorTertiary =
-      style.getPropertyValue("--color-accent").trim() || "oklch(85% 0.15 15)";
+    const colorPrimary = style.getPropertyValue("--color-primary").trim() || "oklch(70% 0.15 145)";
+    const colorSecondary = style.getPropertyValue("--color-secondary").trim() || "oklch(85% 0.15 85)";
+    const colorTertiary = style.getPropertyValue("--color-accent").trim() || "oklch(85% 0.15 15)";
 
     const colorBg = style.getPropertyValue("--color-bg").trim() || "#f5f5f5";
     const colorFg = style.getPropertyValue("--color-fg").trim() || "#222";
@@ -45,12 +41,7 @@ export default class PerformanceMetricsPlot extends HTMLElement {
         start: e.startTime,
         end: e.startTime + e.duration,
         duration: e.duration,
-        type:
-          e.detail?.error != null
-            ? "error"
-            : e.name.startsWith("load:")
-              ? "load"
-              : "unknown",
+        type: e.detail?.error != null ? "error" : e.name.startsWith("load:") ? "load" : "unknown",
       }))
       .sort((a, b) => a.duration - b.duration);
 
@@ -58,9 +49,9 @@ export default class PerformanceMetricsPlot extends HTMLElement {
     const [nav] = performance.getEntriesByType("navigation");
     const milestones = nav
       ? [
-        { x: nav.domInteractive, label: "TTI" },
-        { x: nav.domComplete, label: "DCL" },
-      ]
+          { x: nav.domInteractive, label: "TTI" },
+          { x: nav.domComplete, label: "DCL" },
+        ]
       : [];
 
     if (entries.length === 0) {
@@ -94,6 +85,7 @@ export default class PerformanceMetricsPlot extends HTMLElement {
         domain: [
           ...entries
             .filter((d) => d.type === "load" || d.type === "error")
+            .filter((d) => d.name != "my-component")
             .map((d) => d.name),
         ],
       },
@@ -137,8 +129,7 @@ export default class PerformanceMetricsPlot extends HTMLElement {
             x1: (d) => 0,
             x2: (d) => d.duration,
             y: (d) => d.name,
-            title: (d) =>
-              `${d.name}\nStart:    ${d.start.toFixed(2)} ms\nDuration: ${d.duration.toFixed(2)} ms`,
+            title: (d) => `${d.name}\nStart:    ${d.start.toFixed(2)} ms\nDuration: ${d.duration.toFixed(2)} ms`,
           }),
         ),
       ],

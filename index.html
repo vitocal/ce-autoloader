@@ -184,7 +184,11 @@
       ::view-transition-old(confetti-button),
       ::view-transition-new(confetti-button),
       ::view-transition-old(model-viewer),
-      ::view-transition-new(model-viewer) {
+      ::view-transition-new(model-viewer),
+      ::view-transition-old(performance-metrics-plot),
+      ::view-transition-new(performance-metrics-plot),
+      ::view-transition-old(vi-defined),
+      ::view-transition-new(vi-defined) {
         height: 100%;
         overflow: clip;
         animation-timing-function: ease-in-out;
@@ -193,6 +197,11 @@
       ::view-transition-group(plot-example) {
         animation-duration: 5000ms;
         animation-timing-function: ease-in-out;
+      }
+
+      ::view-transition-group(performance-metrics-plot),
+      ::view-transition-group(vi-defined) {
+        animation-duration: 1000ms;
       }
     </style>
 
@@ -647,7 +656,7 @@ const registry = new CERegistry({
                   final "fade-in" or entrance animation.
                 </p>
 
-                <vi-defined>A interactive element</vi-defined>
+                <vi-defined view-transition-name="vi-defined"></vi-defined>
               </div>
             </div>
           </div>
@@ -757,7 +766,7 @@ const registry = new CERegistry({
           -->
 
           <div class="card">
-            <performance-metrics-plot></performance-metrics-plot>
+            <performance-metrics-plot view-transition-name="performance-metrics-plot"></performance-metrics-plot>
           </div>
         </div>
 
