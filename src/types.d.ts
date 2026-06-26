@@ -2,6 +2,10 @@ declare global {
   interface Window {
     Buffer: any;
   }
+
+  interface CSSStyleDeclaration {
+    viewTransitionClass: string;
+  }
 }
 
 declare module "qrcode-pix" {
@@ -28,3 +32,5 @@ declare module "globe.gl" {
   const Globe: any;
   export default Globe;
 }
+
+export { }

@@ -40,6 +40,9 @@ export type Options = {
   /** Overwrite the default directive */
   defaultDirective?: Directives;
 
+  /** Intersection Observer customization */
+  intersectionOptions?: IntersectionObserverInit;
+
   /** Use View Transitions API to animate the component upgrade */
   transition?: boolean;
 
@@ -56,7 +59,7 @@ export type Options = {
 /**
  * Error thrown by CEAutoLoader
  */
-export class CEError extends Error {
+class CEError extends Error {
   details: any;
 
   constructor(message: string, details: any) {
@@ -248,7 +251,7 @@ class CEAutoLoader {
     const visible = (elements: HTMLElement[]) => {
       // Create observer if it doesn't exist
       if (!this.#observers["intersection"]) {
-        this.#observers["intersection"] = new IntersectionObserver(when_in_viewport_loadanddefine);
+        this.#observers["intersection"] = new IntersectionObserver(when_in_viewport_loadanddefine, this.options.intersectionOptions || {});
       } else {
         // If the observer already exists, we need to check if there are any pending entries
         let mutations = this.#observers["intersection"].takeRecords() as IntersectionObserverEntry[];
@@ -258,7 +261,7 @@ class CEAutoLoader {
       }
 
       return elements.map((el) => {
-        this.#observers["intersection"].unobserve(el);
+        (this.#observers["intersection"] as IntersectionObserver).unobserve(el);
         this.#observers["intersection"].observe(el);
       });
     };
@@ -367,7 +370,7 @@ class CEAutoLoader {
       el.style.viewTransitionClass = "";
     });
 
-    if (this.options.hooks?.viewTransition.finished) {
+    if (this.options.hooks?.viewTransition?.finished) {
       this.activeTransition.finished.then(this.options.hooks.viewTransition.finished);
     }
   }

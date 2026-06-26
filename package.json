@@ -1,20 +1,21 @@
 {
   "name": "ce-autoloader",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "A webcomponents auto loader and registry",
   "type": "module",
   "main": "./dist/ce-autoloader.umd.cjs",
   "module": "./dist/ce-autoloader.js",
-  "types": "./dist/ce-autoloader.d.ts",
+  "types": "./dist/dist.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/dist.d.ts",
       "import": "./dist/ce-autoloader.js",
       "require": "./dist/ce-autoloader.umd.cjs"
     }
   },
   "customElements": "custom-elements.json",
   "files": [
-    "dist/*.js"
+    "dist/"
   ],
   "scripts": {
     "dev": "vite build --mode development --watch",
@@ -50,37 +51,36 @@
   "license": "GPL-3.0",
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.11.0",
-    "@google/model-viewer": "^4.2.0",
+    "@google/model-viewer": "^4.3.1",
     "@loadingio/transition.css": "^3.0.0",
-    "@nordhealth/components": "^4.9.0",
-    "@preact/signals-core": "^1.14.2",
-    "@preact/signals-react": "^3.10.1",
-    "@r2wc/react-to-web-component": "^2.1.0",
+    "@nordhealth/components": "^4.26.1",
+    "@preact/signals-core": "^1.14.3",
+    "@preact/signals-react": "^3.10.2",
+    "@r2wc/react-to-web-component": "^2.1.1",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@types/dom-view-transitions": "^1.0.6",
-    "@types/node": "^24.10.1",
-    "@types/react": "^19.2.7",
+    "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-vue": "^6.0.7",
     "buffer": "^6.0.3",
     "canvas-confetti": "^1.9.4",
-    "chai": "^6.2.1",
+    "chai": "^6.2.2",
     "cjs-module-lexer": "^2.2.0",
-    "globe.gl": "^2.45.3",
-    "lit": "^3.3.1",
-    "mocha": "^11.7.5",
-    "puppeteer": "^24.31.0",
+    "globe.gl": "^2.46.1",
+    "lit": "^3.3.3",
+    "mocha": "^11.7.6",
+    "puppeteer": "^25.2.1",
     "qrcode-pix": "^5.0.0",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "remount": "^1.0.0",
     "syntax-highlight-element": "^1.2.0",
     "three.js": "^0.77.1",
     "view-transitions-toolkit": "^1.0.0",
-    "vite": "^7.2.2",
+    "vite": "^8.1.0",
     "vite-import-maps": "^0.2.6",
-    "vite-plugin-dts": "^5.0.0",
+    "vite-plugin-dts": "^5.0.3",
     "vite-plugin-web-components-hmr": "^0.1.3",
-    "vue": "^3.5.34"
+    "vue": "^3.5.39"
   }
 }

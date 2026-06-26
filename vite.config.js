@@ -8,22 +8,19 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
-    // dts({
-    //   insertTypesEntry: true,
-    //   rollupTypes: true,
-    // }),
+    dts({
+      rollupTypes: true,
+      insertTypesEntry: true,
+      tsconfigPath: "./tsconfig.json", // Enforces compilation via your core rules
+    }),
   ],
-  optimizeDeps: {
-    esbuildOptions: {
-      treeShaking: true,
-    },
-  },
   resolve: {
     alias: {
       "/assets/vendor.js": resolve(__dirname, "src/vendor.js"),
     },
   },
   build: {
+    copyPublicDir: false,
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
       name: "CEAutoLoader",
@@ -33,11 +30,11 @@ export default defineConfig({
     rollupOptions: {
       output: {
         // Preserve the catalog and other chunks
-        preserveModules: false,
-        exports: "named",
+        // preserveModules: false,
+        // exports: "named",
       },
     },
-    emptyOutDir: false,
+    emptyOutDir: true,
   },
 
   // server: {
