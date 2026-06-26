@@ -1,0 +1,348 @@
+{
+  "node_modules/@preact/signals-core/dist/signals-core.module.js": {
+    "file": "node_modules/@preact/signals-core/dist/signals-core.module.js",
+    "name": "node_modules/@preact/signals-core/dist/signals-core.module",
+    "src": "node_modules/@preact/signals-core/dist/signals-core.module.js",
+    "isDynamicEntry": true
+  },
+  "node_modules/@preact/signals-react/runtime/dist/runtime.module.js": {
+    "file": "node_modules/@preact/signals-react/runtime/dist/runtime.module.js",
+    "name": "node_modules/@preact/signals-react/runtime/dist/runtime.module",
+    "src": "node_modules/@preact/signals-react/runtime/dist/runtime.module.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js",
+      "node_modules/@preact/signals-core/dist/signals-core.module.js",
+      "node_modules/react/index.js",
+      "node_modules/use-sync-external-store/shim/index.js"
+    ]
+  },
+  "node_modules/@r2wc/core/dist/core.js": {
+    "file": "node_modules/@r2wc/core/dist/core.js",
+    "name": "node_modules/@r2wc/core/dist/core",
+    "src": "node_modules/@r2wc/core/dist/core.js",
+    "isDynamicEntry": true
+  },
+  "node_modules/@r2wc/react-to-web-component/dist/react-to-web-component.js": {
+    "file": "node_modules/@r2wc/react-to-web-component/dist/react-to-web-component.js",
+    "name": "node_modules/@r2wc/react-to-web-component/dist/react-to-web-component",
+    "src": "node_modules/@r2wc/react-to-web-component/dist/react-to-web-component.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js",
+      "node_modules/react/index.js",
+      "node_modules/react-dom/client.js",
+      "node_modules/@r2wc/core/dist/core.js"
+    ]
+  },
+  "node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js": {
+    "file": "node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js",
+    "name": "node_modules/@vue/reactivity/dist/reactivity.esm-bundler",
+    "src": "node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "node_modules/@vue/shared/dist/shared.esm-bundler.js"
+    ]
+  },
+  "node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js": {
+    "file": "node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js",
+    "name": "node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler",
+    "src": "node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "node_modules/@vue/shared/dist/shared.esm-bundler.js",
+      "node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js"
+    ]
+  },
+  "node_modules/@vue/shared/dist/shared.esm-bundler.js": {
+    "file": "node_modules/@vue/shared/dist/shared.esm-bundler.js",
+    "name": "node_modules/@vue/shared/dist/shared.esm-bundler",
+    "src": "node_modules/@vue/shared/dist/shared.esm-bundler.js",
+    "isDynamicEntry": true
+  },
+  "node_modules/react-dom/cjs/react-dom-client.development.js": {
+    "file": "node_modules/react-dom/cjs/react-dom-client.development.js",
+    "name": "node_modules/react-dom/cjs/react-dom-client.development",
+    "src": "node_modules/react-dom/cjs/react-dom-client.development.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js",
+      "node_modules/react/index.js",
+      "node_modules/scheduler/index.js",
+      "node_modules/react-dom/index.js"
+    ]
+  },
+  "node_modules/react-dom/cjs/react-dom-client.production.js": {
+    "file": "node_modules/react-dom/cjs/react-dom-client.production.js",
+    "name": "node_modules/react-dom/cjs/react-dom-client.production",
+    "src": "node_modules/react-dom/cjs/react-dom-client.production.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js",
+      "node_modules/react/index.js",
+      "node_modules/scheduler/index.js",
+      "node_modules/react-dom/index.js"
+    ]
+  },
+  "node_modules/react-dom/cjs/react-dom.development.js": {
+    "file": "node_modules/react-dom/cjs/react-dom.development.js",
+    "name": "node_modules/react-dom/cjs/react-dom.development",
+    "src": "node_modules/react-dom/cjs/react-dom.development.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js",
+      "node_modules/react/index.js"
+    ]
+  },
+  "node_modules/react-dom/cjs/react-dom.production.js": {
+    "file": "node_modules/react-dom/cjs/react-dom.production.js",
+    "name": "node_modules/react-dom/cjs/react-dom.production",
+    "src": "node_modules/react-dom/cjs/react-dom.production.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js",
+      "node_modules/react/index.js"
+    ]
+  },
+  "node_modules/react-dom/client.js": {
+    "file": "node_modules/react-dom/client.js",
+    "name": "node_modules/react-dom/client",
+    "src": "node_modules/react-dom/client.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js",
+      "node_modules/react-dom/cjs/react-dom-client.production.js",
+      "node_modules/react-dom/cjs/react-dom-client.development.js"
+    ]
+  },
+  "node_modules/react-dom/index.js": {
+    "file": "node_modules/react-dom/index.js",
+    "name": "node_modules/react-dom/index",
+    "src": "node_modules/react-dom/index.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js",
+      "node_modules/react-dom/cjs/react-dom.production.js",
+      "node_modules/react-dom/cjs/react-dom.development.js"
+    ]
+  },
+  "node_modules/react/cjs/react-jsx-runtime.development.js": {
+    "file": "node_modules/react/cjs/react-jsx-runtime.development.js",
+    "name": "node_modules/react/cjs/react-jsx-runtime.development",
+    "src": "node_modules/react/cjs/react-jsx-runtime.development.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js",
+      "node_modules/react/index.js"
+    ]
+  },
+  "node_modules/react/cjs/react-jsx-runtime.production.js": {
+    "file": "node_modules/react/cjs/react-jsx-runtime.production.js",
+    "name": "node_modules/react/cjs/react-jsx-runtime.production",
+    "src": "node_modules/react/cjs/react-jsx-runtime.production.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js"
+    ]
+  },
+  "node_modules/react/cjs/react.development.js": {
+    "file": "node_modules/react/cjs/react.development.js",
+    "name": "node_modules/react/cjs/react.development",
+    "src": "node_modules/react/cjs/react.development.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js"
+    ]
+  },
+  "node_modules/react/cjs/react.production.js": {
+    "file": "node_modules/react/cjs/react.production.js",
+    "name": "node_modules/react/cjs/react.production",
+    "src": "node_modules/react/cjs/react.production.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js"
+    ]
+  },
+  "node_modules/react/index.js": {
+    "file": "node_modules/react/index.js",
+    "name": "node_modules/react/index",
+    "src": "node_modules/react/index.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js",
+      "node_modules/react/cjs/react.production.js",
+      "node_modules/react/cjs/react.development.js"
+    ]
+  },
+  "node_modules/react/jsx-runtime.js": {
+    "file": "node_modules/react/jsx-runtime.js",
+    "name": "node_modules/react/jsx-runtime",
+    "src": "node_modules/react/jsx-runtime.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js",
+      "node_modules/react/cjs/react-jsx-runtime.production.js",
+      "node_modules/react/cjs/react-jsx-runtime.development.js"
+    ]
+  },
+  "node_modules/scheduler/cjs/scheduler.development.js": {
+    "file": "node_modules/scheduler/cjs/scheduler.development.js",
+    "name": "node_modules/scheduler/cjs/scheduler.development",
+    "src": "node_modules/scheduler/cjs/scheduler.development.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js"
+    ]
+  },
+  "node_modules/scheduler/cjs/scheduler.production.js": {
+    "file": "node_modules/scheduler/cjs/scheduler.production.js",
+    "name": "node_modules/scheduler/cjs/scheduler.production",
+    "src": "node_modules/scheduler/cjs/scheduler.production.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js"
+    ]
+  },
+  "node_modules/scheduler/index.js": {
+    "file": "node_modules/scheduler/index.js",
+    "name": "node_modules/scheduler/index",
+    "src": "node_modules/scheduler/index.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js",
+      "node_modules/scheduler/cjs/scheduler.production.js",
+      "node_modules/scheduler/cjs/scheduler.development.js"
+    ]
+  },
+  "node_modules/use-sync-external-store/cjs/use-sync-external-store-shim.development.js": {
+    "file": "node_modules/use-sync-external-store/cjs/use-sync-external-store-shim.development.js",
+    "name": "node_modules/use-sync-external-store/cjs/use-sync-external-store-shim.development",
+    "src": "node_modules/use-sync-external-store/cjs/use-sync-external-store-shim.development.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js",
+      "node_modules/react/index.js"
+    ]
+  },
+  "node_modules/use-sync-external-store/cjs/use-sync-external-store-shim.production.js": {
+    "file": "node_modules/use-sync-external-store/cjs/use-sync-external-store-shim.production.js",
+    "name": "node_modules/use-sync-external-store/cjs/use-sync-external-store-shim.production",
+    "src": "node_modules/use-sync-external-store/cjs/use-sync-external-store-shim.production.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js",
+      "node_modules/react/index.js"
+    ]
+  },
+  "node_modules/use-sync-external-store/shim/index.js": {
+    "file": "node_modules/use-sync-external-store/shim/index.js",
+    "name": "node_modules/use-sync-external-store/shim/index",
+    "src": "node_modules/use-sync-external-store/shim/index.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "rolldown/runtime.js",
+      "node_modules/use-sync-external-store/cjs/use-sync-external-store-shim.production.js",
+      "node_modules/use-sync-external-store/cjs/use-sync-external-store-shim.development.js"
+    ]
+  },
+  "node_modules/vue/dist/vue.runtime.esm-bundler.js": {
+    "file": "node_modules/vue/dist/vue.runtime.esm-bundler.js",
+    "name": "node_modules/vue/dist/vue.runtime.esm-bundler",
+    "src": "node_modules/vue/dist/vue.runtime.esm-bundler.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "node_modules/@vue/shared/dist/shared.esm-bundler.js",
+      "node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js",
+      "node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js"
+    ]
+  },
+  "pages/components/vi/frameworks/react-counter.tsx": {
+    "file": "react-counter.tsx.js",
+    "name": "react-counter.tsx",
+    "src": "pages/components/vi/frameworks/react-counter.tsx",
+    "isEntry": true,
+    "imports": [
+      "pages/components/vi/frameworks/store.ts",
+      "node_modules/@r2wc/react-to-web-component/dist/react-to-web-component.js",
+      "node_modules/@preact/signals-react/runtime/dist/runtime.module.js",
+      "node_modules/react/jsx-runtime.js"
+    ]
+  },
+  "pages/components/vi/frameworks/store.ts": {
+    "file": "store.ts.js",
+    "name": "store.ts",
+    "src": "pages/components/vi/frameworks/store.ts",
+    "isEntry": true,
+    "imports": [
+      "node_modules/@preact/signals-core/dist/signals-core.module.js"
+    ]
+  },
+  "pages/components/vi/frameworks/useSignal.ts": {
+    "file": "useSignal.ts.js",
+    "name": "useSignal.ts",
+    "src": "pages/components/vi/frameworks/useSignal.ts",
+    "isEntry": true,
+    "imports": [
+      "node_modules/@preact/signals-core/dist/signals-core.module.js",
+      "node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js",
+      "node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js",
+      "node_modules/vue/dist/vue.runtime.esm-bundler.js"
+    ]
+  },
+  "pages/components/vi/gl-globe.ts": {
+    "file": "gl-globe.ts.js",
+    "name": "gl-globe.ts",
+    "src": "pages/components/vi/gl-globe.ts",
+    "isEntry": true
+  },
+  "pages/components/vi/index.ts": {
+    "file": "index.ts.js",
+    "name": "index.ts",
+    "src": "pages/components/vi/index.ts",
+    "isEntry": true,
+    "dynamicImports": [
+      "pages/components/vi/vi-switch.ts",
+      "pages/components/vi/vi-hello.ts"
+    ]
+  },
+  "pages/components/vi/react-example.tsx": {
+    "file": "react-example.tsx.js",
+    "name": "react-example.tsx",
+    "src": "pages/components/vi/react-example.tsx",
+    "isEntry": true,
+    "imports": [
+      "node_modules/@r2wc/react-to-web-component/dist/react-to-web-component.js",
+      "node_modules/react/jsx-runtime.js"
+    ]
+  },
+  "pages/components/vi/slotted-element.ts": {
+    "file": "slotted-element.ts.js",
+    "name": "slotted-element.ts",
+    "src": "pages/components/vi/slotted-element.ts",
+    "isEntry": true
+  },
+  "pages/components/vi/vi-error.ts": {
+    "file": "vi-error.ts.js",
+    "name": "vi-error.ts",
+    "src": "pages/components/vi/vi-error.ts",
+    "isEntry": true
+  },
+  "pages/components/vi/vi-hello.ts": {
+    "file": "vi-hello.ts.js",
+    "name": "vi-hello.ts",
+    "src": "pages/components/vi/vi-hello.ts",
+    "isEntry": true
+  },
+  "pages/components/vi/vi-switch.ts": {
+    "file": "vi-switch.ts.js",
+    "name": "vi-switch.ts",
+    "src": "pages/components/vi/vi-switch.ts",
+    "isEntry": true
+  },
+  "rolldown/runtime.js": {
+    "file": "_virtual/_rolldown/runtime.js",
+    "name": "_virtual/_rolldown/runtime",
+    "src": "rolldown/runtime.js",
+    "isDynamicEntry": true
+  }
+}

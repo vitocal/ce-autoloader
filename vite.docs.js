@@ -63,12 +63,6 @@ export default defineConfig({
   ],
   base: BASE,
   appType: "mpa",
-  optimizeDeps: {
-    exclude: [],
-    esbuildOptions: {
-      treeShaking: true,
-    },
-  },
   resolve: {
     alias: {
       "@": resolve(__dirname, "pages"),

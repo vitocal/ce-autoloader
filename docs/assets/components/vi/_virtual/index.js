@@ -1,0 +1,8 @@
+import { getDefaultExportFromCjs as r } from "./_commonjsHelpers.js";
+import { __require as t } from "../node_modules/react/index.js";
+var e = t();
+const s = /* @__PURE__ */ r(e);
+export {
+  s as default,
+  e as r
+};

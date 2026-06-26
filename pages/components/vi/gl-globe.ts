@@ -18,7 +18,7 @@ class GlGlobe extends HTMLElement {
     const size = this.getBoundingClientRect();
     const el = this.querySelector("#globeViz");
     if (el) {
-      new Globe(el)
+      new Globe(el as HTMLElement)
         .globeImageUrl(
           "//cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg",
         )
