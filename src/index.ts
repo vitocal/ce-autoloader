@@ -1,4 +1,3 @@
-/// <reference types="dom-view-transitions" />
 /**
  * A module can be a URL or a function that returns a Promise<CustomElementConstructor>
  */
@@ -358,7 +357,7 @@ class CEAutoLoader {
       await this.activeTransition.finished;
     }
 
-    this.activeTransition = document.startViewTransition(async () => await defineFunction());
+    this.activeTransition = document.startViewTransition({ types: ['ce'], update: async () => await defineFunction() });
     if (this.options.hooks?.viewTransition?.ready) {
       this.activeTransition.ready.then(this.options.hooks.viewTransition.ready);
     }

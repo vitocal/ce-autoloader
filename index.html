@@ -146,13 +146,6 @@
        * View transitions
        */
 
-    /* disable view transition root animation */
-    ::view-transition-group(root),
-    ::view-transition-old(root),
-    ::view-transition-new(root) {
-      animation: none;
-    }
-
     /** Grow with content */
     ::view-transition-old(*) {
       width: fit-content;
@@ -196,16 +189,28 @@
     ::view-transition-group(vi-defined) {
       animation-duration: 1000ms;
     }
+
+    /* Animation styles component upgrade */
+    html:active-view-transition-type(ce) {
+
+      &::view-transition-old(root) {
+        animation: none;
+      }
+
+      &::view-transition-new(root) {
+        animation: none;
+      }
+    }
   </style>
 
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="shared.css" />
 
-  <script type="module" src="@/index.js" async></script>
+  <script type="module" src="pages/index.js" async></script>
   <script type="module" async>
     import { loadCSSLayer } from "@/utils.ts";
 
-    loadCSSLayer("https://nordcdn.net/ds/css/4.2.0/nord.min.css", "ds");
+    loadCSSLayer("https://nordcdn.net/ds/css/5.0.1/nord.min.css", "ds");
     loadCSSLayer(
       "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css",
       "scoped",
@@ -899,7 +904,6 @@ export default r2wc(Greeter, {
     window.addEventListener("error", (event) => {
       // Check if the error came from a script involving your web component
       console.error(event);
-      debugger;
     });
   </script>
 </body>

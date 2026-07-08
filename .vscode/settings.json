@@ -1,7 +1,7 @@
 {
     "workbench.editorAssociations": {
         "*.copilotmd": "vscode.markdown.preview.editor",
-        "*.svg": "vscode.editor.text",
+        "*.svg": "default",
         "*.parquet": "duckdb.dataFileViewer",
         "*.csv": "duckdb.dataFileViewer",
         "*.tsv": "duckdb.dataFileViewer",
