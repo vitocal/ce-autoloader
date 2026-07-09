@@ -12,9 +12,12 @@ export default class MyComponent extends SlottedElement {
       my-component {
         position: relative;
         display: inline-block;
+        vertical-align: middle;
         font-family: var(--n-font-family-code, monospace);
         font-weight: 900;
         color: var(--n-color-accent, #ff3e00);
+        overflow-clip-margin: 4em;
+        overflow: hidden;
 
         padding: 0.1em 0.2em;
         margin: 0.2em 0;
@@ -48,13 +51,13 @@ export default class MyComponent extends SlottedElement {
           transform: translateY(0) scale(1);
         }
         20% {
-          transform: translateY(8px) scale(1.1, 0.9);
+          transform: translateY(4px) scale(1.1, 0.9);
         }
         50% {
-          transform: translateY(-30px) scale(0.85, 1.2);
+          transform: translateY(-8px) scale(0.95, 1.05);
         }
         75% {
-          transform: translateY(4px) scale(1.05, 0.95);
+          transform: translateY(2px) scale(1.05, 0.95);
         }
         100% {
           transform: translateY(0) scale(1);

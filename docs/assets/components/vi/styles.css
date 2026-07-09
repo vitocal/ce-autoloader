@@ -525,6 +525,7 @@ footer {
 
     visibility: visible;
     display: inline-block;
+    vertical-align: middle;
     position: relative;
 
     --bg-color: color-mix(in srgb, var(--color-fg) 5%, transparent);

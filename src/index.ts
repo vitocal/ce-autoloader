@@ -1,14 +1,14 @@
 /**
- * A module can be a URL or a function that returns a Promise<CustomElementConstructor>
+ * A Loader can be a URL or a function that returns a Promise<CustomElementConstructor>
  */
-export type Module = string | ((name?: string, el?: HTMLElement) => Promise<CustomElementConstructor>);
+export type Loader = string | ((name?: string, el?: HTMLElement) => Promise<CustomElementConstructor>);
 
-export type Catalog = Record<string, Module>;
+export type Catalog = Record<string, Loader>;
 
 export type LoadResult = {
   name: string;
   el: HTMLElement;
-  loader?: Module;
+  loader?: Loader;
   module?: CustomElementConstructor;
 };
 
@@ -111,7 +111,7 @@ class CEAutoLoader {
   catalog: Catalog;
 
   // Resolvers matched against tags at runtime.
-  _resolvers: Record<string, Module> = {};
+  _resolvers: Record<string, Loader> = {};
 
   // Mutation and Interaction Observers
   #observers: Record<string, MutationObserver | IntersectionObserver> = {};
@@ -375,6 +375,37 @@ class CEAutoLoader {
 
   }
 
+  /**
+   * Perform a scoped element transition
+   */
+  async runScopedViewTransition(components: LoadResult[]) {
+    const elements = components.map(({ el, ...rest }) => {
+      const transitionName = el.getAttribute("view-transition-name") || el.tagName;
+      const transitionClass = el.getAttribute("view-transition-class") || 'ce';
+
+      if (transitionName) {
+        el.style.viewTransitionName = transitionName;
+      }
+      if (transitionClass) {
+        el.style.viewTransitionClass = transitionClass;
+      }
+
+      return { el, ...rest };
+    });
+
+    elements.forEach(async ({ el, name, module }) => {
+      console.log('scoped view transition', el, name, module)
+      const transition = el.startViewTransition(() => {
+        this.define({ el, name, module });
+      })
+      await transition.updateCallbackDone;
+
+      el.style.viewTransitionName = ""
+      el.style.viewTransitionClass = ""
+    })
+    return [];
+  }
+
   /*
    * Load and define components
    */
@@ -402,10 +433,12 @@ class CEAutoLoader {
     };
 
     if (this.options.transition) {
-      this.runViewTransition(
-        load_success.map((result) => result.value),
-        defineComponents,
-      );
+      // this.runViewTransition(
+      //   load_success.map((result) => result.value),
+      //   defineComponents,
+      // );
+      console.log(load_result);
+      this.runScopedViewTransition(load_success.map((result) => result.value));
     } else {
       await defineComponents();
     }
@@ -452,7 +485,7 @@ class CEAutoLoader {
       });
     }
 
-    // Support for components that defines others components
+    // Components that defines others components
     let diff_imports = Object.keys(customElements.waiting)
       .filter((key) => !Object.keys(before_imports).includes(key))
       .filter((key) => key !== name);
@@ -480,11 +513,7 @@ class CEAutoLoader {
       }
 
       if (!module) {
-        throw new CEError(`Component ${name} wasn't defined! This is a bug and should not have reached here!!`, {
-          name,
-          el,
-          module,
-        });
+        // return { name, module, el };
       }
     }
 
@@ -492,7 +521,7 @@ class CEAutoLoader {
     try {
       performance.mark(`define:${name}:start`);
 
-      DEFINE(name, module, {});
+      DEFINE(name, module, {})
     } catch (error: any) {
       define_error = error;
       throw new CEError(`${name} - ${error.message}`, { name, el, module, error });
@@ -514,7 +543,7 @@ class CEAutoLoader {
    * Matches a component name to a wildcard resolver (if exists)
    * e.g. "nord-button" -> "nord-*"
    */
-  private getWildcardResolver(name: string): Module | null {
+  private getWildcardResolver(name: string): Loader | null {
     const [prefix, _comp_name] = name.split("-");
     return this.catalog[`${prefix}-*`];
   }

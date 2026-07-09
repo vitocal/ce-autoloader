@@ -38,6 +38,10 @@ export default class HeroExample extends LitElement {
           grid-column: 2 / 3;
         }
 
+        .window {
+          overflow-clip-margin: 1em;
+        }
+
         pre {
           height: 100%;
         }

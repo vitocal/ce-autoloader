@@ -525,6 +525,7 @@ footer {
 
     visibility: visible;
     display: inline-block;
+    vertical-align: middle;
     position: relative;
 
     --bg-color: color-mix(in srgb, var(--color-fg) 5%, transparent);
@@ -549,7 +550,7 @@ footer {
     background-image: var(--bg);
     background-position: 0 0;
 
-    width: 100%;
+    width: fit-content;
     min-height: 24px;
     padding: 0.35em;
     border-radius: 0.5em;

@@ -77,8 +77,7 @@ export class ViExample extends SlottedElement {
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/slot="(.*?)"/g, "")
-      .replace(/ce-loading="(.*?)"/g, "")
-      .replace(/ce-defined="(.*?)"/g, "");
+      .replace(/ce="(.*?)"/g, "");
   }
 
   render() {
