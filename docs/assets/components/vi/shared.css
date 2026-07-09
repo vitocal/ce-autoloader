@@ -110,11 +110,7 @@
 
   border-radius: var(--radius-md);
   border: 1px solid color-mix(in srgb, var(--color-primary), transparent 30%);
-  background-color: color-mix(
-    in srgb,
-    var(--color-primary),
-    oklch(0.93 0.12 141.19) 95%
-  );
+  background-color: color-mix(in srgb, var(--color-primary), oklch(0.93 0.12 141.19) 95%);
 
   padding: 1em;
 

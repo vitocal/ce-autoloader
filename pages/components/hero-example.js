@@ -10,12 +10,8 @@ const demos = {
     camera-controls
     touch-action="pan-y"
     auto-rotate
-    poster="https://modelviewer.dev/assets/poster-shishkebab.webp"
-    tone-mapping="aces"
-    src="https://modelviewer.dev/shared-assets/models/shishkebab.glb"
-    shadow-intensity="1"
+    src="//modelviewer.dev/shared-assets/models/shishkebab.glb"
     alt="A 3D model of a shishkebab"
-    view-transition-name="model-viewer"
   ></model-viewer>`,
   "confetti-button": html`<confetti-button on="eager"
     ><div class="card" view-transition-name="confetti-button">🎉 Click me to throw confetti 🎉</div></confetti-button
@@ -81,7 +77,8 @@ export default class HeroExample extends LitElement {
 
       @media (max-width: 100ch) {
         hero-example {
-          grid-template-columns: 1fr !important;
+          grid-template-columns: none;
+          grid-template-rows: 1fr 1fr;
 
           .left,
           .right {
@@ -95,21 +92,10 @@ export default class HeroExample extends LitElement {
       }
     }
 
-    ::view-transition-image-pair(hero-example) {
-      transform-style: preserve-3d;
-      perspective-origin: center;
-      perspective: 1000px;
-    }
-
-    ::view-transition-old(hero-example) {
-      animation: calc(var(--spring-duration) * 0.5) ease-out both fade-out;
-    }
-
-    ::view-transition-new(hero-example) {
-      animation: var(--spring-duration) var(--spring-easing) both appear-below-in;
-    }
-
-    ::view-transition-group(model-viewer) {
+    ::view-transition-group(model-viewer),
+    ::view-transition-group(gl-globe),
+    ::view-transition-group(fireworks-js),
+    ::view-transition-group(confetti-button) {
       animation: var(--spring-duration) var(--spring-easing) both;
     }
   `;

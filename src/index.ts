@@ -340,8 +340,8 @@ class CEAutoLoader {
    */
   async runViewTransition(components: LoadResult[], defineFunction: () => Promise<void>) {
     const elements = components.map(({ el }) => {
-      const transitionName = el.getAttribute("view-transition-name");
-      const transitionClass = el.getAttribute("view-transition-class");
+      const transitionName = el.getAttribute("view-transition-name") || el.tagName;
+      const transitionClass = el.getAttribute("view-transition-class") || 'ce';
 
       if (transitionName) {
         el.style.viewTransitionName = transitionName;
@@ -369,9 +369,10 @@ class CEAutoLoader {
       el.style.viewTransitionClass = "";
     });
 
-    if (this.options.hooks?.viewTransition?.finished) {
-      this.activeTransition.finished.then(this.options.hooks.viewTransition.finished);
-    }
+    this.activeTransition.finished.then(() => {
+      this.options.hooks?.viewTransition?.finished()
+    })
+
   }
 
   /*

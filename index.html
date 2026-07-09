@@ -55,7 +55,6 @@
       overflow: clip;
       overflow-clip-margin: 2em;
       display: grid;
-      transform: translateY(0em);
       contain: paint;
     }
 
@@ -72,8 +71,7 @@
     }
 
     my-component {
-      display: inline-flex;
-      width: fit-content;
+      display: inline;
     }
 
     @media (max-width: 100ch) {
@@ -81,18 +79,6 @@
         height: calc(80dvh + 2em);
 
         grid-gap: 2em;
-
-        & .window {
-          overflow: hidden;
-        }
-
-        & .left {
-          height: 40dvh;
-        }
-
-        & .right {
-          height: 40dvh;
-        }
       }
     }
 
@@ -192,7 +178,6 @@
 
     /* Animation styles component upgrade */
     html:active-view-transition-type(ce) {
-
       &::view-transition-old(root) {
         animation: none;
       }
@@ -201,6 +186,13 @@
         animation: none;
       }
     }
+
+    /* ::view-transition-group(hero-example) {
+      animation-duration: 2s;
+      transform-style: preserve-3d;
+      perspective-origin: center;
+      perspective: 1000px;
+    } */
   </style>
 
   <link rel="stylesheet" href="styles.css" />
@@ -651,7 +643,8 @@ const registry = new CERegistry({
         </p>
 
         <div style="height: min(100dvh, 640px)">
-          <iframe src="pages/demos/view-transition.html" frameborder="0" style="width: 100%; height: 100%"></iframe>
+          <iframe src="pages/demos/view-transition.html" frameborder="0" style="width: 100%; height: 100%"
+            loading="lazy"></iframe>
         </div>
 
         <!--

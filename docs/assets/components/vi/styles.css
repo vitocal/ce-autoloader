@@ -11,6 +11,9 @@
   *::before,
   *::after {
     box-sizing: border-box;
+    content-visibility: auto;
+    contain-intrisic-width: 100%;
+    contain-intrisic-size: 300px;
   }
 
   * {
@@ -662,7 +665,6 @@ footer {
   }
 
   :where(.n-typeset mark) {
-    display: inline-block;
     background-color: transparent;
     padding: 0 0.5ch;
     position: relative;
@@ -682,50 +684,6 @@ footer {
     }
   }
 }
-
-/**
- * Animations
- */
-/* ::view-transition-group(*) {
-    animation: none;
-}
-
-::view-transition-group(*) {
-    animation: none;
-}
-*/
-
-/*
-::view-transition-group(*.three-cube) {
-    animation-timing-function: var(--spring-easing);
-    animation-duration: 1s;
-}
-
-
-::view-transition-image-pair(*.three-cube) {
-    overflow: clip;
-    overflow-clip-margin: 2em;
-}
-
-::view-transition-old(*.three-cube),
-::view-transition-new(*.three-cube) {
-    width: auto;
-    height: 100%;
-}
-
-::view-transition-old(*.three-cube) {
-    border: 1px solid red;
-    height: 100%;
-    animation-name: ld-fade-out;
-    animation-duration: 0.1s;
-}
-
-::view-transition-new(*.three-cube) {
-    border: 1px solid green;
-    animation-name: ld-fade-in;
-    animation-duration: 1s;
-}
-*/
 
 @keyframes grow {
   from {
