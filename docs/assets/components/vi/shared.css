@@ -41,7 +41,7 @@
   margin-left: auto;
 }
 
-.full-w {
+.w-full {
   width: 100%;
 }
 
@@ -75,6 +75,7 @@
 .grid {
   display: grid;
   grid-auto-flow: column;
+  align-items: center;
 
   @media (max-width: 100ch) {
     grid-auto-flow: row;
@@ -87,11 +88,11 @@
   border-radius: var(--radius-md);
   padding: var(--space-sm);
 
-  --bg-color: var(--color-bg-light);
+  --bg-color: var(--color-bg-light) !important;
   background-color: var(--bg-color);
 
   &[variant="primary"] {
-    --bg-color: var(--color-primary);
+    --bg-color: var(--color-primary) !important;
   }
 
   &[border] {

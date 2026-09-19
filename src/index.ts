@@ -120,6 +120,9 @@ class CEAutoLoader {
   // Active view transition
   activeTransition?: ViewTransition;
 
+  // Lock components while loading to avoid retriggers
+  loading_locks: Record<string, HTMLElement> = {}
+
   // Components that failed to load
   #errors: Record<string, LoadError> = {};
 
@@ -178,7 +181,8 @@ class CEAutoLoader {
         // Check the node itself
         // or any children that are custom elements
         if (node instanceof HTMLElement && (isCustomElement(node) || matchCustomElement(node as Element).length > 0)) {
-          await this.discover();
+          // This causes multiple re-attaching of click events
+          await this.discover(node);
         }
       }
     }
@@ -207,18 +211,18 @@ class CEAutoLoader {
   /**
    * Discover the custom elements in the `root` and upgrade them lazily
    */
-  async discover() {
+  async discover(root = this.options.root) {
     if (!this.#initialized && this.options.live) {
       this.watchDOMMutations();
     }
 
     // Load elements that matches directives
     for (const directive of this.options.directives ?? []) {
-      this.upgrade(directive);
+      this.upgrade(directive, root);
     }
 
     // Load everyone else right away
-    const result = await this.upgrade();
+    const result = await this.upgrade(null, root);
     this.#initialized = true;
     return result;
   }
@@ -232,15 +236,16 @@ class CEAutoLoader {
    * To manually upgrade elements, use the `loading="manual"` attribute, but it
    * can be any string really. Then call `registry.upgrade("manual")` to upgrade all elements with that attribute.
    */
-  async upgrade(directive?: Directives) {
-    const ce_elements = matchCustomElement(this.options.root || document.body);
+  async upgrade(directive?: Directives, root: HTMLElement = this.options.root) {
+    const ce_elements = matchCustomElement(root);
     const elements = this.filterByDirective(ce_elements, directive);
 
-    const when_in_viewport_loadanddefine: IntersectionObserverCallback = (entries) => {
+    const when_visible: IntersectionObserverCallback = (entries, _observer) => {
       let html_elements = entries
         .filter((entry) => entry.isIntersecting)
         .filter((entry) => !customElements.get(entry.target.tagName.toLowerCase()))
-        .map((entry) => entry.target as HTMLElement);
+        .map((entry) => entry.target as HTMLElement)
+        .filter((el) => !this.loading_locks[el.tagName]);
 
       if (html_elements.length > 0) {
         this.loadAndDefine(html_elements, "visible");
@@ -250,12 +255,12 @@ class CEAutoLoader {
     const visible = (elements: HTMLElement[]) => {
       // Create observer if it doesn't exist
       if (!this.#observers["intersection"]) {
-        this.#observers["intersection"] = new IntersectionObserver(when_in_viewport_loadanddefine, this.options.intersectionOptions || {});
+        this.#observers["intersection"] = new IntersectionObserver(when_visible, this.options.intersectionOptions || {});
       } else {
         // If the observer already exists, we need to check if there are any pending entries
         let mutations = this.#observers["intersection"].takeRecords() as IntersectionObserverEntry[];
         if (mutations.length > 0) {
-          when_in_viewport_loadanddefine(mutations, this.#observers["intersection"] as IntersectionObserver);
+          when_visible(mutations, this.#observers["intersection"] as IntersectionObserver);
         }
       }
 
@@ -265,16 +270,16 @@ class CEAutoLoader {
       });
     };
 
+
+    const when_clicked = async (ev: PointerEvent) => {
+      ev.stopImmediatePropagation();
+
+      const target = ev.currentTarget as HTMLElement;
+      await this.loadAndDefine([target], "click");
+    }
+
     const interaction = (elements: HTMLElement[]) => {
-      return elements.map((el) => {
-        return el.addEventListener(
-          "click",
-          async () => {
-            await this.loadAndDefine([el], "click");
-          },
-          { once: true },
-        );
-      });
+      return elements.map((el) => el.addEventListener("click", when_clicked, { once: true }));
     };
 
     // Directives apply special conditions to when the component is loaded
@@ -394,10 +399,10 @@ class CEAutoLoader {
     });
 
     elements.forEach(async ({ el, name, module }) => {
-      console.log('scoped view transition', el, name, module)
-      const transition = el.startViewTransition(() => {
+      const transition = el.parentElement.startViewTransition(() => {
         this.define({ el, name, module });
       })
+      this.activeTransition = transition;
       await transition.updateCallbackDone;
 
       el.style.viewTransitionName = ""
@@ -437,7 +442,6 @@ class CEAutoLoader {
       //   load_success.map((result) => result.value),
       //   defineComponents,
       // );
-      console.log(load_result);
       this.runScopedViewTransition(load_success.map((result) => result.value));
     } else {
       await defineComponents();
@@ -450,6 +454,7 @@ class CEAutoLoader {
    * Load a single component
    */
   async load(el: HTMLElement): Promise<LoadResult> {
+    this.loading_locks[el.tagName] = el;
     const name = el.tagName.toLowerCase();
 
     let loader = this.catalog?.[name] || this.getWildcardResolver(name);
@@ -527,6 +532,7 @@ class CEAutoLoader {
       throw new CEError(`${name} - ${error.message}`, { name, el, module, error });
     } finally {
       el.setAttribute("ce", "defined");
+      delete this.loading_locks[el.tagName];
 
       performance.mark(`define:${name}:end`);
       performance.measure(`define:${name}`, {

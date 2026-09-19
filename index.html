@@ -97,6 +97,7 @@
       }
     }
 
+    /** Id's are used for navigation, so we need to add a scroll-margin-top to avoid the sticky nav covering the title */
     [id] {
       scroll-margin-top: 80px;
     }
@@ -115,7 +116,8 @@
       width: 100%;
       min-width: 0;
       overflow: hidden;
-      height: 560px;
+      height: 100%;
+      min-height: 580px;
     }
 
     performance-metrics-plot svg {
@@ -128,48 +130,29 @@
        * View transitions
        */
 
+    ::view-transition-group(*) {
+      animation-duration: 2s;
+    }
+
     /** Grow with content */
     ::view-transition-old(*) {
-      width: fit-content;
+      width: auto;
       height: 100%;
-      object-position: top left;
       object-fit: none;
+      object-position: top left;
     }
 
     ::view-transition-new(*) {
+      width: auto;
       height: 100%;
-      object-position: top left;
-
       object-fit: none;
+      object-position: top left;
     }
 
-    ::view-transition-old(plot-example),
-    ::view-transition-new(plot-example),
-    ::view-transition-old(three-cube),
-    ::view-transition-new(three-cube),
-    ::view-transition-old(gl-globe),
-    ::view-transition-new(gl-globe),
-    ::view-transition-old(confetti-button),
-    ::view-transition-new(confetti-button),
-    ::view-transition-old(model-viewer),
-    ::view-transition-new(model-viewer),
-    ::view-transition-old(performance-metrics-plot),
-    ::view-transition-new(performance-metrics-plot),
-    ::view-transition-old(vi-defined),
-    ::view-transition-new(vi-defined) {
-      height: 100%;
+    ::view-transition-group(*) {
       overflow: clip;
+      overflow-clip-margin: 32px;
       animation-timing-function: ease-in-out;
-    }
-
-    ::view-transition-group(plot-example) {
-      animation-duration: 5000ms;
-      animation-timing-function: ease-in-out;
-    }
-
-    ::view-transition-group(performance-metrics-plot),
-    ::view-transition-group(vi-defined) {
-      animation-duration: 1000ms;
     }
 
     /* Animation styles component upgrade */
@@ -182,6 +165,8 @@
         animation: none;
       }
     }
+
+
 
     /* ::view-transition-group(hero-example) {
       animation-duration: 2s;
@@ -198,11 +183,8 @@
   <script type="module" async>
     import { loadCSSLayer } from "@/utils.ts";
 
-    loadCSSLayer("https://nordcdn.net/ds/css/5.0.1/nord.min.css", "ds");
-    loadCSSLayer(
-      "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css",
-      "scoped",
-    );
+    // loadCSSLayer("https://nordcdn.net/ds/css/5.0.1/nord.min.css", "ds");
+    loadCSSLayer("https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css", "scoped");
   </script>
 </head>
 
@@ -395,7 +377,7 @@ const registry = new CERegistry({
                 components like navigation headers or hero sections.
               </p>
 
-              <vi-example class="card">
+              <vi-example class="card w-full">
                 <!-- prettier-ignore -->
                 <div slot="example" class="flex-y">
                   <nord-badge variant="success" loading="eager">
@@ -420,10 +402,11 @@ const registry = new CERegistry({
                   Observer</a>. Perfect for content "below the fold" to keep initial page weight low.
               </p>
 
-              <vi-example class="card">
+              <vi-example class="card w-full">
                 <!-- prettier-ignore -->
                 <div slot="example" class="flex-y">
-                  <nord-avatar size="xl" variant="default" loading="visible">
+                  <nord-avatar size="xxl" variant="default" loading="visible"
+                    src="https://nordhealth.design/img/avatar.jpg">
                   </nord-avatar>
                 </div>
               </vi-example>
@@ -435,11 +418,12 @@ const registry = new CERegistry({
             </div>
             <div class="description">
               <p>
-                The module is fetched when a user clicks or touches the element. Ideal for heavy UI widgets like maps,
+                The module is fetched when a user clicks or touches the element. Ideal for heavy UI widgets like
+                maps,
                 complex editors, or modal content.
               </p>
 
-              <vi-example class="card">
+              <vi-example class="card w-full">
                 <!-- prettier-ignore -->
                 <div slot="example" class="flex-y">
                   <three-cube loading="click" view-transition-name="three-cube">
@@ -457,11 +441,12 @@ const registry = new CERegistry({
               <p>
                 Any custom string (e.g., loading="lazy-load") can be used as a loading strategy, and triggered
                 manually via
-                <code>registry.upgrade('lazy-load')</code>. This is useful for custom workflows that don't fit into
+                <code>registry.upgrade('lazy-load')</code>. This is useful for custom workflows that don't fit
+                into
                 the built-in strategies.
               </p>
 
-              <vi-example class="card">
+              <vi-example class="card w-full">
                 <!-- prettier-ignore -->
                 <div slot="example" class="flex-y">
                   <confetti-button loading="manual" id="confetti" onclick="registry.upgrade('manual')">
@@ -761,6 +746,7 @@ const registry = new CERegistry({
       </div>
     </div>
 
+    <!--
     <div class="brazilian-card prose" style="margin-top: 4rem" id="faq">
       <h1 style="border-bottom: 0; margin-bottom: 2rem">
         FAQ
@@ -844,6 +830,7 @@ export default r2wc(Greeter, {
         </div>
       </div>
     </div>
+    -->
   </main>
 
   <footer style="background: var(--color-bg-dark); border-top: 1px solid var(--color-bg-dark); padding: 4rem 0">

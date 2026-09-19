@@ -6,6 +6,10 @@ declare global {
   interface CSSStyleDeclaration {
     viewTransitionClass: string;
   }
+
+  interface HTMLElement {
+    startViewTransition(callback: () => void): ViewTransition
+  }
 }
 
 declare module "qrcode-pix" {

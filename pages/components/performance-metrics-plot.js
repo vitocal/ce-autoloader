@@ -41,9 +41,9 @@ export default class PerformanceMetricsPlot extends HTMLElement {
         start: e.startTime,
         end: e.startTime + e.duration,
         duration: e.duration,
-        type: e.detail?.error != null ? "error" : e.name.startsWith("load:") ? "load" : "unknown",
-      }))
-      .sort((a, b) => a.duration - b.duration);
+        type: this.classify_entry(e),
+      }));
+    // .sort((a, b) => a.duration - b.duration);
 
     // Navigation timing milestones
     const [nav] = performance.getEntriesByType("navigation");
@@ -84,15 +84,15 @@ export default class PerformanceMetricsPlot extends HTMLElement {
         // load entries in chronological order, transition pinned last
         domain: [
           ...entries
-            .filter((d) => d.type === "load" || d.type === "error")
-            .filter((d) => d.name != "my-component")
+            .filter((d) => ["fast", "slow", "error"].includes(d.type))
+            .filter((d) => d.name != "my-component" || d.name != "vi-error")
             .map((d) => d.name),
         ],
       },
       color: {
         legend: true,
-        domain: ["load", "error"],
-        range: [colorPrimary, colorTertiary],
+        domain: ["fast", "slow", "error"],
+        range: [colorPrimary, colorSecondary, colorTertiary],
       },
       marks: [
         Plot.barX(entries, {
@@ -137,6 +137,18 @@ export default class PerformanceMetricsPlot extends HTMLElement {
 
     this.innerHTML = "";
     this.append(plot);
+  }
+
+  classify_entry(entry) {
+    if (entry.detail?.error) {
+      return "error";
+    } else if (entry.name.startsWith("load:")) {
+      if (entry.duration < 300) {
+        return "fast";
+      } else {
+        return "slow";
+      }
+    }
   }
 }
 
