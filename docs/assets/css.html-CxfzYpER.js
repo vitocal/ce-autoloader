@@ -1,0 +1,2 @@
+import{n as e}from"../chunks/src.js";import{n as t}from"../chunks/catalog.js";import"../chunks/pages.js";t(`/shared.css`,`ds`),t(`https://nordcdn.net/ds/css/4.2.0/nord.min.css`,`ds`),globalThis.catalog[`nord-button`]=async()=>{await new Promise(e=>setTimeout(e,3e3)),await e(()=>import(`https://esm.sh/@nordhealth/components/lib/Button.js`),[])};
+//# sourceMappingURL=css.html-CxfzYpER.js.map

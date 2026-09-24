@@ -10,7 +10,7 @@
     import CEAutoLoader from "/src/index.ts";
     import catalog from "@/components/catalog.js";
 
-    import { loadCSSLayer } from "@/utils.ts";
+    import { loadCSSLayer, setupImportMap } from "@/utils.ts";
     import { pause, resume, scrub } from "view-transitions-toolkit/playback-control";
     import { ViewTransitionPart, getAnimations } from "view-transitions-toolkit/animations";
 
@@ -24,6 +24,7 @@
     let speed_select = document.querySelector("#speed");
 
     loadCSSLayer("https://nordcdn.net/ds/css/4.2.0/nord.min.css", "ds");
+    setupImportMap();
 
     let registry = new CEAutoLoader({
       catalog,

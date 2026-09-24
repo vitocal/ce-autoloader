@@ -23,6 +23,8 @@
     "pages/components/"
   ],
   "exclude": [
-    "pages/components/"
-  ],
+    "pages/components/",
+    "docs/**",
+    "node_modules/**"
+  ]
 }

@@ -1,7 +1,6 @@
 import { LitElement, css } from "lit";
 import SlottedElement from "./vi/slotted-element.js";
 
-import { styleMap } from "lit/directives/style-map.js";
 import { html, unsafeStatic } from "lit/static-html.js";
 
 import confetti from "canvas-confetti";

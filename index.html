@@ -32,15 +32,13 @@
         "applicationCategory": "DeveloperApplication",
         "description": "A lightweight web components lazy loader"
       }
-    </script>
+  </script>
 
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital@1&display=swap" rel="stylesheet" />
-  <link rel="preconnect" href="https://nordcdn.net" />
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 
   <style>
     /** To avoid FOUC (Flash of Unstyled Content) or Layout Shifts,
@@ -55,7 +53,6 @@
       overflow: clip;
       overflow-clip-margin: 2em;
       display: grid;
-      contain: paint;
     }
 
     nord-qrcode {
@@ -79,7 +76,7 @@
     }
 
     #about {
-      margin-top: 0em;
+      margin-top: 4em;
       overflow-clip-margin: 2em;
     }
 
@@ -155,37 +152,19 @@
       animation-timing-function: ease-in-out;
     }
 
-    /* Animation styles component upgrade */
-    html:active-view-transition-type(ce) {
-      &::view-transition-old(root) {
-        animation: none;
-      }
-
-      &::view-transition-new(root) {
-        animation: none;
-      }
-    }
-
-
-
-    /* ::view-transition-group(hero-example) {
+    ::view-transition-group(hero-example) {
       animation-duration: 2s;
+      outline: 2px dashed purple;
       transform-style: preserve-3d;
       perspective-origin: center;
       perspective: 1000px;
-    } */
+    }
   </style>
-
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="shared.css" />
 
-  <script type="module" src="pages/index.js" async></script>
-  <script type="module" async>
-    import { loadCSSLayer } from "@/utils.ts";
+  <script type="module" src="pages/index.js" defer></script>
 
-    // loadCSSLayer("https://nordcdn.net/ds/css/5.0.1/nord.min.css", "ds");
-    loadCSSLayer("https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css", "scoped");
-  </script>
 </head>
 
 <body class="n-reset n-typeset">
@@ -220,7 +199,7 @@
         </p>
       </div>
 
-      <hero-example view-transition-name="hero-example" bundled></hero-example>
+      <hero-example view-transition-name="hero-example" style="transform: scale(1.05);"></hero-example>
     </div>
 
     <div class="" id="about">
@@ -255,7 +234,7 @@
           components as they load/render, providing a smooth and polished user experience.
         </li>
         <li>
-          <strong>Smart Scheduling</strong>: Automatically batches upgrades into single animation frames to prevent
+          <strong>Smart Scheduling</strong>: Automatically batches into a single animation frame to prevent
           layout thrashing.
         </li>
         <li>
@@ -623,10 +602,12 @@ const registry = new CERegistry({
           <a href="pages/demos/view-transition.html">demo below</a>.
         </p>
 
+        <!--
         <div style="height: min(100dvh, 640px)">
           <iframe src="pages/demos/view-transition.html" frameborder="0" style="width: 100%; height: 100%"
             loading="lazy"></iframe>
         </div>
+        -->
 
         <!--
         <div class="callout info">
@@ -876,7 +857,10 @@ export default r2wc(Greeter, {
     </div>
   </footer>
 
-  <script>
+  <script type="module">
+    import { setupImportMap } from '@/utils.ts'
+
+    setupImportMap();
     window.addEventListener("error", (event) => {
       // Check if the error came from a script involving your web component
       console.error(event);

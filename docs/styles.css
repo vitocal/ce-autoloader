@@ -1,6 +1,6 @@
 @layer normalize, ds, shared, page, components, scoped, hotfix;
-/* @import "https://nordcdn.net/ds/css/4.2.0/nord.min.css" layer(ds); */
-/* @import "./shared.css" layer(shared); */
+@import "https://nordcdn.net/ds/css/5.0.1/nord.min.css" layer(ds);
+@import "./shared.css" layer(shared);
 
 @layer normalize {
   :root {
@@ -11,10 +11,6 @@
   *::before,
   *::after {
     box-sizing: border-box;
-  }
-
-  * {
-    margin: 0;
   }
 
   html {
@@ -133,6 +129,7 @@
       font-family: var(--font-display);
       font-weight: 700;
       line-height: 1.1;
+      margin-block-start: 1.5rem;
     }
 
     h1 {
@@ -148,19 +145,24 @@
     h3 {
       font-size: 1.5rem;
       letter-spacing: -0.02em;
+      color: var(--color-fg-muted);
     }
 
-    p + p {
+    & :where(p, li, dt, dd, blockquote, figcaption, small, pre, code, cite, small) {
+      margin: 0.85em 0;
+    }
+
+    /* :is(h1, h2, h3) + p,
+    :is(h1, h2, h3) + ul,
+    :is(h1, h2, h3) + ol {
       margin-top: 1rem;
     }
 
-    :is(h1, h2, h3) + p {
+    p + :is(h1, h2, h3),
+    p + ul,
+    ul + p {
       margin-top: 1rem;
-    }
-
-    p + :is(h1, h2, h3) {
-      margin-top: 1rem;
-    }
+    } */
 
     img {
       max-width: 100%;
@@ -517,11 +519,14 @@ footer {
 
 @layer components {
   :where(:not(:defined)) {
-    overflow: clip;
+    overflow: hidden;
+
     isolation: isolate;
+    contain: layout;
 
     visibility: visible;
     display: inline-block;
+    vertical-align: middle;
     position: relative;
 
     --bg-color: color-mix(in srgb, var(--color-fg) 5%, transparent);
@@ -546,7 +551,7 @@ footer {
     background-image: var(--bg);
     background-position: 0 0;
 
-    width: 100%;
+    width: initial;
     min-height: 24px;
     padding: 0.35em;
     border-radius: 0.5em;
@@ -662,7 +667,6 @@ footer {
   }
 
   :where(.n-typeset mark) {
-    display: inline-block;
     background-color: transparent;
     padding: 0 0.5ch;
     position: relative;
@@ -682,50 +686,6 @@ footer {
     }
   }
 }
-
-/**
- * Animations
- */
-/* ::view-transition-group(*) {
-    animation: none;
-}
-
-::view-transition-group(*) {
-    animation: none;
-}
-*/
-
-/*
-::view-transition-group(*.three-cube) {
-    animation-timing-function: var(--spring-easing);
-    animation-duration: 1s;
-}
-
-
-::view-transition-image-pair(*.three-cube) {
-    overflow: clip;
-    overflow-clip-margin: 2em;
-}
-
-::view-transition-old(*.three-cube),
-::view-transition-new(*.three-cube) {
-    width: auto;
-    height: 100%;
-}
-
-::view-transition-old(*.three-cube) {
-    border: 1px solid red;
-    height: 100%;
-    animation-name: ld-fade-out;
-    animation-duration: 0.1s;
-}
-
-::view-transition-new(*.three-cube) {
-    border: 1px solid green;
-    animation-name: ld-fade-in;
-    animation-duration: 1s;
-}
-*/
 
 @keyframes grow {
   from {

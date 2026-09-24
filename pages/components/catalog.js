@@ -1,4 +1,4 @@
-// import { loadCSSLayer } from '../utils.ts'
+import { loadCSSLayer } from "../utils.ts";
 
 const capitalize = (str) =>
   str
@@ -55,6 +55,7 @@ let catalog = {
   },
 
   "syntax-highlight": async () => {
+    loadCSSLayer("https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css", "scoped");
     return import("syntax-highlight-element");
   },
 
@@ -64,11 +65,11 @@ let catalog = {
   "nord-*": async (full_name) => {
     const [, namespace, name] = full_name.match(/^([a-z]+)-(.*)/);
     const external = (process.env.NODE_ENV === "production" ? ["lit"] : ["lit"]).join(",");
-    // loadCSSLayer('https://nordcdn.net/ds/css/4.2.0/nord.min.css', 'ds');
 
-    const module = await import(
-      /* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/${capitalize(name)}.js?external=${external}`
-    );
+    loadCSSLayer("https://nordcdn.net/ds/css/5.0.1/nord.min.css", "ds");
+
+    // /* @vite-ignore */ `@nordhealth/components/lib/${capitalize(name)}.js?external=${external}`
+    const module = await import(/* @vite-ignore */ `@nordhealth/components/lib/${capitalize(name)}.js`);
     if (!customElements.get(full_name)) {
       customElements.define(full_name, module.default);
     }

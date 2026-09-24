@@ -537,14 +537,6 @@ footer {
       transparent 10px,
       transparent 20px
     );
-    /* --bg: repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 5px,
-      var(--bg-color) 5px,
-      var(--bg-color) 10px
-    ); */
-    /* --bg: repeating-linear-gradient(315deg, var(--color) 0 1px, #0000 0 50%); */
 
     outline: none;
     color: var(--color-fg);
@@ -558,10 +550,10 @@ footer {
 
     opacity: 0.7;
 
-    /** Nested components are hidden */
+    /** Nested components are hidden
     & :not(:defined) {
       visibility: hidden;
-    }
+    }*/
 
     &[ce="loading"] {
       cursor: wait;

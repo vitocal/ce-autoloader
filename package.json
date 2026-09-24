@@ -67,6 +67,7 @@
     "chai": "^6.2.2",
     "cjs-module-lexer": "^2.2.0",
     "globe.gl": "^2.46.1",
+    "importmap-vite-plugin": "^0.1.0",
     "lit": "^3.3.3",
     "mocha": "^11.7.6",
     "puppeteer": "^25.3.0",

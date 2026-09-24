@@ -132,7 +132,8 @@ class CEAutoLoader {
       root: document.body,
       directives: ["eager", "visible", "click"],
       defaultDirective: "visible",
-      transition: "startViewTransition" in document,
+      transition: "startViewTransition" in document.body &&
+        !window.matchMedia(`(prefers-reduced-motion: reduce)`).matches,
       autoDiscover: true,
       ...options,
     };
@@ -222,7 +223,7 @@ class CEAutoLoader {
     }
 
     // Load everyone else right away
-    const result = await this.upgrade(null, root);
+    const result = await this.upgrade(undefined, root);
     this.#initialized = true;
     return result;
   }
@@ -341,46 +342,6 @@ class CEAutoLoader {
   }
 
   /**
-   * Perform a view transition of `components`
-   */
-  async runViewTransition(components: LoadResult[], defineFunction: () => Promise<void>) {
-    const elements = components.map(({ el }) => {
-      const transitionName = el.getAttribute("view-transition-name") || el.tagName;
-      const transitionClass = el.getAttribute("view-transition-class") || 'ce';
-
-      if (transitionName) {
-        el.style.viewTransitionName = transitionName;
-      }
-      if (transitionClass) {
-        el.style.viewTransitionClass = transitionClass;
-      }
-
-      return el;
-    });
-
-    if (this.activeTransition) {
-      await this.activeTransition.finished;
-    }
-
-    this.activeTransition = document.startViewTransition({ types: ['ce'], update: async () => await defineFunction() });
-    if (this.options.hooks?.viewTransition?.ready) {
-      this.activeTransition.ready.then(this.options.hooks.viewTransition.ready);
-    }
-
-    await this.activeTransition.updateCallbackDone;
-
-    elements.map((el) => {
-      el.style.viewTransitionName = "";
-      el.style.viewTransitionClass = "";
-    });
-
-    this.activeTransition.finished.then(() => {
-      this.options.hooks?.viewTransition?.finished()
-    })
-
-  }
-
-  /**
    * Perform a scoped element transition
    */
   async runScopedViewTransition(components: LoadResult[]) {
@@ -438,10 +399,6 @@ class CEAutoLoader {
     };
 
     if (this.options.transition) {
-      // this.runViewTransition(
-      //   load_success.map((result) => result.value),
-      //   defineComponents,
-      // );
       this.runScopedViewTransition(load_success.map((result) => result.value));
     } else {
       await defineComponents();
@@ -454,7 +411,6 @@ class CEAutoLoader {
    * Load a single component
    */
   async load(el: HTMLElement): Promise<LoadResult> {
-    this.loading_locks[el.tagName] = el;
     const name = el.tagName.toLowerCase();
 
     let loader = this.catalog?.[name] || this.getWildcardResolver(name);
@@ -469,6 +425,7 @@ class CEAutoLoader {
     try {
       performance.mark(`load:${name}:start`);
 
+      this.loading_locks[el.tagName] = el;
       el.setAttribute("ce", "loading");
 
       if (typeof loader === "string") {
@@ -482,6 +439,8 @@ class CEAutoLoader {
       load_error = error;
       throw new CEError(`${name} - ${error.message}`, { name, el, module, cause: error });
     } finally {
+      delete this.loading_locks[el.tagName];
+
       performance.mark(`load:${name}:end`);
       performance.measure(`load:${name}`, {
         detail: { name: name, type: "load", error: load_error },
@@ -532,7 +491,6 @@ class CEAutoLoader {
       throw new CEError(`${name} - ${error.message}`, { name, el, module, error });
     } finally {
       el.setAttribute("ce", "defined");
-      delete this.loading_locks[el.tagName];
 
       performance.mark(`define:${name}:end`);
       performance.measure(`define:${name}`, {

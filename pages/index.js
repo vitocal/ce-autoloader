@@ -1,8 +1,3 @@
-/**
- * We import it before the registry, so it's
- * loaded before the first discover.
- */
-
 import CERegistry from "/src/index.ts";
 import catalog from "@/components/catalog.js";
 

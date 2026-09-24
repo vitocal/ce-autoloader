@@ -1,0 +1,8 @@
+import*as e from"https://cdn.jsdelivr.net/npm/@observablehq/plot/+esm";import t from"https://cdn.jsdelivr.net/npm/suncalc@1/+esm";import*as n from"https://cdn.jsdelivr.net/npm/d3/+esm";var r=`
+    margin: 0 0;
+    background: #111;
+    color: #fff;
+    text-transform: uppercase;
+    border-radius: var(--radius-sm);
+`,i=class extends HTMLElement{connectedCallback(){let i=new Date().getUTCFullYear(),a=this.parentElement.getBoundingClientRect(),o=e.plot({aspectRatio:.6,marginLeft:90,width:a.width,height:a.height,style:r,x:{domain:n.range(1,40),axis:null},y:{domain:n.range(12)},length:{type:`identity`},marks:(({data:r,x:i,y:a,r:o,hemisphere:s,projection:c})=>[e.axisY({textAnchor:`start`,tickFormat:e.formatMonth(`pt-BR`,`long`),tickSize:0,dx:-50}),e.dot(r,{x:i,y:a,r:o,fill:`#333`}),e.text(r,{x:i,y:a,r:o,text:e=>e.getUTCDate(),dy:-o-5,fontSize:7}),e.vector(r,{x:i,y:a,length(e){let r=n.utcHour.offset(e,12);return 180-t.getMoonIllumination(r).phase*360},shape:{draw(e,t){c.rotate([t,0]).scale(o),n.geoPath(c,e)(s)}},anchor:`start`,fill:`currentColor`})])({data:(()=>{let e=n.utcYear(Date.UTC(i,0,1));return n.utcDays(e,n.utcYear.offset(e))})(),x(e){let t=n.utcMonth(e).getUTCDay()||7;return e.getUTCDate()+t},y(e){return e.getUTCMonth()},r:12,hemisphere:n.geoCircle()(),projection:n.geoOrthographic().translate([0,0])})});this.innerHTML=``,this.append(o)}};customElements.define(`observable-plot-wrapper`,i);export{i as default};
+//# sourceMappingURL=observable-plot-wrapper.js.map

@@ -1,9 +1,6 @@
 import { LitElement, css, adoptStyles } from "lit";
 import { html, unsafeStatic } from "lit/static-html.js";
 
-import nordSelect from "@nordhealth/components/lib/Select.js";
-import nordButton from "@nordhealth/components/lib/Button.js";
-
 const demos = {
   "model-viewer": html`<model-viewer
     on="eager"
@@ -51,6 +48,8 @@ export default class HeroExample extends LitElement {
           animation: 1300ms ease both fade-in;
           animation-delay: var(--spring-duration);
           position: relative;
+          max-width: 300px;
+          overflow: hidden;
         }
 
         nord-select:not(:defined) {

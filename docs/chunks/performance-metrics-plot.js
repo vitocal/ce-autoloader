@@ -1,0 +1,13 @@
+import*as e from"https://cdn.jsdelivr.net/npm/@observablehq/plot/+esm";var t=class extends HTMLElement{#e=null;connectedCallback(){this.#n(),this.#t()}disconnectedCallback(){this.#e?.disconnect(),this.#e=null}#t(){try{this.#e=new PerformanceObserver(()=>this.#n()),this.#e.observe({type:`measure`,buffered:!1})}catch{}}#n(){let t=getComputedStyle(document.documentElement),n=t.getPropertyValue(`--color-primary`).trim()||`oklch(70% 0.15 145)`,r=t.getPropertyValue(`--color-secondary`).trim()||`oklch(85% 0.15 85)`,i=t.getPropertyValue(`--color-accent`).trim()||`oklch(85% 0.15 15)`,a=t.getPropertyValue(`--color-bg`).trim()||`#f5f5f5`,o=t.getPropertyValue(`--color-fg`).trim()||`#222`,s=t.getPropertyValue(`--radius-sm`).trim()||`0.4rem`,c=performance.getEntriesByType(`measure`).filter(e=>e.name.startsWith(`load:`)||e.name===`transition`).map(e=>({name:e.name.replace(`load:`,``),start:e.startTime,end:e.startTime+e.duration,duration:e.duration,type:this.classify_entry(e)})),[l]=performance.getEntriesByType(`navigation`);if(l&&(l.domInteractive,l.domComplete),c.length===0){this.innerHTML=`<p style="
+                padding: 1rem; color: ${o}; opacity: 0.5;
+                font-size: 0.875rem; text-align: center;">
+                No performance measures recorded yet.<br>Interact with a component first.
+            </p>`;return}let u=e.plot({marginLeft:160,marginRight:80,marginTop:24,marginBottom:32,width:this.clientWidth||640,title:`Time to load of each component`,style:`
+                background: ${a};
+                color: ${o};
+                border-radius: ${s};
+                font-family: system-ui, sans-serif;
+                font-size: 12px;
+                max-width: none;
+            `,x:{label:`Time (ms) →`,grid:!0},y:{grid:!0,domain:[...c.filter(e=>[`fast`,`slow`,`error`].includes(e.type)).filter(e=>e.name!=`my-component`||e.name!=`vi-error`).map(e=>e.name)]},color:{legend:!0,domain:[`fast`,`slow`,`error`],range:[n,r,i]},marks:[e.barX(c,{x1:e=>0,x2:e=>e.duration,y:e=>e.name,fill:e=>e.type,rx:4}),e.tip(c,e.pointerY({x1:e=>0,x2:e=>e.duration,y:e=>e.name,title:e=>`${e.name}\nStart:    ${e.start.toFixed(2)} ms\nDuration: ${e.duration.toFixed(2)} ms`}))]});this.innerHTML=``,this.append(u)}classify_entry(e){if(e.detail?.error)return`error`;if(e.name.startsWith(`load:`))return e.duration<300?`fast`:`slow`}};customElements.define(`performance-metrics-plot`,t);export{t as default};
+//# sourceMappingURL=performance-metrics-plot.js.map

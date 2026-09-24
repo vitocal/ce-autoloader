@@ -1,3 +1,5 @@
+import importMap from 'virtual:importmap'
+
 /**
  * Load a CSS file into a named CSS layer, non-blocking.
  */
@@ -21,4 +23,12 @@ export async function loadCSSLayer(
   parent.insertAdjacentElement(position, styleEl);
 
   return styleEl;
+}
+
+/** Setup import-maps from `importmap-vite-plugin` */
+export function setupImportMap() {
+  const mapScript = document.createElement('script')
+  mapScript.type = 'importmap'
+  mapScript.textContent = JSON.stringify(importMap, null, 2)
+  document.head.append(mapScript)
 }

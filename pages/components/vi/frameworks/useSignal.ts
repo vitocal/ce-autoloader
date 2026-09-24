@@ -3,6 +3,9 @@ import type { Signal } from "@preact/signals-core";
 import { effect } from "@preact/signals-core";
 import { ref, watchEffect, onUnmounted } from "vue";
 
+/**
+ * A vue integration for @preact/signals
+ */
 export function useSignal(preactSignal: Signal<any>) {
   // 1. Create a Vue ref initialized with the Preact signal's current value
   const vueRef = ref(preactSignal.value);
