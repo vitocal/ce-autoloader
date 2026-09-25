@@ -5,9 +5,5 @@ import ErrorFallback from "@/components/error-fallback.js";
 
 globalThis.registry = new CERegistry({
   catalog: catalog,
-  root: document.body,
-  live: true,
   fallback: ErrorFallback,
-  defaultDirective: "visible",
-  transition: true,
 });

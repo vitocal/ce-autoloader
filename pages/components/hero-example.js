@@ -1,6 +1,8 @@
 import { LitElement, css, adoptStyles } from "lit";
 import { html, unsafeStatic } from "lit/static-html.js";
 
+import { adoptStylesheet } from "../utils";
+
 const demos = {
   "model-viewer": html`<model-viewer
     on="eager"
@@ -115,12 +117,7 @@ export default class HeroExample extends LitElement {
     this.demo = "model-viewer";
 
     // In light-dom mode, we need to adopt the styles
-    if (
-      this.constructor.styles.styleSheet &&
-      !document.adoptedStyleSheets.includes(this.constructor.styles.styleSheet)
-    ) {
-      document.adoptedStyleSheets.push(this.constructor.styles.styleSheet);
-    }
+    adoptStylesheet(this.getRootNode(), this.constructor.styles.styleSheet);
   }
 
   js_template() {

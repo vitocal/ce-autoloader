@@ -4,7 +4,7 @@
   "three": "https://esm.sh/three@latest&standalone",
   "canvas-confetti": "https://esm.sh/canvas-confetti@latest&standalone",
   "syntax-highlight-element": "https://esm.sh/syntax-highlight-element",
-  "@nordhealth/components/": "https://esm.sh/@nordhealth/components@latest&standalone&alias=lit/",
+  "@nordhealth/components/": "https://esm.sh/@nordhealth/components@latest&standalone/",
   "zero-md": "https://cdn.jsdelivr.net/npm/zero-md@3?register",
 
   "lit": "https://esm.sh/lit@latest&standalone",
@@ -12,5 +12,8 @@
   "lit-html": "https://esm.sh/lit-html@latest&standalone",
   "lit-html/": "https://esm.sh/lit-html@latest&standalone/",
   "lit-element": "https://esm.sh/lit-element@latest&standalone",
-  "@lit/reactive-element": "https://esm.sh/@lit-reactive-element@latest&standalone"
+  "@lit/reactive-element": "https://esm.sh/@lit-reactive-element@latest&standalone",
+
+  "my-component": "./pages/components/my-component.js",
+  "svelte-counter": "./pages/components/vi/frameworks/svelte-counter.svelte"
 }

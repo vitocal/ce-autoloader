@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ce-autoloader - cdn</title>
+    <title>ce-autoloader - Autoloading from CDN with import maps</title>
 
     <link rel="stylesheet" href="/styles.css" />
 
@@ -18,7 +18,11 @@
 </head>
 
 <body>
-    <zero-md src="./cdn.md"></zero-md>
+    <zero-md src="./cdn.md">
+        <template data-append>
+            <link rel="stylesheet" href="/styles.css" />
+        </template>
+    </zero-md>
 </body>
 
 </html>

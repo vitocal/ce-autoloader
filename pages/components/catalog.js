@@ -10,7 +10,6 @@ let catalog = {
   "hero-example": () => import("./hero-example.js"),
   "vi-example": () => import("./vi-example.js"),
   "my-component": async () => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
     return import("./my-component.js");
   },
 

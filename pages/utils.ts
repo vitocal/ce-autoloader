@@ -32,3 +32,12 @@ export function setupImportMap() {
   mapScript.textContent = JSON.stringify(importMap, null, 2)
   document.head.append(mapScript)
 }
+
+/** Adopt stylesheet */
+export function adoptStylesheet(root: Node, stylesheet: CSSStyleSheet) {
+  const all_stylesheets = root instanceof ShadowRoot ? root.adoptedStyleSheets : document.adoptedStyleSheets;
+  if (stylesheet && !all_stylesheets.includes(stylesheet)) {
+    all_stylesheets.push(stylesheet);
+  }
+
+}

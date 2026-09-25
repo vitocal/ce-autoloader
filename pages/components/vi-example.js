@@ -3,6 +3,8 @@ import SlottedElement from "./vi/slotted-element.js";
 
 import { html, unsafeStatic, literal } from "lit/static-html.js";
 
+import { adoptStylesheet } from "../utils.js";
+
 function reindent(code, indent = "    ") {
   let depth = 0;
   return code
@@ -84,13 +86,7 @@ export class ViExample extends SlottedElement {
     super();
 
     // In light-dom mode, we need to adopt the styles
-    if (
-      this.constructor.styles.styleSheet &&
-      this.shadowRoot === null &&
-      !document.adoptedStyleSheets.includes(this.constructor.styles.styleSheet)
-    ) {
-      document.adoptedStyleSheets.push(this.constructor.styles.styleSheet);
-    }
+    adoptStylesheet(this.getRootNode(), this.constructor.styles.styleSheet);
 
     this.example_slot = this.slottedChildren
       .filter((children) => children instanceof HTMLElement)
@@ -99,13 +95,10 @@ export class ViExample extends SlottedElement {
       .replace(/<!--.*?-->/g, "")
       .replace(/slot="(.*?)"/g, "")
       .replace(/ce="(.*?)"/g, "");
-
-    console.log(this.example_slot);
   }
 
   render() {
     let example_code = reindent(this.example_slot).replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    console.log("vi-example rerender");
     return html`
       <div class="left window flex-y">
         <pre><syntax-highlight language="html">${unsafeStatic(example_code)}</syntax-highlight></pre>

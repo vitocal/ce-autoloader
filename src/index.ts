@@ -165,16 +165,26 @@ class CEAutoLoader {
     if (this.options.autoDiscover) this.discover();
   }
 
+  private async getMutationObserver() {
+    try {
+      return (await import('shadow-observer')).ShadowObserver;
+    } catch (error) {
+      return Promise.resolve(MutationObserver);
+    }
+  }
+
   /**
    * Watch for new elements in the DOM
    */
-  private watchDOMMutations() {
-    const observer = new MutationObserver(debounceMutations(this.watcher.bind(this), 100));
+  private async watchDOMMutations() {
+    let _MutationObserver = await this.getMutationObserver();
+    const observer = new _MutationObserver(debounceMutations(this.watcher.bind(this), 100));
 
     observer.observe(this.options.root || document.body, {
       childList: true,
       subtree: true,
       characterData: true,
+      shadow: 1
     });
 
     this.#observers["mutation"] = observer;
@@ -184,7 +194,12 @@ class CEAutoLoader {
   private async watcher(mutations: MutationRecord[]) {
     for (const mutation of mutations.filter((m) => m.type === "childList")) {
       // Ignore mutations on elements that failed to load
-      const name = (mutation.target as HTMLElement).tagName.toLowerCase();
+      const target = mutation.target;
+      if (target instanceof ShadowRoot) {
+        continue;
+      }
+
+      const name = (target as HTMLElement).tagName.toLowerCase();
       if (this.#errors[name]) {
         continue;
       }
@@ -197,7 +212,6 @@ class CEAutoLoader {
         // Check the node itself
         // or any children that are custom elements
         if (node instanceof HTMLElement && (isCustomElement(node) || matchCustomElement(node as Element).length > 0)) {
-          // This causes multiple re-attaching of click events
           await this.discover(node);
         }
       }
@@ -229,7 +243,7 @@ class CEAutoLoader {
    */
   async discover(root = this.options.root) {
     if (!this.#initialized && this.options.live) {
-      this.watchDOMMutations();
+      await this.watchDOMMutations();
     }
 
     // Load elements that matches directives
@@ -385,13 +399,12 @@ class CEAutoLoader {
 
     await this.activeTransition.updateCallbackDone;
 
-    elements.map((el) => {
-      el.style.viewTransitionName = "";
-      el.style.viewTransitionClass = "";
-    });
-
     this.activeTransition.finished.then(() => {
-      this.options.hooks?.viewTransition?.finished()
+      elements.map((el) => {
+        el.style.viewTransitionName = "";
+        el.style.viewTransitionClass = "";
+      });
+      this.options.hooks?.viewTransition?.finished(this.activeTransition)
     })
 
   }

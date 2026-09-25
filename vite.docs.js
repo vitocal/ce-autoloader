@@ -37,7 +37,14 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    exclude: ["@nordhealth/components", "lit", "lit-html", "@lit/reactive-element", "lit/static-html.js"],
+    exclude: [
+      "@nordhealth/components",
+      "lit",
+      "lit-html",
+      "@lit/reactive-element",
+      "lit/static-html.js",
+      "shadow-observer",
+    ],
   },
   build: {
     modulePreload: false,
