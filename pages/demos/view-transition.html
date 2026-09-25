@@ -13,6 +13,7 @@
     import { loadCSSLayer, setupImportMap } from "@/utils.ts";
     import { pause, resume, scrub } from "view-transitions-toolkit/playback-control";
     import { ViewTransitionPart, getAnimations } from "view-transitions-toolkit/animations";
+    import { optimizeGroupAnimations, OPTIMIZATION_STRATEGY } from "view-transitions-toolkit/animations";
 
     let rafHandle,
       animation,
@@ -30,13 +31,15 @@
       catalog,
       hooks: {
         viewTransition: {
-          ready: () => {
-            animation = getAnimations(registry.activeTransition, "plot-example", ViewTransitionPart.Group)[0];
+          ready: (transition) => {
+            const anims = getAnimations(transition);
+            animation = anims[0]
+            console.log("animations", anims);
             if (animation) {
               syncProgressToSlider();
             }
           },
-          finished: () => {
+          finished: (transition) => {
             stop();
           },
         },
@@ -51,9 +54,9 @@
       }
     };
 
-    function stop() {
-      pause(registry.activeTransition);
-      animation = getAnimations(registry.activeTransition, "plot-example", ViewTransitionPart.Group)[0];
+    function stop(transition) {
+      pause(transition);
+      animation = getAnimations(transition, "plot-example", ViewTransitionPart.Group)[0];
     }
     async function play() {
       if (!plot_loaded) {
@@ -96,6 +99,7 @@
   <style>
     body {
       margin: 0px;
+      --duration: 1.5s;
     }
 
     [ce="error"] {
@@ -105,13 +109,6 @@
       }
     }
 
-    :root {
-      --duration: 1.5s;
-    }
-
-    ::view-transition {
-      pointer-events: none;
-    }
 
     .preview {
       width: 100%;
@@ -121,6 +118,7 @@
 
       display: grid;
       place-items: center;
+
       /* display: flex;
             align-items: center;
             justify-content: center; */
@@ -145,6 +143,16 @@
       transform: translate(-50%, -50%);
     }
 
+
+    observable-plot-wrapper {
+      width: 100%;
+      height: 100%;
+      display: block;
+      text-align: center;
+      overflow: clip;
+      /* view-transition-name: plot-example; */
+    }
+
     observable-plot-wrapper:not(:defined) {
       width: 100%;
       height: 50%;
@@ -153,25 +161,9 @@
       overflow: clip;
     }
 
-    /** Grow with content */
-    ::view-transition-old(*) {
-      width: auto;
-      height: 100%;
-      object-fit: none;
-      object-position: top left;
-    }
-
-    ::view-transition-new(*) {
-      width: auto;
-      height: 100%;
-      object-fit: none;
-      object-position: top left;
-    }
-
     ::view-transition-group(*) {
+      animation-duration: 3s;
       overflow: clip;
-      animation-duration: var(--duration);
-      animation-timing-function: ease-in-out;
     }
   </style>
 </head>

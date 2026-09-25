@@ -3,8 +3,6 @@ import SlottedElement from "./vi/slotted-element.js";
 
 import { html, unsafeStatic } from "lit/static-html.js";
 
-import confetti from "canvas-confetti";
-
 export default class MyComponent extends SlottedElement {
   static styles = css`
     @layer components {

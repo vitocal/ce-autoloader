@@ -26,7 +26,6 @@ export default class HeroExample extends LitElement {
         grid-gap: 1rem;
         position: relative;
         align-items: stretch;
-        perspective: 1000px;
 
         .left {
           grid-column: 1 / 2;
@@ -45,8 +44,8 @@ export default class HeroExample extends LitElement {
 
         .preview {
           opacity: 1;
-          animation: 1300ms ease both fade-in;
-          animation-delay: var(--spring-duration);
+          // animation: 1300ms ease both fade-in;
+          // animation-delay: var(--spring-duration);
           position: relative;
           max-width: 300px;
           overflow: hidden;
@@ -95,12 +94,12 @@ export default class HeroExample extends LitElement {
       }
     }
 
-    ::view-transition-group(model-viewer),
-    ::view-transition-group(gl-globe),
-    ::view-transition-group(fireworks-js),
-    ::view-transition-group(confetti-button) {
-      animation: var(--spring-duration) var(--spring-easing) both;
-    }
+    // ::view-transition-group(model-viewer),
+    // ::view-transition-group(gl-globe),
+    // ::view-transition-group(fireworks-js),
+    // ::view-transition-group(confetti-button) {
+    //   animation: var(--spring-duration) var(--spring-easing) both;
+    // }
   `;
 
   static properties = {
@@ -160,6 +159,7 @@ export default class HeroExample extends LitElement {
 
   render() {
     let preview = demos[this.demo];
+    // let preview = "";
 
     return html`<div class="left window flex-y no-wrap">
         <h4 class="flex-x">

@@ -2,9 +2,10 @@
   "@google/model-viewer": "https://esm.sh/@google/model-viewer@latest&standalone",
   "globe.gl": "https://esm.sh/globe.gl@latest&standalone",
   "three": "https://esm.sh/three@latest&standalone",
-  "canvas-confetti": "https://esm.sh/canvas-confetti",
+  "canvas-confetti": "https://esm.sh/canvas-confetti@latest&standalone",
   "syntax-highlight-element": "https://esm.sh/syntax-highlight-element",
   "@nordhealth/components/": "https://esm.sh/@nordhealth/components@latest&standalone&alias=lit/",
+  "zero-md": "https://cdn.jsdelivr.net/npm/zero-md@3?register",
 
   "lit": "https://esm.sh/lit@latest&standalone",
   "lit/": "https://esm.sh/lit@latest&standalone/",

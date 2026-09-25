@@ -10,7 +10,4 @@ globalThis.registry = new CERegistry({
   fallback: ErrorFallback,
   defaultDirective: "visible",
   transition: true,
-  intersectionOptions: {
-    rootMargin: "0px 0px 100% 0px",
-  },
 });

@@ -22,11 +22,14 @@ export type LoadError = {
 export type Directives = "eager" | "visible" | "click" | string;
 export type Options = {
   /* The component catalog */
-  catalog: Catalog;
+  catalog?: Catalog;
   /* The root element to search for custom elements */
   root?: HTMLElement;
   /** Watch for new custom elements in the page? */
   live?: boolean;
+
+  /** Use the page import-map as a catalog */
+  useImportMapsCatalog?: boolean;
 
   /** Disable the automatic component discovery when instantiating CERegistry  */
   autoDiscover?: boolean;
@@ -48,8 +51,8 @@ export type Options = {
   /** Lifecycle hooks of each component */
   hooks?: {
     viewTransition: {
-      ready?: () => Promise<void>;
-      finished?: () => Promise<void>;
+      ready?: (transition: ViewTransition) => Promise<void>;
+      finished?: (transition: ViewTransition) => Promise<void>;
     };
     error?: (error: LoadError) => Promise<void>;
   };
@@ -135,13 +138,25 @@ class CEAutoLoader {
       transition: "startViewTransition" in document.body &&
         !window.matchMedia(`(prefers-reduced-motion: reduce)`).matches,
       autoDiscover: true,
+      useImportMapsCatalog: false,
+      intersectionOptions: {
+        scrollMargin: "20%",
+      },
       ...options,
     };
 
     if (!this.options.catalog) {
-      throw new Error("CEAutoLoader needs a catalog to start");
+      const importMapScript = document.querySelector('script[type="importmap"]');
+      const map = JSON.parse(importMapScript?.textContent || '{}');
+
+      if (Object.keys(map.imports).length == 0) {
+        throw new Error("CEAutoloader: Catalog is empty, please fill the importmap or pass the catalog option.");
+      }
+
+      this.catalog = map.imports;
+    } else {
+      this.catalog = options.catalog;
     }
-    this.catalog = options.catalog;
 
     if (!globalThis.DEFINE) {
       monkeyPatchDefine();
@@ -256,7 +271,7 @@ class CEAutoLoader {
     const visible = (elements: HTMLElement[]) => {
       // Create observer if it doesn't exist
       if (!this.#observers["intersection"]) {
-        this.#observers["intersection"] = new IntersectionObserver(when_visible, this.options.intersectionOptions || {});
+        this.#observers["intersection"] = new IntersectionObserver(when_visible, this.options.intersectionOptions);
       } else {
         // If the observer already exists, we need to check if there are any pending entries
         let mutations = this.#observers["intersection"].takeRecords() as IntersectionObserverEntry[];
@@ -342,6 +357,46 @@ class CEAutoLoader {
   }
 
   /**
+   * Perform a view transition of `components`
+   */
+  async runViewTransition(components: LoadResult[], defineFunction: () => Promise<void>) {
+    const elements = components.map(({ el }) => {
+      const transitionName = el.getAttribute("view-transition-name") || el.tagName;
+      const transitionClass = el.getAttribute("view-transition-class") || 'ce';
+
+      if (transitionName) {
+        el.style.viewTransitionName = transitionName;
+      }
+      if (transitionClass) {
+        el.style.viewTransitionClass = transitionClass;
+      }
+
+      return el;
+    });
+
+    if (this.activeTransition) {
+      await this.activeTransition.finished;
+    }
+
+    this.activeTransition = document.startViewTransition({ types: ['ce'], update: async () => await defineFunction() });
+    if (this.options.hooks?.viewTransition?.ready) {
+      this.activeTransition.ready.then(() => this.options.hooks.viewTransition.ready(this.activeTransition));
+    }
+
+    await this.activeTransition.updateCallbackDone;
+
+    elements.map((el) => {
+      el.style.viewTransitionName = "";
+      el.style.viewTransitionClass = "";
+    });
+
+    this.activeTransition.finished.then(() => {
+      this.options.hooks?.viewTransition?.finished()
+    })
+
+  }
+
+  /**
    * Perform a scoped element transition
    */
   async runScopedViewTransition(components: LoadResult[]) {
@@ -359,16 +414,31 @@ class CEAutoLoader {
       return { el, ...rest };
     });
 
-    elements.forEach(async ({ el, name, module }) => {
-      const transition = el.parentElement.startViewTransition(() => {
-        this.define({ el, name, module });
-      })
+    await elements.forEach(async ({ el, name, module }) => {
+      console.log(`running viewTransition of `, el)
+      const transition = el.parentElement.startViewTransition({
+        types: ['ce'],
+        update: async () => {
+          await this.define({ el, name, module })
+        }
+      });
+
       this.activeTransition = transition;
+      if (this.options.hooks?.viewTransition?.ready) {
+        transition.ready.then(() => this.options.hooks.viewTransition.ready(transition));
+      }
+
       await transition.updateCallbackDone;
 
-      el.style.viewTransitionName = ""
-      el.style.viewTransitionClass = ""
-    })
+      transition.finished.then(() => {
+        el.style.viewTransitionName = ""
+        el.style.viewTransitionClass = ""
+
+        this.options.hooks?.viewTransition?.finished(transition)
+        this.activeTransition = null;
+      })
+    });
+
     return [];
   }
 
@@ -399,7 +469,7 @@ class CEAutoLoader {
     };
 
     if (this.options.transition) {
-      this.runScopedViewTransition(load_success.map((result) => result.value));
+      await this.runScopedViewTransition(load_success.map((result) => result.value));
     } else {
       await defineComponents();
     }
@@ -568,13 +638,8 @@ function monkeyPatchDefine() {
   };
 }
 
-declare global {
-  interface CustomElementRegistry {
-    waiting: Record<string, { ctor: CustomElementConstructor; options?: ElementDefinitionOptions }>;
-    registered: Record<string, { ctor: CustomElementConstructor; options?: ElementDefinitionOptions }>;
-  }
-  var _DEFINE: typeof CustomElementRegistry.prototype.define;
-  var DEFINE: typeof CustomElementRegistry.prototype.define;
+if (new URL(import.meta.url).searchParams.has('autoload')) {
+  window.registry = new CEAutoLoader({ useImportMapsCatalog: true });
 }
 
 export default CEAutoLoader;

@@ -61,12 +61,6 @@
       height: 128px;
     }
 
-    pix-qrcode {
-      aspect-ratio: 1;
-      width: 196px;
-      height: 196px;
-    }
-
     @media (max-width: 100ch) {
       hero-example {
         height: calc(80dvh + 2em);
@@ -128,7 +122,7 @@
        */
 
     ::view-transition-group(*) {
-      animation-duration: 2s;
+      animation-duration: 1s;
     }
 
     /** Grow with content */
@@ -148,22 +142,9 @@
 
     ::view-transition-group(*) {
       overflow: clip;
-      overflow-clip-margin: 32px;
-      animation-timing-function: ease-in-out;
-    }
-
-    ::view-transition-group(hero-example) {
-      animation-duration: 2s;
-      outline: 2px dashed purple;
-      transform-style: preserve-3d;
-      perspective-origin: center;
-      perspective: 1000px;
     }
   </style>
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="shared.css" />
-
-  <script type="module" src="pages/index.js" defer></script>
 
 </head>
 
@@ -190,7 +171,7 @@
     <div class="fold">
       <div class="fold-header">
         <h1 style="display: flex; align-items: center; gap: 0.5rem; justify-content: center">
-          <img src="/logo.svg" alt="logo" style="width: 80px" />
+          <img src="/logo.svg" alt="logo" style="width: 80px; height: 50px;" />
           ce-autoloader
         </h1>
         <p class="font-display n-color-text-weaker" style="font-size: 1.3rem; line-height: 1.3; text-align: center">
@@ -199,7 +180,7 @@
         </p>
       </div>
 
-      <hero-example view-transition-name="hero-example" style="transform: scale(1.05);"></hero-example>
+      <hero-example view-transition-name="hero-example"></hero-example>
     </div>
 
     <div class="" id="about">
@@ -223,12 +204,10 @@
           <strong>Wildcard Loaders</strong>: Wildcard loaders allow you to load a whole design system with minimal
           footprint.
         </li>
-        <!--
-          <li>
-            <strong>Import maps</strong>: Native support for import-maps allow you to define modules without a
-            compiler/bundler.
-          </li>
-          -->
+        <li>
+          <strong>Import maps</strong>: Native support for import-maps allow you to define modules without a
+          compiler/bundler.
+        </li>
         <li>
           <strong>Polished Animations</strong>: Use the lifecycle states and View Transitions API to animate
           components as they load/render, providing a smooth and polished user experience.
@@ -267,7 +246,6 @@
         <div class="grid gap-md">
           <span><strong>Define</strong> your catalog</span>
           <div>
-            <!-- prettier-ignore -->
             <pre><syntax-highlight language="javascript">import CERegistry from 'ce-autoloader';
 
 const registry = new CERegistry({
@@ -285,7 +263,6 @@ const registry = new CERegistry({
             on the body HTML
           </div>
           <div>
-            <!-- prettier-ignore -->
             <pre><syntax-highlight language="html">&lt;my-component loading="visible">World&lt;/my-component></syntax-highlight></pre>
           </div>
         </div>
@@ -317,13 +294,14 @@ const registry = new CERegistry({
 
         <p>
           Because <code>ce-autoloader</code> targets the standard <strong>Custom Elements API</strong>, it doesn't
-          care how your component was built. You can mix and match components from <strong>React</strong>,
+          care how your component was built. You can mix components from <strong>React</strong>,
           <strong>Vue</strong>, <strong>Svelte</strong>, <strong>Lit</strong>, or <strong>Vanilla JS</strong> in the
           same page without any problems.
         </p>
 
         <p>
-          The example below are three components with different frameworks but sharing the same <mark>state</mark>!
+          The example below are three components with different frameworks but sharing the same <mark>state</mark>
+          with <a href="https://preactjs.com/guide/v10/signals/">preact signals</a>.
         </p>
 
         <br />
@@ -727,7 +705,6 @@ const registry = new CERegistry({
       </div>
     </div>
 
-    <!--
     <div class="brazilian-card prose" style="margin-top: 4rem" id="faq">
       <h1 style="border-bottom: 0; margin-bottom: 2rem">
         FAQ
@@ -811,7 +788,6 @@ export default r2wc(Greeter, {
         </div>
       </div>
     </div>
-    -->
   </main>
 
   <footer style="background: var(--color-bg-dark); border-top: 1px solid var(--color-bg-dark); padding: 4rem 0">
@@ -857,6 +833,7 @@ export default r2wc(Greeter, {
     </div>
   </footer>
 
+  <script type="module" src="pages/index.js"></script>
   <script type="module">
     import { setupImportMap } from '@/utils.ts'
 

@@ -66,7 +66,7 @@ let catalog = {
     const [, namespace, name] = full_name.match(/^([a-z]+)-(.*)/);
     const external = (process.env.NODE_ENV === "production" ? ["lit"] : ["lit"]).join(",");
 
-    loadCSSLayer("https://nordcdn.net/ds/css/5.0.1/nord.min.css", "ds");
+    // loadCSSLayer("https://nordcdn.net/ds/css/5.0.1/nord.min.css", "ds");
 
     // /* @vite-ignore */ `@nordhealth/components/lib/${capitalize(name)}.js?external=${external}`
     const module = await import(/* @vite-ignore */ `@nordhealth/components/lib/${capitalize(name)}.js`);

@@ -44,7 +44,7 @@
 
     --font-display: "Cormorant Garamond", system-ui, sans-serif;
     --font-body: system-ui, sans-serif;
-    --font-mono: "Fira Code", monospace;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     --n-font-family: var(--font-body);
     --n-font-family-code: var(--font-mono);
 
@@ -378,6 +378,17 @@ pre {
   max-width: 100%;
 
   font-size: 12px;
+  font-family: var(--font-mono);
+  white-space: pre-wrap;
+  word-break: normal;
+  tab-size: 2;
+
+  display: flex;
+  max-inline-size: 100%;
+  width: 100%;
+  position: relative;
+  font-family: var(--font-mono) !important;
+  line-height: 1.6;
 
   &:has(code, syntax-highlight) {
     tab-size: 2;
@@ -391,8 +402,8 @@ pre {
     max-inline-size: 100%;
     width: 100%;
     position: relative;
-    contain: layout;
-    /* box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5); */
+    font-family: var(--font-mono) !important;
+    line-height: 1.6;
   }
 }
 

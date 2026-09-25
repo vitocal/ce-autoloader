@@ -3,6 +3,9 @@ import confetti from "canvas-confetti";
 export default class ConfettiButton extends HTMLElement {
   connectedCallback() {
     this.style.display = "block";
+    this.style.padding = '0.35em';
+    this.style.textAlign = 'center';
+    this.innerHTML = '🎉 🥳 🎉'
     this.throwConfetti();
 
     this.addEventListener("click", (e: MouseEvent) => {

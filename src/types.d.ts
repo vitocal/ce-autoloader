@@ -1,6 +1,9 @@
+import CEAutoLoader from ".";
+
 declare global {
   interface Window {
     Buffer: any;
+    registry?: CEAutoLoader;
   }
 
   interface CSSStyleDeclaration {
@@ -8,9 +11,18 @@ declare global {
   }
 
   interface HTMLElement {
-    startViewTransition(callback: () => void): ViewTransition
+    startViewTransition(options: ViewTransitionUpdateCallback | StartViewTransitionOptions): ViewTransition
   }
+
+  interface CustomElementRegistry {
+    waiting: Record<string, { ctor: CustomElementConstructor; options?: ElementDefinitionOptions }>;
+    registered: Record<string, { ctor: CustomElementConstructor; options?: ElementDefinitionOptions }>;
+  }
+
+  var _DEFINE: typeof CustomElementRegistry.prototype.define;
+  var DEFINE: typeof CustomElementRegistry.prototype.define;
 }
+
 
 declare module "qrcode-pix" {
   interface QrCodePixParams {
@@ -37,4 +49,3 @@ declare module "globe.gl" {
   export default Globe;
 }
 
-export { }
