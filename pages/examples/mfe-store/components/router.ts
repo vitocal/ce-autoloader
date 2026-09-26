@@ -81,6 +81,12 @@ class ViRouter extends HTMLElement {
                     uses: () => {
                         this.render('<checkout-pages-checkout data-boundary-page="checkkout"></checkout-pages-checkout>')
                     }
+                },
+                '/checkout/thanks': {
+                    as: 'checkout-pages-thanks',
+                    uses: () => {
+                        this.render('<checkout-pages-thanks data-boundary-page="checkout"></checkout-pages-thanks>')
+                    }
                 }
             })
             .notFound(() => {

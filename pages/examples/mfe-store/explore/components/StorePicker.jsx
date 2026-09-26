@@ -33,7 +33,7 @@ function StorePicker() {
   };
 
   return (
-    <div className="e_StorePicker">
+    <div className="e_StorePicker" ref={rootRef}>
       <div className="e_StorePicker_control" data-boundary="explore">
         <div className="e_StorePicker_selected">
           {selectedStore && (

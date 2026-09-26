@@ -1,13 +1,13 @@
 /**
  * A Loader can be a URL or a function that returns a Promise<CustomElementConstructor>
  */
-export type Loader = string | ((name?: string, el?: HTMLElement) => Promise<CustomElementConstructor>);
+export type Loader = string | ((name: string, el?: HTMLElement) => Promise<CustomElementConstructor>);
 
 export type Catalog = Record<string, Loader>;
 
 export type LoadResult = {
   name: string;
-  el: HTMLElement;
+  el?: HTMLElement;
   loader?: Loader;
   module?: CustomElementConstructor;
 };
@@ -239,6 +239,17 @@ class CEAutoLoader {
   }
 
   /**
+   * Preload those custom-elements
+   */
+  async preload(components: string[]): Promise<void> {
+    for (const comp_name of components) {
+      const loader = this.getLoader(comp_name)
+      const module = await this._load(comp_name, loader);
+      this.define({ name: comp_name, el: undefined, module: module })
+    }
+  }
+
+  /**
    * Discover the custom elements in the `root` and upgrade them lazily
    */
   async discover(root = this.options.root) {
@@ -336,7 +347,7 @@ class CEAutoLoader {
   /**
    * Handle components that failed to load
    */
-  handleComponentLoadError(rejection: PromiseRejectedResult) {
+  private handleComponentLoadError(rejection: PromiseRejectedResult) {
     const { message, stack, details } = rejection.reason;
     const origin = details.el as HTMLElement;
     const name = origin.tagName.toLowerCase();
@@ -373,46 +384,46 @@ class CEAutoLoader {
   /**
    * Perform a view transition of `components`
    */
-  async runViewTransition(components: LoadResult[], defineFunction: () => Promise<void>) {
-    const elements = components.map(({ el }) => {
-      const transitionName = el.getAttribute("view-transition-name") || el.tagName;
-      const transitionClass = el.getAttribute("view-transition-class") || 'ce';
+  // private async runViewTransition(components: LoadResult[], defineFunction: () => Promise<void>) {
+  //   const elements = components.map(({ el }) => {
+  //     const transitionName = el.getAttribute("view-transition-name") || el.tagName;
+  //     const transitionClass = el.getAttribute("view-transition-class") || 'ce';
 
-      if (transitionName) {
-        el.style.viewTransitionName = transitionName;
-      }
-      if (transitionClass) {
-        el.style.viewTransitionClass = transitionClass;
-      }
+  //     if (transitionName) {
+  //       el.style.viewTransitionName = transitionName;
+  //     }
+  //     if (transitionClass) {
+  //       el.style.viewTransitionClass = transitionClass;
+  //     }
 
-      return el;
-    });
+  //     return el;
+  //   });
 
-    if (this.activeTransition) {
-      await this.activeTransition.finished;
-    }
+  //   if (this.activeTransition) {
+  //     await this.activeTransition.finished;
+  //   }
 
-    this.activeTransition = document.startViewTransition({ types: ['ce'], update: async () => await defineFunction() });
-    if (this.options.hooks?.viewTransition?.ready) {
-      this.activeTransition.ready.then(() => this.options.hooks.viewTransition.ready(this.activeTransition));
-    }
+  //   this.activeTransition = document.startViewTransition({ types: ['ce'], update: async () => await defineFunction() });
+  //   if (this.options.hooks?.viewTransition?.ready) {
+  //     this.activeTransition.ready.then(() => this.options.hooks.viewTransition.ready(this.activeTransition));
+  //   }
 
-    await this.activeTransition.updateCallbackDone;
+  //   await this.activeTransition.updateCallbackDone;
 
-    this.activeTransition.finished.then(() => {
-      elements.map((el) => {
-        el.style.viewTransitionName = "";
-        el.style.viewTransitionClass = "";
-      });
-      this.options.hooks?.viewTransition?.finished(this.activeTransition)
-    })
+  //   this.activeTransition.finished.then(() => {
+  //     elements.map((el) => {
+  //       el.style.viewTransitionName = "";
+  //       el.style.viewTransitionClass = "";
+  //     });
+  //     this.options.hooks?.viewTransition?.finished(this.activeTransition)
+  //   })
 
-  }
+  // }
 
   /**
    * Perform a scoped element transition
    */
-  async runScopedViewTransition(components: LoadResult[]) {
+  private async runScopedViewTransition(components: LoadResult[]) {
     const elements = components.map(({ el, ...rest }) => {
       const transitionName = el.getAttribute("view-transition-name") || el.tagName;
       const transitionClass = el.getAttribute("view-transition-class") || 'ce';
@@ -454,10 +465,11 @@ class CEAutoLoader {
     return [];
   }
 
-  /*
+  /**
    * Load and define components
+   * @param {string} source - source should match the "loading" attribute
    */
-  async loadAndDefine(comps: HTMLElement[], source: string) {
+  private async loadAndDefine(comps: HTMLElement[], source: string) {
     let elements = comps.filter((el) => {
       const on = el.getAttribute("loading");
       return on === source || on === null;
@@ -489,13 +501,33 @@ class CEAutoLoader {
     return load_result;
   }
 
+  /** Get the appropriate loader */
+  private getLoader(name): Loader {
+    return this.catalog?.[name] || this.getWildcardResolver(name);
+  }
+
+
+  /** Load the module */
+  private async _load(name: string, loader: Loader) {
+    let module = null
+    if (typeof loader === "string") {
+      module = await import(/* @vite-ignore */ loader);
+    } else if (typeof loader === "function") {
+      module = await loader(name, undefined);
+    } else {
+      throw new CEError(`Loader of ${name} is invalid! Should be a url or a function`, { name, module });
+    }
+
+    return module
+  }
+
   /**
    * Load a single component
    */
   async load(el: HTMLElement): Promise<LoadResult> {
     const name = el.tagName.toLowerCase();
 
-    let loader = this.catalog?.[name] || this.getWildcardResolver(name);
+    let loader = this.getLoader(name);
     if (!loader) {
       throw new CEError(`Component ${name} not found in catalog`, { name, el });
     }
@@ -510,13 +542,7 @@ class CEAutoLoader {
       this.loading_locks[el.tagName] = el;
       el.setAttribute("ce", "loading");
 
-      if (typeof loader === "string") {
-        module = await import(/* @vite-ignore */ loader);
-      } else if (typeof loader === "function") {
-        module = await loader(name, el);
-      } else {
-        throw new CEError(`Loader of ${name} is invalid! Should be a url or a function`, { name, el, module });
-      }
+      module = await this._load(name, loader);
     } catch (error: any) {
       load_error = error;
       throw new CEError(`${name} - ${error.message}`, { name, el, module, cause: error });
@@ -572,7 +598,7 @@ class CEAutoLoader {
       define_error = error;
       throw new CEError(`${name} - ${error.message}`, { name, el, module, error });
     } finally {
-      el.setAttribute("ce", "defined");
+      el?.setAttribute("ce", "defined");
 
       performance.mark(`define:${name}:end`);
       performance.measure(`define:${name}`, {
