@@ -34,7 +34,6 @@
           ready: (transition) => {
             const anims = getAnimations(transition);
             animation = anims[0]
-            console.log("animations", anims);
             if (animation) {
               syncProgressToSlider();
             }

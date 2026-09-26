@@ -428,7 +428,6 @@ class CEAutoLoader {
     });
 
     await elements.forEach(async ({ el, name, module }) => {
-      console.log(`running viewTransition of `, el)
       const transition = el.parentElement.startViewTransition({
         types: ['ce'],
         update: async () => {

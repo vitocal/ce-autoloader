@@ -14,6 +14,9 @@
   "lit-element": "https://esm.sh/lit-element@latest&standalone",
   "@lit/reactive-element": "https://esm.sh/@lit-reactive-element@latest&standalone",
 
+  "htm": "https://esm.sh/htm",
+  "navigo": "https://esm.sh/navigo",
+
   "my-component": "./pages/components/my-component.js",
   "svelte-counter": "./pages/components/vi/frameworks/svelte-counter.svelte"
 }

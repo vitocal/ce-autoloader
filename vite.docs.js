@@ -8,6 +8,7 @@ import { defineConfig } from "vite";
 import { importMapPlugin } from "importmap-vite-plugin";
 import vue from "@vitejs/plugin-vue";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
+import preact from "@preact/preset-vite";
 
 const BASE = process.env.NODE_ENV === "production" ? "/ce-autoloader/" : "/";
 import importmap from "./importmap.json";
@@ -28,7 +29,19 @@ function collectEntries(dir, fileExt = `.ts`) {
 }
 
 export default defineConfig({
-  plugins: [vue({ features: { customElement: true } }), svelte({}), importMapPlugin({ imports: importmap })],
+  plugins: [
+    vue({
+      template: {
+        compilerOptions: {
+          // Example: Treat all tags with a dash as custom elements.
+          isCustomElement: (tag) => tag.includes("-"),
+        },
+      },
+    }),
+    svelte({}),
+    preact(),
+    importMapPlugin({ imports: importmap }),
+  ],
   base: BASE,
   appType: "mpa",
   resolve: {

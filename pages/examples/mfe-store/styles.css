@@ -1,0 +1,86 @@
+@font-face {
+  font-family: "Raleway";
+  src: url("https://blueprint.the-tractor.store/cdn/font/raleway-regular.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: Raleway, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+}
+
+body {
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+p {
+  line-height: 1.5;
+}
+
+:root {
+  --outer-space: 1.5rem;
+}
+
+/* undefined states */
+:not(:defined) {
+  display: block;
+  min-height: 1em;
+  min-width: 100%;
+  height: auto;
+  width: 100%;
+  contain: strict;
+}
+:defined {
+  contain: layout;
+}
+
+/* Loading states */
+[ce="loading"] {
+  opacity: 0.5;
+  filter: grayscale(1);
+
+  background-color: #eee;
+  --color-bg-dark: #aaa;
+
+  &::after {
+    pointer-events: none;
+    content: " ";
+    position: absolute;
+    inset: 0;
+
+    transform: translateX(-100%);
+    width: 100%;
+
+    background: linear-gradient(to right, transparent 10%, var(--color-bg-dark) 50%, transparent 90%);
+    will-change: transform;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+}
+
+[ce="defined"] {
+  opacity: 1;
+}
+
+[ce="error"] {
+  background-color: red;
+
+  /** Disable nested components */
+  & > :not(:defined) {
+    display: none;
+  }
+}
+
+/* Shimmer/skeleton */
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
