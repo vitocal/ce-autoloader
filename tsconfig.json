@@ -2,6 +2,7 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "module": "esnext",
+    "target": "es2025",
     "libReplacement": true,
     "lib": [
       "dom",
@@ -34,7 +35,8 @@
   },
   "include": [
     "src",
-    "pages/components/"
+    "pages/components/",
+    "pages/examples/"
   ],
   "exclude": [
     "pages/components/",

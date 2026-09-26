@@ -1,9 +1,13 @@
-import explore_catalog from "./components/explore/catalog";
-import decide_catalog from "./components/decide/catalog";
+import ds from "./components/catalog";
+import explore from "./explore/catalog";
+import decide from "./decide/catalog";
+import checkout from "./checkout/catalog";
 
 export const catalog = {
-    ...explore_catalog,
-    ...decide_catalog
+    ...ds,
+    ...explore,
+    ...decide,
+    ...checkout
 };
 
 export default catalog;

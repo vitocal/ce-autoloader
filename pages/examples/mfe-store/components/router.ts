@@ -65,6 +65,22 @@ class ViRouter extends HTMLElement {
 
                         this.render(`<decide-pages-product data-boundary-page="decide" id="${id}" sku="${sku}"></decide-page-product>`);
                     }
+                },
+
+                /**
+                 * Team checkout
+                 */
+                '/checkout/cart': {
+                    as: 'checkout-pages-cart',
+                    uses: () => {
+                        this.render('<checkout-pages-cart data-boundary-page="checkkout"></checkout-pages-cart>')
+                    }
+                },
+                '/checkout/checkout': {
+                    as: 'checkout-pages-checkout',
+                    uses: () => {
+                        this.render('<checkout-pages-checkout data-boundary-page="checkkout"></checkout-pages-checkout>')
+                    }
                 }
             })
             .notFound(() => {

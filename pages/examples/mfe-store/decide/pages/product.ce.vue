@@ -27,6 +27,7 @@
             :selected="v.sku === variant.sku"
           />
         </ul>
+        <checkout-components-addtocart :sku="variant.sku" ></checkout-components-addtocart>
       </div>
     </div>
     <explore-recommendations :skus="JSON.stringify([variant.sku])" />

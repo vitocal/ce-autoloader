@@ -32,14 +32,10 @@ p {
 /* undefined states */
 :not(:defined) {
   display: block;
-  min-height: 1em;
+  min-height: 1lh;
   min-width: 100%;
   height: auto;
   width: 100%;
-  contain: strict;
-}
-:defined {
-  contain: layout;
 }
 
 /* Loading states */

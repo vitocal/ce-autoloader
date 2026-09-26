@@ -9,6 +9,7 @@ import { importMapPlugin } from "importmap-vite-plugin";
 import vue from "@vitejs/plugin-vue";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import preact from "@preact/preset-vite";
+import stencil from "@stencil-community/unplugin-stencil/vite";
 
 const BASE = process.env.NODE_ENV === "production" ? "/ce-autoloader/" : "/";
 import importmap from "./importmap.json";
@@ -38,7 +39,7 @@ export default defineConfig({
         },
       },
     }),
-    svelte({}),
+    svelte({ compilerOptions: { customElement: true } }),
     preact(),
     importMapPlugin({ imports: importmap }),
   ],

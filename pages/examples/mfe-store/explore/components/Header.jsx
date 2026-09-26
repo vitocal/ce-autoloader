@@ -1,6 +1,6 @@
-// import MiniCart from "../../checkout/components/MiniCart.js";
+import register from "preact-custom-element";
+
 import Navigation from "./Navigation.jsx";
-import r2wc from "@r2wc/react-to-web-component";
 
 import "./Header.css";
 
@@ -18,11 +18,13 @@ const Header = ({ c }) => {
           <div className="e_Header__navigation">
             <Navigation />
           </div>
-          <div className="e_Header__cart"></div>
+          <div className="e_Header__cart">
+            <checkout-components-minicart></checkout-components-minicart>
+          </div>
         </div>
       </div>
     </header>
   );
 };
 
-export default r2wc(Header, {});
+export default register(Header, "explore-header");
