@@ -109,6 +109,12 @@ const SUPPORTS_SCOPED_VT = "startViewTransition" in Element.prototype;
 var ORIGINAL_DEFINE: typeof customElements.define = (ORIGINAL_DEFINE || customElements.define.bind(customElements))
 
 /**
+ * Multiple registries can co-exist on the same page.
+ * Since the polyfill is global, it's necessary to consult all registries.
+ */
+const DEFERRED_REGISTRIES: CEAutoLoader[] = [];
+
+/**
  * CEAutoLoader automatically loads and defines custom elements from a catalog.
  */
 class CEAutoLoader {
@@ -241,6 +247,10 @@ class CEAutoLoader {
     Object.entries(this.#observers).map(([_, obs]) => obs.disconnect());
 
     this.#observers = {};
+
+    // Stop taking part in the (global) deferred define queue
+    const index = DEFERRED_REGISTRIES.indexOf(this);
+    if (index > -1) DEFERRED_REGISTRIES.splice(index, 1);
   }
 
   /**
@@ -643,9 +653,24 @@ class CEAutoLoader {
 
   /**
    * Polyfill `customElements.define` to defer component definition.
-   * Call `customElements.flush()` or `customElements.dequeue()` to run.
+   *
+   * Only elements that belong to this `catalog` are deferred: they are defined
+   * later by `customElements.dequeue(name)` or `customElements.flush()`, so a
+   * whole batch can land on the same frame — inside a single view transition.
+   *
+   * Anything else is forwarded to the original `define` right away. Third-party
+   * scripts (or a catalog module registering extra tags) must keep working while
+   * the queue is installed: queueing them would leave those elements defined
+   * nowhere — never upgraded, `customElements.get()` `undefined` and
+   * `customElements.whenDefined()` never settling.
+   *
+   * Call `customElements.flush()` or `customElements.dequeue(name)` to finally define.
    */
   public polyfill_defer_define() {
+    if (!DEFERRED_REGISTRIES.includes(this)) {
+      DEFERRED_REGISTRIES.push(this);
+    }
+
     if (customElements.dequeue) return;
 
     const define = ORIGINAL_DEFINE;
@@ -654,14 +679,21 @@ class CEAutoLoader {
     customElements.dequeue = function (name) {
       if (customElements.get(name)) return
 
-      const { ctor, options } = customElements.queue[name];
-      define(name, ctor, options);
+      const queued = customElements.queue[name];
+      if (!queued) return;
+
+      define(name, queued.ctor, queued.options);
       delete customElements.queue[name];
     }
     customElements.flush = function () {
       Object.keys(customElements.queue).map(customElements.dequeue)
     }
     customElements.define = function (name, ctor, options?) {
+      // Not managed by ce-autoloader, don't queue it!
+      if (!DEFERRED_REGISTRIES.some((registry) => registry.getLoader(name))) {
+        return define(name, ctor, options);
+      }
+
       customElements.queue[name] = { "ctor": ctor, "options": options };
     }
 

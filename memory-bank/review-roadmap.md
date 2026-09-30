@@ -11,8 +11,10 @@ finish an item, strike it in **both** files. Reviewer-facing risks are listed af
       `define()`.
       - Still open inside this item: re-check `prefers-reduced-motion` **per element**, not once in the constructor.
 - [x] Fix packaging: ESM-only (no `require`/UMD), `"sideEffects": false`, `shadow-observer` external.
-- [ ] **Make the define-queue safe** — make the `customElements.define` patch opt-in, auto-drain the queue when a
-      non-catalog definition arrives, document third-party-script implications.
+- [ ] **Make the define-queue safe** — **partially done:** non-catalog definitions are forwarded to the original
+      `define` (consulted via `getLoader()` across every registry that installed the queue), `dequeue()` is
+      idempotent, `clean()` opts a registry out, and README documents it. **Still open:** make the patch opt-in.
+      Covered by `test/transitions.test.js`.
 - [ ] **Stop destroying light DOM in `retry()`** — snapshot once, or remove only what the fallback injected.
 - [ ] **Add completion signals** — `ce:load` / `ce:error` CustomEvents + `registry.whenLoaded(tag)`.
 

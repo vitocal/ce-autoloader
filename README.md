@@ -177,7 +177,7 @@ You can customize the transition per-element using attributes:
 For the hackers and performance nerds:
 
 - **Wildcard Resolvers:** Map an entire library prefix (e.g., `carbon-*`) to a dynamic import function.
-- **Deferred Definitions:** With transitions enabled, `ce-autoloader` swaps the global `customElements.define` for a queue. Each component is defined with `customElements.dequeue(tag)` and the rest are flushed with `customElements.flush()`. Without transitions, `define` is only patched to swallow "already defined" errors.
+- **Deferred Definitions:** With transitions enabled, `ce-autoloader` swaps the global `customElements.define` for a queue, so a batch of components can be defined on the same frame. Only tags that resolve to a catalog entry are deferred — each one is defined with `customElements.dequeue(tag)`, and the rest are flushed with `customElements.flush()`. Anything else (a third-party script, a module registering extra tags) is passed straight to the original `define`, so it still upgrades normally. Without transitions, `define` is only patched to swallow "already defined" errors.
 - **Telemetry:** Every load and definition is timed using the User Timing API. Check your "Performance" tab in DevTools for `load:tag-name` and `define:tag-name` markers.
 - **Retry Logic:** If a component fails to load (e.g., flaky CDN), use `registry.retry(el)` to attempt a reload.
 - **Manual Cleanup:** Use `registry.clean()` to disconnect all observers and stop watching the DOM.

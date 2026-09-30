@@ -130,6 +130,8 @@ That combination — tiny, standards-only, framework-agnostic — is the heart o
 - [X] ~~**Fix the await in `runScopedViewTransition`** (`src/index.ts:441`): `forEach` returns `undefined`. Use `for...of` or `Promise.all(elements.map(...))` so definitions are actually awaited and errors surface.~~
 - [X] ~~**Guard element-scoped view transitions.** Check `Element.prototype.startViewTransition` and fall back to a plain `define()` (with a try/catch); re-check `prefers-reduced-motion` per element, not just once in the constructor.~~
 - [ ] **Make the define-queue safe.** Make the `customElements.define` patch opt-in, auto-drain the queue when a non-catalog definition arrives, and document what it means for third-party scripts.
+  - [X] ~~**Auto-drain done** (`src/index.ts`): `customElements.define` forwards to the original `define` whenever the tag is not in a catalog (`getLoader()`), so third-party registrations are never swallowed. Every registry that installs the queue is consulted (`DEFERRED_REGISTRIES`), `dequeue()` is idempotent, and `clean()` opts a registry out. Covered by `test/transitions.test.js`.~~
+  - [ ] Still open: the patch is always installed when transitions are on — making it **opt-in** is not done.
 - [ ] **Stop destroying light DOM in `retry()`** (`src/index.ts:626–636`). Snapshot once, or remove only what the fallback injected.
 - [ ] ~~**Fix packaging.** Either emit a real CJS/UMD entry or remove `main`/`exports.require` and declare ESM-only; add `"sideEffects": false` and a `./package.json` export; decide whether `shadow-observer` is a dependency or externalized.~~
 - [ ] **Add completion signals**: `ce:load` / `ce:error` CustomEvents and `registry.whenLoaded(tag)`.

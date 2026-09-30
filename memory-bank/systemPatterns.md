@@ -61,7 +61,8 @@ transition, useImportMapsCatalog, hooks })`
 - `preload(componentNames[])` — fetch + define tags right now (the module is awaited, `define` is not awaited).
 - `retry(el)` — only for `ce="error"` elements; clears `ce`/`error`/`stack`/`retries`, **clears `innerHTML`**
   (known light-DOM-destroying bug), then `loadAndDefine([el])`.
-- `clean()` — disconnect all observers (used by tests between suites).
+- `clean()` — disconnect all observers and opt the registry out of the deferred define queue (used by tests
+  between suites).
 - `getLoader(name)` — public catalog lookup incl. wildcard.
 - `polyfill_swallow_alreadyDefined()` / `polyfill_defer_define()` — public, idempotent-ish polyfill installers.
 
@@ -85,6 +86,12 @@ transition, useImportMapsCatalog, hooks })`
 - **Define-queue pattern** (`polyfill_defer_define`) — replaces `customElements.define` with a queue
   (`customElements.queue` + `dequeue(name)` + `flush()`), letting definitions be batched inside a transition's
   `update` callback. This is the highest-risk part of the library (it patches a DOM standard document-wide).
+  - **Deferral rule:** a definition is queued only when `getLoader(name)` resolves it through a catalog of a
+    registry that installed the queue — the module-level `DEFERRED_REGISTRIES` list exists because the patched
+    `define` is global while catalogs are per registry. Everything else is forwarded to `ORIGINAL_DEFINE`
+    immediately, so third-party registrations can never be swallowed.
+  - `dequeue(name)` is idempotent (no-op for already-defined or unknown names), `flush()` drains the queue, and
+    `clean()` removes the registry from `DEFERRED_REGISTRIES`.
 - **Capability detection** — `SUPPORTS_SCOPED_VT = "startViewTransition" in Element.prototype` is evaluated once
   at module scope.
 

@@ -15,6 +15,11 @@ _Status snapshot: 2026-09-30, branch `tier0-fixes` @ `d898c37`, package v0.1.2._
 - **Transitions**: element-scoped `startViewTransition` with `types: ["ce"]`, per-element
   `view-transition-name` / `view-transition-class`, `ready` / `finished` hooks, capability guard + plain-define
   fallback.
+- **Deferred define queue (safe)**: with transitions on, `customElements.define` is queued so definitions can be
+  batched (`customElements.queue` / `dequeue()` / `flush()`). Only tags that resolve through `getLoader()` are
+  deferred — across **every** registry that installed the queue — and everything else (third-party scripts,
+  modules registering extra tags) is forwarded to the original `define` immediately. `dequeue()` is idempotent,
+  and `clean()` opts a registry out. Verified end-to-end by `test/transitions.test.js`.
 - **Observability**: `performance.mark/measure` for `load:<tag>` and `define:<tag>` with error detail; covered by
   `test/observability.test.js`.
 - **Error handling**: `ce="error"` + `error`/`stack`/`retries` attributes, `fallback` component rendering,
@@ -22,8 +27,9 @@ _Status snapshot: 2026-09-30, branch `tier0-fixes` @ `d898c37`, package v0.1.2._
 - **Import-map catalog**: `useImportMapsCatalog` (and the `?autoload` URL canary) builds the catalog from the
   page's own `<script type="importmap">`.
 - **Packaging**: ESM-only, `exports`/`main`/`module` → `dist/ce-autoloader.js`, types `dist/dist.d.ts`,
-  `sideEffects: false`, `shadow-observer` external. `npm run build` verified clean on 2026-09-30: Vite reports
-  `9.29 kB` raw / `gzip: 3.18 kB`, and `gzip -c dist/ce-autoloader.js` is 3,268 bytes — the "3 KB" claim holds.
+  `sideEffects: false`, `shadow-observer` external. `npm run build` verified clean on 2026-09-30 (after the
+  define-queue fix): Vite reports `9.46 kB` raw / `gzip: 3.25 kB`, and `gzip -c dist/ce-autoloader.js` is
+  **3,258 bytes** — the "3 KB" claim holds (REVIEW.md's 3,286-byte figure is slightly stale).
 - **Docs/demo site**: Vite MPA build into `docs/` (GitHub Pages) — React/Vue/Svelte/Lit/Stencil/Preact/vanilla
   components, Three.js cube, `globe.gl`, `model-viewer`, confetti, QR code, observable plots, live performance
   plot, framework comparison demos.
@@ -38,7 +44,8 @@ _Status snapshot: 2026-09-30, branch `tier0-fixes` @ `d898c37`, package v0.1.2._
 - [x] Await fix in `runScopedViewTransition`
 - [x] Element-scoped view transition guard + plain-define fallback
 - [x] Packaging (ESM-only, `sideEffects: false`, external `shadow-observer`)
-- [ ] Define-queue safety: opt-in patch, auto-drain on non-catalog definitions, docs
+- [ ] Define-queue safety — **partially done**: non-catalog forwarding + multi-registry `getLoader()`
+      consultation + idempotent `dequeue()` + `clean()` opt-out (tested). **Open:** opt-in patch.
 - [ ] Non-destructive `retry()` (stop clearing `innerHTML`)
 - [ ] Completion signals: `ce:load` / `ce:error` events + `registry.whenLoaded(tag)`
 
@@ -70,7 +77,7 @@ byte budgets, integrity + pinning as first-class features, and eventual delegati
 | # | Issue | Where | Status |
 | --- | --- | --- | --- |
 | 1 | `getMutationObserver()` always returns native `MutationObserver` because the `finally` block returns, overriding the `try` — `ShadowObserver` is never used, so shadow-root discovery is effectively dead | `src/index.ts` → `getMutationObserver` | **Unfixed (observed)** |
-| 2 | Global `customElements.define` patch: `customElements.get()` returns `undefined` for classes it queued, `whenDefined()` may never settle, the queue never auto-drains, and third-party scripts silently never upgrade | `polyfill_defer_define` / `polyfill_swallow_alreadyDefined` | Tier 0 open |
+| 2 | Global `customElements.define` patch: `customElements.get()` still returns `undefined` for classes it queued, `whenDefined()` only settles after `dequeue()`, and the patch is not opt-in. **Fixed here:** non-catalog definitions are forwarded to the original `define` (no more silent non-upgrades), the deferral decision consults `getLoader()` across `DEFERRED_REGISTRIES`, `dequeue()` is idempotent, `clean()` opts out | `polyfill_defer_define` / `polyfill_swallow_alreadyDefined` | Partially fixed (opt-in still open) |
 | 3 | `retry()` clears `innerHTML`, destroying slotted light DOM and server-rendered fallbacks | `retry()` | Tier 0 open |
 | 4 | Mutation watcher skips by the mutation *target's* tag name, so one failed `<x-foo>` can suppress discovery for the `x-foo` tag elsewhere on the page | `watcher()` + `#errors` | Tier 1 |
 | 5 | `REVIEW.md` reported `characterData: true`; the current source observes only `childList` + `subtree` (plus a non-standard `shadow: 1` that native observers ignore), and a full-root `querySelectorAll` runs on every batch | `watchDOMMutations()` | Tier 1 |
@@ -83,6 +90,7 @@ byte budgets, integrity + pinning as first-class features, and eventual delegati
 | 12 | Stencil Vite plugin is imported but never registered in `vite.docs.js` | `vite.docs.js` | Dead import |
 | 13 | No CI; performance claims rest on a screenshot; the test suite requires network (`esm.sh`, `unpkg`) | repo/infra | Tier 1 |
 | 14 | GPL-3.0 blocks some corporate adoption | `LICENSE` | Tier 2 (deliberate) |
+| 15 | A skipped view transition rejects `transition.ready` (`AbortError: Transition was skipped`) and the library attaches no rejection handler → unhandled promise rejection (observed as a Puppeteer `pageerror` + entry in the harness `#errors` panel). Happens whenever two components in one batch transition on the same parent | `runScopedViewTransition` | Open (fix suggested in `activeContext.md`) |
 
 ## Evolution of decisions
 
