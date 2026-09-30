@@ -1,72 +1,44 @@
-# Tech Context — ce-autoloader
+# Tech context
 
 ## Stack
 
-- **Language:** TypeScript (source), plain ESM output. `tsconfig.json`: `target: es2025`, `module: esnext`,
-  `isolatedModules`, `noEmit`, `jsx: react-jsx`, `strict: false`, `noUnusedLocals`/`noUnusedParameters` on,
-  `experimentalDecorators`, `libReplacement`. `include: ["src/*"]`.
-  - `react`, `react-dom` and their subpaths are path-aliased to `preact/compat` — **Preact is the React in this
-    repo.**
-- **Build (library):** Vite library mode + `vite-plugin-dts` (`rollupTypes: true`, `insertTypesEntry: true`).
-  `vite.config.js`: entry `src/index.ts`, name `CEAutoLoader`, fileName `ce-autoloader`, `formats: ["es"]`,
-  `external: ["shadow-observer"]`, `copyPublicDir: false`, `emptyOutDir: true`.
-- **Build (docs/demo):** `vite.docs.js` — MPA (`appType: "mpa"`), output to `docs/`, `base` = `/ce-autoloader/`
-  when `NODE_ENV=production` else `/`, inputs = `index.html` + every `.html` under `pages/` and `test/`,
-  `modulePreload: false`, `chunkFileNames: "chunks/[name].js"`, `manifest: false`, `sourcemap: true`,
-  alias `@ → pages`.
-- **Plugins used for the demo:** `@vitejs/plugin-vue` (all dashed tags treated as custom elements),
-  `@sveltejs/vite-plugin-svelte` (`customElement: true`), `@preact/preset-vite`, `importmap-vite-plugin`
-  (provides `virtual:importmap`); `@stencil-community/unplugin-stencil` is **imported but not registered** in
-  `vite.docs.js` (`stencil` is currently an unused import).
-- **`optimizeDeps.exclude`:** `@nordhealth/components`, `lit`, `lit-html`, `@lit/reactive-element`,
-  `lit/static-html.js`, `shadow-observer`.
-- **Tests:** Mocha (browser, loaded from unpkg) + Chai + `uhtml` (from `esm.sh`) + Puppeteer (headless) driving a
-  Vite dev server. See `memory-bank/testing.md`.
-- **Runtime deps:** none shipped. `peerDependencies: { "shadow-observer": "^0.1.7" }`, declared `external` in the
-  Rollup config. `sideEffects: false`. `exports` only exposes `.` → `dist/ce-autoloader.js` with types
-  `dist/dist.d.ts`. `main`/`module` also point at the ESM bundle (packaging was fixed on this branch: no
-  `require`/UMD entry any more).
-- **`customElements` manifest:** `package.json` declares `"customElements": "custom-elements.json"`, but
-  **no such file is generated** by any script and `@custom-elements-manifest/analyzer` is installed but unused.
-- **Docs/demo frameworks in `devDependencies`:** vue, svelte, preact, lit, react(-dom) [→preact], three.js,
-  `@google/model-viewer`, `globe.gl`, `nordhealth/components`, `canvas-confetti`, `qrcode-pix`, `navigo`,
-  `syntax-highlight-element`, `@r2wc/react-to-web-component`, `view-transitions-toolkit`,
-  `@preact/signals-core|react`, `remount`, `puppeteer`, `mocha`, `chai`.
-
-## Environment (verified)
-
-- Node **v25.8.1**, npm **11.11.0** (macOS/darwin).
-- Current branch **`tier0-fixes`** @ `d898c37` ("Organize integration test"); `origin` =
-  https://github.com/vitocal/ce-autoloader ; `origin/main` @ `607a012` ("Update docs").
-- `dist/` is built and gitignored; `docs/` is committed output (GitHub Pages).
-- `package-lock.json` is gitignored.
+- TypeScript source (`src/index.ts`), ESM-only output. `tsconfig`: `target es2025`, `module esnext`,
+  `isolatedModules`, `strict: false`, `noUnusedLocals`, `jsx: react-jsx` with **`react` and `react-dom` aliased
+  to `preact/compat`** (Preact is the React in this repo).
+- Library build: `vite.config.js` — lib mode + `vite-plugin-dts` (rolled-up types), `formats: ["es"]`,
+  `external: ["shadow-observer"]`.
+- Docs/demo build: `vite.docs.js` — Vite MPA, `base: /ce-autoloader/` in production, output `docs/`, plugins for
+  Vue, Svelte (`customElement: true`), Preact and import maps. The Stencil plugin is imported but never registered.
+- Tests: Mocha (unpkg) + Chai + `uhtml` (esm.sh) + headless Puppeteer on a Vite dev server → `testing.md`.
+- No runtime dependencies. `peerDependencies: shadow-observer` (external, and currently unused). `sideEffects:
+  false`. `package.json` advertises `custom-elements.json`, which nothing generates.
 
 ## Commands
 
-| Command                              | What it does                                                                                                                                                                                  |
-| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run build`                      | Build the library with `vite.config.js` → `dist/` (also runs on `prepack`)                                                                                                                    |
-| `npm run dev`                        | Docs/demo dev server via `vite.docs.js` (default port **5173**)                                                                                                                               |
-| `npm run build:docs`                 | Build the docs site into `docs/` (use `NODE_ENV=production npm run build:docs` for the GH Pages base path)                                                                                    |
-| `npm test` → `npm run test:headless` | `node scripts/run-integration-tests.js`: spawns `npm run dev`, waits 3 s, runs Mocha tests in headless Puppeteer at `http://localhost:5173/test/integration.html`, exits non-zero on failures |
-| `npm publish`                        | Publish (`prepack` rebuilds) to npm                                                                                                                                                           |
+| Command | Notes |
+| --- | --- |
+| `npm run dev` | docs/demo dev server on port 5173 |
+| `npm run build` | library → `dist/` (also runs on `prepack`) |
+| `NODE_ENV=production npm run build:docs` | rebuilds all of `docs/` with new hashes — **restore `docs/.nojekyll` afterwards** (Vite empties the output dir) |
+| `npm test` | `scripts/run-integration-tests.js`: dev server + headless Puppeteer + Mocha |
+| `npm publish` | `prepack` rebuilds first |
 
-## Technical constraints & gotchas
+While iterating, prefer the Chrome DevTools MCP over `npm test` — see `testing.md`.
 
-- **ESM-only.** No CJS/UMD entry; `require("ce-autoloader")` is not supported (by design).
-- **Element-scoped view transitions are Chromium-only** (`Element.prototype.startViewTransition`) — guarded by
-  `SUPPORTS_SCOPED_VT`; transition default is therefore off in Firefox/Safari. Document-scoped
-  `document.startViewTransition` is broadly available and is used in the commented-out legacy path.
-- **`prefers-reduced-motion`** is checked **once in the constructor**, not per element.
-- `src/index.ts` module tail: if the loaded URL has `?autoload` in its query string, it immediately creates
-  `window.registry = new CEAutoLoader({ useImportMapsCatalog: true })` — this is a side effect at module scope
-  (mitigated by `sideEffects: false` in `package.json`).
-- `types.d.ts` augments the DOM globally: `window.registry`, `CSSStyleDeclaration.viewTransitionClass`,
-  `HTMLElement.startViewTransition`, `CustomElementRegistry.queue/flush/dequeue`, plus a `globe.gl` ambient
-  module declaration.
-- `importmap.json` pins everything to `@latest` (known reproducibility problem — Tier 1 backlog).
-- The docs catalog intentionally routes some entries through bare specifiers (`lit`, `@nordhealth/components`,
-  `@google/model-viewer`) which are resolved by the import map, not the bundler (`/* @vite-ignore */` is used for
-  dynamic bare-specifier imports).
-- Formatting: Prettier config (`.prettierrc`) — `printWidth: 120`, double quotes, `tabWidth: 2`, trailing commas
-  `all`. The existing source does not consistently follow it; match surrounding code rather than reformatting.
+## Gotchas
+
+- **Element-scoped view transitions are Chromium 147+ (64.9% global; no Firefox, no Safari).** `SUPPORTS_SCOPED_VT`
+  gates the entire transition path, so in Firefox/Safari the queue is never installed either.
+- `@starting-style` and `transition-behavior: allow-discrete` are Baseline (Chrome/Edge 117, Firefox 129,
+  Safari 17.5 / 17.4) — unlike element-scoped transitions. That gap is why the CSS-only animation path matters.
+- `prefers-reduced-motion` is read once, in the constructor — not per element.
+- `intersectionOptions: { scrollMargin: "20%" }` does nothing; `IntersectionObserver` only understands `rootMargin`.
+- `shadow-observer` is awaited and then ignored (the `finally` wins — bug #1).
+- `?autoload` in the module URL boots `window.registry` with the import-map catalog: a module-scope side effect.
+- `importmap.json` pins CDN entries to `@latest` (Tier 1: pin + `integrity`).
+- Prettier is configured for 2 spaces, double quotes, 120 columns — the source does not follow it consistently,
+  so match the file you are editing instead of reformatting.
+
+Refs: [caniuse: `Element.startViewTransition`](https://caniuse.com/mdn-api_element_startviewtransition) ·
+[Chrome: element-scoped view transitions](https://developer.chrome.com/blog/element-scoped-view-transitions) ·
+[web.dev: Baseline entry animations](https://web.dev/blog/baseline-entry-animations)

@@ -8,6 +8,12 @@ The Memory Bank consists of core files and optional context files, all in Markdo
 
 ### Core Files (Required)
 
+0. `personality.md`
+   - Foundation document that shapes our tone and personality
+   - Created at project start if it doesn't exist
+   - Defines personality, verbosity level, tone and world view
+   - Allow and forbidden user preferences
+
 1. `projectbrief.md`
    - Foundation document that shapes all other files
    - Created at project start if it doesn't exist

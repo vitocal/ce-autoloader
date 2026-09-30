@@ -1,109 +1,51 @@
-# System Patterns — ce-autoloader
+# System patterns
 
-## Architecture in one line
+## Flow
 
-`CEAutoLoader` owns a **catalog** and an **observer set**. When a tag becomes eligible (per its directive), the
-loader resolves it to a module, imports it, and defines the element — batching definitions per animation frame and
-optionally wrapping them in a view transition.
+`new CEAutoLoader(options)` → merge options, resolve the catalog (option, else the page's import map) → maybe
+install the deferred define queue → `discover()`.
 
-## Main class: `CEAutoLoader` (default export, `src/index.ts`)
+`discover` → `watchDOMMutations()` (100 ms debounce) + `upgrade(root, directive)` for each configured directive,
+then `upgrade(root)` for tags without a `loading` attribute.
 
-`new CERegistry({ catalog, root, live, directives, defaultDirective, fallback, intersectionOptions,
-transition, useImportMapsCatalog, hooks })`
+`upgrade` → `matchCustomElement(root)` (`:not(:defined)` and the tag contains `-`) → filter by `loading` → dispatch:
 
-| Member | Purpose |
+| directive | action |
 | --- | --- |
-| `options` | Merged defaults: `live: true`, `root: document.body`, `directives: ["eager","visible","click"]`, `defaultDirective: "visible"`, `transition: SUPPORTS_SCOPED_VT && !prefers-reduced-motion`, `intersectionOptions: { scrollMargin: "20%" }` |
-| `catalog` | `Record<string, Loader>`; when `options.catalog` is falsy the catalog is read from the page's `<script type="importmap">` (`map.imports`) and throws `"Catalog is empty…"` if it has no keys |
-| `_resolvers` | (legacy/unused field) runtime resolver map |
-| `activeTransition` | Current `ViewTransition`, if any |
-| `loading_locks` | `Record<tagName, HTMLElement>` — prevents re-triggering a tag while its module is in flight |
-| `#errors` | `Record<tagName, LoadError>` — also used to *skip* mutations for tags that already failed |
-| `#observers` | `{ mutation?: MutationObserver, intersection?: IntersectionObserver }` |
-| `#initialized` | Guards one-time MutationObserver setup |
+| `visible` (default) | one shared `IntersectionObserver`, one batch per intersecting element |
+| `click` | `addEventListener("click", …, { once: true })` |
+| `eager`, `manual` | `loadAndDefine(elements)` now (`manual` is normally triggered by `registry.upgrade(root, "manual")`) |
+| anything else | `console.error` — that branch references an undefined `ce_elements` (bug #7 in `progress.md`) |
 
-### Lifecycle / critical path
+`loadAndDefine` → `Promise.allSettled(elements.map(load))` → report load failures → split the survivors into
+**to_morph** (not defined yet; wrapped in a view transition) and **already_defined** (plain define) → report
+define failures → `customElements.flush()` when the queue is installed.
 
-1. **constructor** → merges options, resolves catalog, installs the define polyfill
-   (`polyfill_defer_define()` when `transition && SUPPORTS_SCOPED_VT`, else
-   `polyfill_swallow_alreadyDefined()` and `transition = false`), then `discover()`.
-2. **discover(root)** → if `live && !#initialized`: `watchDOMMutations()`; then `upgrade(root, directive)` for
-   each configured directive, then `upgrade(root)` for elements with no `loading` attribute. Sets `#initialized`.
-3. **upgrade(root, directive)** → `matchCustomElement(root)` (`:not(:defined)` + tag contains `-`), filtered by
-   `filterByLoadingAttribute(directive)`, then dispatched by `applyLoadingDirective`:
-   - `visible` → lazy-create a single shared `IntersectionObserver` (draining pending entries via `takeRecords()`
-     when it already exists) and `observe` each element
-   - `click` → `addEventListener("click", when_clicked, { once: true })`
-   - `manual` / `eager` → `loadAndDefine(elements)` immediately
-   - anything else → `console.error("Invalid directive for upgrade()", …)` (that branch references an undefined
-     `ce_elements` identifier)
-4. **loadAndDefine(elements)** → `Promise.allSettled(elements.map(load))` → `handleComponentLoadError` for each
-   rejection → then `runScopedViewTransition(success, define)` if transitions are on, else
-   `Promise.allSettled(success.map(define))` → finally `customElements.flush()` when transitions are on.
-5. **load(el)** → resolve loader (`catalog[name]` or wildcard prefix `nord-*`), set `ce="loading"`, register the
-   loading lock, `loadModule()`, then `performance.mark/measure` `load:<tag>` (inside `finally`, so it runs on
-   error too).
-6. **loadModule(name, loader)** → string → `import(/* @vite-ignore */ url)`; function → `loader(name, el)`.
-7. **define({name, el, module})** → unwraps ES module namespace (`.default`); with transitions enabled it queues
-   via `customElements.define(name, module, {})` + `customElements.dequeue(name)`, otherwise it defines directly;
-   sets `ce="defined"`, emits `define:<tag>` timing.
-8. **handleComponentLoadError(rejection)** → sets `ce="error"`, `error`, `stack`, `retries` attributes; renders
-   `options.fallback` if given, otherwise calls `options.hooks.error`.
-9. **runScopedViewTransition** → sets `view-transition-name` (default = tagName) and `view-transition-class`
-   (default = `ce`) inline styles, then `el.parentElement.startViewTransition({ types: ["ce"], update })` per
-   component, tracking `activeTransition`, resolving `hooks.viewTransition.ready/finished` and clearing the
-   inline styles when finished.
+`load(el)` → `getLoader(name)` (exact catalog key, else the wildcard prefix) → `ce="loading"` + a per-tag lock →
+`loadModule` (string → `import(url)`, function → `loader(name, el)`) → `load:<tag>` measure in `finally`.
 
-### Public API
+`define({name, el, module})` → unwrap `.default` → **already defined** → nothing; **queue installed** → queue then
+`dequeue(name)`; **otherwise** → guarded `define()`. Then `ce="defined"` and a `define:<tag>` measure (both in
+`finally`).
 
-- `discover(root?)` — set up observers + upgrade everything matching directives.
-- `upgrade(root?, directive?)` — upgrade a subtree for a directive (or for elements without `loading`).
-- `preload(componentNames[])` — fetch + define tags right now (the module is awaited, `define` is not awaited).
-- `retry(el)` — only for `ce="error"` elements; clears `ce`/`error`/`stack`/`retries`, **clears `innerHTML`**
-  (known light-DOM-destroying bug), then `loadAndDefine([el])`.
-- `clean()` — disconnect all observers and opt the registry out of the deferred define queue (used by tests
-  between suites).
-- `getLoader(name)` — public catalog lookup incl. wildcard.
-- `polyfill_swallow_alreadyDefined()` / `polyfill_defer_define()` — public, idempotent-ish polyfill installers.
+## The define queue — the risky part
 
-## Key design decisions / patterns
+Self-registering modules (`customElements.define` at import time) are the common case; 18 of the 20 demo
+components do it. `loadAndDefine` imports *before* the transition starts, so without help they upgrade outside the
+snapshot window and the morph is lost. The queue retimes those definitions into the transition's `update` callback.
 
-- **Directive dispatch table** (`applyLoadingDirective`) keeps "when to load" orthogonal from "how to load".
-- **One shared IntersectionObserver** for all visible elements (created lazily, reused). Note: `upgrade()` builds
-  the `visible`/`interaction`/`applyLoadingDirective` closures on every call.
-- **Debounced mutations**: `debounceMutations(fn, 100)` accumulates `MutationRecord`s so a burst of DOM writes
-  triggers one discovery pass. `characterData` is not observed; a non-standard `shadow: 1` hint is passed
-  (native `MutationObserver` ignores unknown options).
-- **Loading locks by tag name** — a whole tag is locked while one instance loads; cleared in `finally`.
-- **Failure memoization** — `#errors` blocks re-discovery for a tag that already failed, unless `retry()` is used.
-- **`ce` attribute as a state machine** — `loading` → `defined` | `error`; all styling hooks are CSS-selectable,
-  so skeletons/spinners/fades need no JS.
-- **Native telemetry** — `performance.mark`/`measure` with `detail: { name, type, error }`, emitted from
-  `finally` blocks so failures are still timed.
-- **Idempotent polyfill capture** — `var ORIGINAL_DEFINE = ORIGINAL_DEFINE || customElements.define.bind(customElements)`
-  keeps a pristine `define` so repeated evaluation cannot double-wrap the registry. Both polyfills close over
-  `ORIGINAL_DEFINE`, never over the patched one.
-- **Define-queue pattern** (`polyfill_defer_define`) — replaces `customElements.define` with a queue
-  (`customElements.queue` + `dequeue(name)` + `flush()`), letting definitions be batched inside a transition's
-  `update` callback. This is the highest-risk part of the library (it patches a DOM standard document-wide).
-  - **Deferral rule:** a definition is queued only when `getLoader(name)` resolves it through a catalog of a
-    registry that installed the queue — the module-level `DEFERRED_REGISTRIES` list exists because the patched
-    `define` is global while catalogs are per registry. Everything else is forwarded to `ORIGINAL_DEFINE`
-    immediately, so third-party registrations can never be swallowed.
-  - `dequeue(name)` is idempotent (no-op for already-defined or unknown names), `flush()` drains the queue, and
-    `clean()` removes the registry from `DEFERRED_REGISTRIES`.
-- **Capability detection** — `SUPPORTS_SCOPED_VT = "startViewTransition" in Element.prototype` is evaluated once
-  at module scope.
+- `deferDefine` (default on) controls the patch; `false` patches nothing at all.
+- `define()` guards itself with `customElements.get(name)`, so the old swallow-polyfill is gone.
+- Only names that resolve through a catalog are queued; everything else goes to the original `define` immediately.
+- `DEFERRED_REGISTRIES` exists because the patched `define` is one global function while catalogs are per registry;
+  `clean()` opts a registry out.
+- Known limits: the patch is document-wide, `customElements.get()` is `undefined` for queued classes until
+  `dequeue()` runs, and `whenDefined()` only settles then. Stage 2 (transient capture) is the plan → `roadmap.md`.
 
-## Relationship map
+## Conventions to keep
 
-- `src/index.ts` (library) ← consumed by `pages/index.js` (docs registry) ← `pages/components/catalog.js`
-  (docs catalog) and `index.html` (docs landing page).
-- `pages/utils.ts` provides `loadCSSLayer`, `setupImportMap()` (injects `virtual:importmap` as a real
-  `<script type="importmap">`) and `adoptStylesheet`.
-- `pages/examples/mfe-store/` = micro-frontend demo: `explore` (JSX/Preact team), `decide` (Vue team),
-  `checkout` (Svelte team), each with its own catalog/database/router, composed by `components/router.ts`.
-- `importmap.json` + `importmap-vite-plugin` supply the bare specifiers used by the docs page and are also the
-  runtime catalog source when `useImportMapsCatalog` is set.
-- `dist/` = published artifact (`ce-autoloader.js`, `index.d.ts`, `dist.d.ts`); `docs/` = committed GitHub Pages
-  build of the demo site.
+`ce` values (`loading` / `defined` / `error`) and the measure names are public contract · option defaults live in
+one object in the constructor · one shared IntersectionObserver for all `visible` elements · no runtime
+dependencies · capability checks instead of polyfills, with a plain-define fallback.
+
+Refs: [MDN: using custom elements](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements)

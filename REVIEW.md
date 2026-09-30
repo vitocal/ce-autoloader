@@ -30,14 +30,14 @@ One sentence: **`<script type="module">` plus a catalog map, and the DOM becomes
 | **Discovery** | A `MutationObserver` watches the DOM (via `shadow-observer` to reach into shadow roots, with a native fallback) and scans with `querySelectorAll(':not(:defined)')`. A 100 ms debounce keeps it civil. |
 | **Directives** | The `loading` attribute: `eager` (now), `visible` (in viewport), `click` (first interaction), `manual` (you call `registry.upgrade(root, "manual")`). Anything unknown currently falls through to an immediate load. |
 | **States as CSS** | Every element gets a `ce` attribute — `loading`, `defined`, `error`. Skeletons, spinners and fade-ins become plain CSS. No JS required. |
-| **Define queue** | While transitions are enabled, `customElements.define` is replaced by a queue (`customElements.queue`) with `customElements.dequeue()` / `customElements.flush()`, so definitions can be batched instead of firing one by one. |
+| **Define queue** | While transitions are enabled, `customElements.define` is replaced by a queue (`customElements.queue`) with `customElements.dequeue()` / `customElements.flush()`, so definitions can be batched instead of firing one by one. The patch is an explicit switch (`deferDefine`, on by default); `deferDefine: false` never touches the registry. Only tags that resolve to a catalog entry are deferred — everything else is forwarded to the original `define`. |
 | **Transitions** | Definitions can be wrapped in a `ViewTransition` (`types: ['ce']`, `view-transition-name`, `view-transition-class`) so a placeholder can morph into a real component. |
 | **Telemetry** | `performance.mark` / `measure` for every `load:<tag>` and `define:<tag>`, visible natively in the DevTools Performance panel. No vendor SDK. |
 | **Errors** | Failed loads set `ce="error"` plus `error` / `stack` / `retries` attributes, can render a fallback component, and can be retried with `registry.retry(el)`. |
 
 ### Numbers we verified
 
-- **3,286 bytes gzipped** for the main bundle (`gzip -c dist/ce-autoloader.js`) — the "3kb, no dependencies" claim holds.
+- **3,391 bytes gzipped** for the main bundle (`gzip -c dist/ce-autoloader.js`) — the "3kb, no dependencies" claim holds. (3,258 before Stage 1 of the define-patch plan; the `deferDefine` switch, the guards and the explicit errors added ~130 bytes, and Stage 2 should give them back.)
 - **One source file**, 683 lines of readable TypeScript, zero runtime dependencies in the shipped entry.
 - The React / Vue / Svelte / Lit / Stencil / vanilla claim is **real**: it's verified by the demo catalogs, not marketing.
 
@@ -130,8 +130,8 @@ That combination — tiny, standards-only, framework-agnostic — is the heart o
 - [X] ~~**Fix the await in `runScopedViewTransition`** (`src/index.ts:441`): `forEach` returns `undefined`. Use `for...of` or `Promise.all(elements.map(...))` so definitions are actually awaited and errors surface.~~
 - [X] ~~**Guard element-scoped view transitions.** Check `Element.prototype.startViewTransition` and fall back to a plain `define()` (with a try/catch); re-check `prefers-reduced-motion` per element, not just once in the constructor.~~
 - [ ] **Make the define-queue safe.** Make the `customElements.define` patch opt-in, auto-drain the queue when a non-catalog definition arrives, and document what it means for third-party scripts.
-  - [X] ~~**Auto-drain done** (`src/index.ts`): `customElements.define` forwards to the original `define` whenever the tag is not in a catalog (`getLoader()`), so third-party registrations are never swallowed. Every registry that installs the queue is consulted (`DEFERRED_REGISTRIES`), `dequeue()` is idempotent, and `clean()` opts a registry out. Covered by `test/transitions.test.js`.~~
-  - [ ] Still open: the patch is always installed when transitions are on — making it **opt-in** is not done.
+  - [X] ~~**Stage 1 done** (`src/index.ts`): `customElements.define` forwards to the original `define` whenever the tag is not in a catalog (`getLoader()`), so third-party registrations are never swallowed. Every registry that installs the queue is consulted (`DEFERRED_REGISTRIES`), `dequeue()` is idempotent, `clean()` opts a registry out, and the patch is now an explicit switch — `deferDefine` (on by default; `false` never patches, and the swallow polyfill is gone, so unsupported browsers patch nothing). Define-phase failures are reported as `ce="error"` instead of being swallowed by `Promise.allSettled`, and a skipped transition no longer leaks an unhandled rejection. Covered by `test/transitions.test.js`.~~
+  - [ ] Still open: making the patch **opt-in by default**, or replacing it with a transient capture — see the staged plan in `memory-bank/roadmap.md`.
 - [ ] **Stop destroying light DOM in `retry()`** (`src/index.ts:626–636`). Snapshot once, or remove only what the fallback injected.
 - [ ] ~~**Fix packaging.** Either emit a real CJS/UMD entry or remove `main`/`exports.require` and declare ESM-only; add `"sideEffects": false` and a `./package.json` export; decide whether `shadow-observer` is a dependency or externalized.~~
 - [ ] **Add completion signals**: `ce:load` / `ce:error` CustomEvents and `registry.whenLoaded(tag)`.

@@ -100,6 +100,11 @@ const registry = new CERegistry({
   intersectionOptions: { scrollMargin: "20%" },
   /* Use the View Transitions API when supported (default: true) */
   transition: true,
+  /* Defer `customElements.define` during a load so components that register
+     themselves can morph too. `false` never patches the global registry:
+     self-registering components then upgrade without a transition.
+     (default: true whenever transitions are enabled) */
+  deferDefine: true,
   /* Fallback component class rendered when a load fails */
   fallback: MyErrorComponent,
   /* Lifecycle hooks */
@@ -143,6 +148,8 @@ my-component[ce="error"] {
 }
 ```
 
+Each state change is a plain style change on the same element, so CSS `transition` / `animation` / `@starting-style` can animate it — no JavaScript and no View Transitions API needed. The [CSS animation reference](https://vitocal.github.io/ce-autoloader/pages/examples/animations/css.html) documents which technique fits which situation.
+
 ### Directives (The `loading` attribute)
 
 Control exactly _when_ your code is fetched:
@@ -177,7 +184,7 @@ You can customize the transition per-element using attributes:
 For the hackers and performance nerds:
 
 - **Wildcard Resolvers:** Map an entire library prefix (e.g., `carbon-*`) to a dynamic import function.
-- **Deferred Definitions:** With transitions enabled, `ce-autoloader` swaps the global `customElements.define` for a queue, so a batch of components can be defined on the same frame. Only tags that resolve to a catalog entry are deferred — each one is defined with `customElements.dequeue(tag)`, and the rest are flushed with `customElements.flush()`. Anything else (a third-party script, a module registering extra tags) is passed straight to the original `define`, so it still upgrades normally. Without transitions, `define` is only patched to swallow "already defined" errors.
+- **Deferred Definitions:** Most catalogs are modules that register their own tag (`customElements.define` at import time). While transitions are enabled, `ce-autoloader` defers those definitions (`deferDefine`, on by default) so they land *inside* the view transition — that is what lets such a component morph instead of popping up. Only tags that resolve to a catalog entry are deferred: each is defined with `customElements.dequeue(tag)` and the rest are flushed. Anything else (a third-party script, a module registering extra tags) is passed straight to the original `define`, so it upgrades normally. Set `deferDefine: false` to never touch `customElements.define`: components whose loader *returns* a constructor keep morphing, self-registering ones upgrade without an animation, and third-party code is never intercepted. Without transitions the registry patches nothing at all.
 - **Telemetry:** Every load and definition is timed using the User Timing API. Check your "Performance" tab in DevTools for `load:tag-name` and `define:tag-name` markers.
 - **Retry Logic:** If a component fails to load (e.g., flaky CDN), use `registry.retry(el)` to attempt a reload.
 - **Manual Cleanup:** Use `registry.clean()` to disconnect all observers and stop watching the DOM.
