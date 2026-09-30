@@ -39,8 +39,7 @@ let catalog = {
     throw new Error(`An error occurred while loading the component "${name}"`);
   },
   "vi-notloaded": async (full_name, el) => {
-    let timeout = Number(el.getAttribute("timeout") || 900 * 1000);
-    await new Promise((resolve) => setTimeout(resolve, timeout));
+    await new Promise((resolve) => setTimeout(resolve, 900 * 1000));
   },
   "vi-defined": () => import("./vi/vi-defined.js"),
 

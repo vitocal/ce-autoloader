@@ -101,11 +101,12 @@ function matchCustomElement(root: Element) {
     .filter((el) => isCustomElement(el)) as HTMLElement[];
 }
 
-const isFulfilled = <T>(result: PromiseSettledResult<T>): result is PromiseFulfilledResult<T> =>
-  result.status === "fulfilled";
+const isFulfilled = <T>(result: PromiseSettledResult<T>): result is PromiseFulfilledResult<T> => result.status === "fulfilled";
+const isRejected = <T>(result: PromiseSettledResult<T>): result is PromiseRejectedResult => result.status === "rejected";
 
-const isRejected = <T>(result: PromiseSettledResult<T>): result is PromiseRejectedResult =>
-  result.status === "rejected";
+const SUPPORTS_SCOPED_VT = "startViewTransition" in Element.prototype;
+
+
 
 /**
  * CEAutoLoader automatically loads and defines custom elements from a catalog.
@@ -136,7 +137,7 @@ class CEAutoLoader {
       root: document.body,
       directives: ["eager", "visible", "click"],
       defaultDirective: "visible",
-      transition: "startViewTransition" in document.body &&
+      transition: SUPPORTS_SCOPED_VT &&
         !window.matchMedia(`(prefers-reduced-motion: reduce)`).matches,
       useImportMapsCatalog: false,
       intersectionOptions: {
@@ -158,8 +159,11 @@ class CEAutoLoader {
       this.catalog = options.catalog;
     }
 
-    if (!globalThis.DEFINE) {
-      monkeyPatchDefine();
+    if (this.options.transition && SUPPORTS_SCOPED_VT) {
+      this.polyfill_defer_define();
+    } else {
+      this.polyfill_swallow_alreadyDefined();
+      this.options.transition = false;
     }
 
     this.discover();
@@ -185,7 +189,6 @@ class CEAutoLoader {
     observer.observe(this.options.root || document.body, {
       childList: true,
       subtree: true,
-      characterData: true,
       shadow: 1
     });
 
@@ -241,12 +244,12 @@ class CEAutoLoader {
   }
 
   /**
-   * Preload those custom-elements
+   * Preload those specific custom-elements, right now!
    */
   async preload(components: string[]): Promise<void> {
     for (const comp_name of components) {
       const loader = this.getLoader(comp_name)
-      const module = await this._load(comp_name, loader);
+      const module = await this.loadModule(comp_name, loader);
       this.define({ name: comp_name, el: undefined, module: module })
     }
   }
@@ -272,7 +275,7 @@ class CEAutoLoader {
   }
 
   /**
-   * Upgrade the custom elements that has the given loading=`directive`.
+   * Upgrade all custom elements that has the loading=`directive`.
    *
    * @param directive - the behaviour of the loading, when the loading should happen.
    * If no directive is null, will upgrade all elements that doesnt have a loading attribute
@@ -422,87 +425,78 @@ class CEAutoLoader {
   /**
    * Perform a scoped element transition
    */
-  private async runScopedViewTransition(components: LoadResult[]) {
-    const elements = components.map(({ el, ...rest }) => {
+  private async runScopedViewTransition(components: LoadResult[], update_fn: (LoadResult) => Promise<any>) {
+    components.map(({ el }) => {
       const transitionName = el.getAttribute("view-transition-name") || el.tagName;
       const transitionClass = el.getAttribute("view-transition-class") || 'ce';
 
-      if (transitionName) {
-        el.style.viewTransitionName = transitionName;
-      }
-      if (transitionClass) {
-        el.style.viewTransitionClass = transitionClass;
-      }
-
-      return { el, ...rest };
+      if (transitionName) el.style.viewTransitionName = transitionName;
+      if (transitionClass) el.style.viewTransitionClass = transitionClass;
     });
 
-    await elements.map(async ({ el, name, module }) => {
-      const transition = el.parentElement.startViewTransition({
-        types: ['ce'],
-        update: async () => {
-          await this.define({ el, name, module })
+    await Promise.allSettled(
+      components.map(async ({ el, name, module }) => {
+        const transition = el.parentElement.startViewTransition({
+          types: ['ce'],
+          update: async () => {
+            await update_fn({ el, name, module })
+          }
+        });
+
+        this.activeTransition = transition;
+        if (this.options.hooks?.viewTransition?.ready) {
+          transition.ready.then(() => this.options.hooks.viewTransition.ready(transition));
         }
-      });
 
-      this.activeTransition = transition;
-      if (this.options.hooks?.viewTransition?.ready) {
-        transition.ready.then(() => this.options.hooks.viewTransition.ready(transition));
-      }
+        await transition.updateCallbackDone;
 
-      await transition.updateCallbackDone;
+        transition.finished.then(() => {
+          el.style.viewTransitionName = ""
+          el.style.viewTransitionClass = ""
 
-      transition.finished.then(() => {
-        el.style.viewTransitionName = ""
-        el.style.viewTransitionClass = ""
-
-        this.options.hooks?.viewTransition?.finished(transition)
-        this.activeTransition = null;
+          this.options.hooks?.viewTransition?.finished(transition)
+          this.activeTransition = null;
+        })
       })
-    });
+    );
   }
 
   /**
    * Load and define components
    *
    */
-  private async loadAndDefine(comps: HTMLElement[]) {
-    let elements = comps;
-
+  private async loadAndDefine(elements: HTMLElement[]) {
     if (elements.length === 0) {
       return [];
     }
 
-    const load_result = await Promise.allSettled(elements.map((el) => this.load(el)));
-    const load_success = load_result.filter(isFulfilled);
-    const load_fail = load_result.filter(isRejected);
+    // 1. Load the appropriate modules
+    const results = await Promise.allSettled(elements.map((e) => this.load(e)))
 
-    // Fallback for failed loads
-    if (load_fail.length > 0) {
-      await Promise.allSettled(load_fail.map(this.handleComponentLoadError.bind(this)));
-    }
+    // 2. Then, handle errors on per-case component basis
+    results.filter(isRejected).map((r) => this.handleComponentLoadError(r));
 
-    const defineComponents = async () => {
-      await Promise.allSettled(load_success.map((result) => this.define(result.value)));
-    };
-
+    // 3. Then, define the components on a single frame
+    const success = results.filter(isFulfilled).map((r) => r.value)
     if (this.options.transition) {
-      await this.runScopedViewTransition(load_success.map((result) => result.value));
+      await this.runScopedViewTransition(success, (r) => this.define(r))
     } else {
-      await defineComponents();
+      await Promise.allSettled(success.map((r) => this.define(r)))
     }
 
-    return load_result;
+    // 4. Flush any component that was defined outside of autoloader bounds
+    if (this.options.transition) customElements.flush();
+
+    return []
   }
 
-  /** Get the appropriate loader */
-  private getLoader(name): Loader {
+  /** Get the appropriate loader matching name */
+  public getLoader(name: string): Loader {
     return this.catalog?.[name] || this.getWildcardResolver(name);
   }
 
-
   /** Load the module */
-  private async _load(name: string, loader: Loader) {
+  private async loadModule(name: string, loader: Loader) {
     let module = null
     if (typeof loader === "string") {
       module = await import(/* @vite-ignore */ loader);
@@ -527,7 +521,7 @@ class CEAutoLoader {
     }
 
     let module;
-    let before_imports = { ...customElements.waiting };
+    // let before_imports = { ...customElements.waiting };
     let load_error = null;
 
     try {
@@ -536,7 +530,7 @@ class CEAutoLoader {
       this.loading_locks[el.tagName] = el;
       el.setAttribute("ce", "loading");
 
-      module = await this._load(name, loader);
+      module = await this.loadModule(name, loader);
     } catch (error: any) {
       load_error = error;
       throw new CEError(`${name} - ${error.message}`, { name, el, module, cause: error });
@@ -552,13 +546,13 @@ class CEAutoLoader {
     }
 
     // Components that defines others components
-    let diff_imports = Object.keys(customElements.waiting)
-      .filter((key) => !Object.keys(before_imports).includes(key))
-      .filter((key) => key !== name);
+    // let diff_imports = Object.keys(customElements.waiting)
+    //   .filter((key) => !Object.keys(before_imports).includes(key))
+    //   .filter((key) => key !== name);
 
-    for (const element of diff_imports) {
-      DEFINE(element, customElements.waiting[element]["ctor"], {});
-    }
+    // for (const element of diff_imports) {
+    //   DEFINE(element, customElements.waiting[element]["ctor"], {});
+    // }
 
     return { name, module, loader, el };
   }
@@ -569,25 +563,25 @@ class CEAutoLoader {
   async define({ name, el, module }: LoadResult) {
     /**
      * The loader may return a `HTMLCustomElement`,
-     * or it may define the element itself (customElements.define).
+     * or it may define the element itself via customElements.define.
      */
-    if (customElements.waiting[name]) {
-      module = customElements.waiting[name]["ctor"];
-    } else {
-      if (isModule(module)) {
-        module = module.default;
-      }
-
-      if (!module) {
-        // return { name, module, el };
-      }
+    if (isModule(module)) {
+      module = module.default;
     }
 
     let define_error = null;
     try {
       performance.mark(`define:${name}:start`);
 
-      DEFINE(name, module, {})
+      if (this.options.transition) {
+        if (!customElements.get(name) && !customElements.queue[name]) {
+          customElements.define(name, module, {})
+        }
+        customElements.dequeue(name);
+      } else {
+        customElements.define(name, module, {});
+      }
+
     } catch (error: any) {
       define_error = error;
       throw new CEError(`${name} - ${error.message}`, { name, el, module, error });
@@ -629,45 +623,47 @@ class CEAutoLoader {
     return await this.loadAndDefine([el]);
   }
 
+
   /**
-   * Define components in the waiting queue.
+   * Polyfills for custom element
    */
-  public flushDefineQueue() {
-    requestAnimationFrame(() => {
-      if (Object.keys(customElements.waiting).length > 0) {
-        Object.entries(customElements.waiting)
-          .filter(([name]) => !customElements.get(name))
-          .map(([name, { ctor, options }]) => DEFINE(name, ctor, options));
-      }
-    });
+
+
+  /**
+   * Polyfill customElements.define to avoid throwing errors when component is already defined.
+   */
+  public polyfill_swallow_alreadyDefined() {
+    const __CE_DEFINE__ = customElements.define.bind(customElements);
+    customElements.define = function (name, ctor, options?) {
+      if (customElements.get(name)) return;
+
+      __CE_DEFINE__(name, ctor, options)
+    }
   }
-}
 
-/**
- * The original customElements.define is patched to allow queueing.
- * It needs another call `DEFINE` to actually define the component.
- *
- * This allows ce-autoloader to schedule the definitions of components, making animations smoother
- * Otherwise, the define() calls will be executed one by one, and the animation will be janky.
- *
- * Note that it's global, so it will affect all components in the app that are defined after ce-autoloader.
- * They'll be still available at `customElements.waiting` and you can define anytime with `flushDefineQueue()`
- */
-function monkeyPatchDefine() {
-  globalThis._DEFINE = customElements.define.bind(customElements);
-  globalThis.DEFINE = (name, ctor, options) => {
-    if (customElements.get(name)) return;
+  /**
+   * Polyfill `customElements.define` to defer component definition.
+   * Call `customElements.flush()` or `customElements.dequeue()` to run.
+   */
+  public polyfill_defer_define() {
+    const __CE_DEFINE__ = customElements.define.bind(customElements);
 
-    globalThis._DEFINE(name, ctor, options);
-    customElements.registered[name] = { ctor, options };
-    delete customElements.waiting[name];
-  };
+    customElements.queue = {};
+    customElements.dequeue = function (name) {
+      if (customElements.get(name)) return
 
-  customElements.waiting = {};
-  customElements.registered = {};
-  customElements.define = function (name, ctor, options?) {
-    customElements.waiting[name] = { ctor, options };
-  };
+      const { ctor, options } = customElements.queue[name];
+      __CE_DEFINE__(name, ctor, options);
+      delete customElements.queue[name];
+    }
+    customElements.flush = function () {
+      Object.keys(customElements.queue).map(customElements.dequeue)
+    }
+    customElements.define = function (name, ctor, options?) {
+      customElements.queue[name] = { "ctor": ctor, "options": options };
+    }
+
+  }
 }
 
 if (new URL(import.meta.url).searchParams.has('autoload')) {
