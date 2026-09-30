@@ -1,0 +1,225 @@
+import { expect } from "chai";
+import { html } from "https://esm.sh/uhtml";
+import AutoLoader from '../src/index.ts';
+
+class BaseComp extends HTMLElement {
+    connectedCallback() {
+        this.setAttribute('data-upgraded', 'true');
+        this.appendChild(this.render())
+    }
+
+    render() {
+        return html`Hello World`;
+    }
+};
+
+class ErrorFallback extends HTMLElement {
+    connectedCallback() {
+        this.appendChild(this.render());
+    }
+    render() {
+        return html`<p>Fallback content</p>`;
+    }
+}
+customElements.define('error-fallback', ErrorFallback);
+
+
+// Component catalog
+const catalog = {
+    "test-component": async () => {
+        customElements.define('test-component', BaseComp);
+    },
+    "nested-component": async () => {
+        class NestedComponent extends BaseComp {
+            render() {
+                return html`<test-component></test-component>`;
+            }
+        };
+        customElements.define('nested-component', NestedComponent);
+    },
+    "dynamic-component": async () => {
+        class DynamicComponent extends BaseComp { };
+        customElements.define('dynamic-component', DynamicComponent);
+    },
+    "manual-component": async () => {
+        class ManualComponent extends BaseComp { };
+        customElements.define('manual-component', ManualComponent);
+    },
+    "interaction-component": async () => {
+        class InteractionComponent extends BaseComp { };
+        customElements.define('interaction-component', InteractionComponent);
+    },
+    "visible-component": async () => {
+        class VisibleComponent extends BaseComp { };
+        customElements.define('visible-component', VisibleComponent);
+    },
+    "error-component": async () => {
+        throw new Error("Failed to load component");
+    }
+};
+
+describe('CEAutoLoader', () => {
+    let registry;
+    const fixtures = document.getElementById('fixtures');
+
+    beforeEach(() => {
+        fixtures.innerHTML = '';
+
+        // Reset observers, but we can't really unregister the custom elements.
+        registry?.clean();
+        registry = undefined;
+    });
+
+    // Clean up the last registry too, so its observers don't leak into
+    // the next suite (Observability) and load tags with a stale catalog.
+    after(() => {
+        registry?.clean();
+        registry = undefined;
+    });
+
+    it('should upgrade existing components on start', async () => {
+        const el = document.createElement('test-component');
+        fixtures.appendChild(el);
+
+        registry = new AutoLoader({
+            catalog,
+            root: fixtures,
+        });
+        await customElements.whenDefined("test-component");
+        expect(el.hasAttribute('data-upgraded')).to.be.true;
+    });
+
+    it('should upgrade nested components', async () => {
+        const container = document.createElement('div');
+        const el = document.createElement('nested-component');
+        container.appendChild(el);
+        fixtures.appendChild(container);
+
+        registry = new AutoLoader({
+            catalog,
+            root: fixtures,
+        });
+
+        await customElements.whenDefined("nested-component");
+
+        expect(el.hasAttribute('data-upgraded')).to.be.true;
+        expect(el.textContent).to.equal("Hello World");
+    });
+
+    it('should upgrade dynamically added components (MutationObserver)', async () => {
+        registry = new AutoLoader({
+            catalog,
+            root: fixtures,
+            live: true
+        });
+
+        const el = document.createElement('dynamic-component');
+        fixtures.appendChild(el);
+
+        // Wait for MutationObserver and async hydration
+        await customElements.whenDefined("dynamic-component");
+
+        expect(el.hasAttribute('data-upgraded')).to.be.true;
+    });
+
+
+    describe("loading attribute", () => {
+        it("eager", async () => {
+            const el = document.createElement('test-component')
+            el.setAttribute('loading', 'eager');
+            fixtures.appendChild(el);
+
+            registry = new AutoLoader({
+                catalog,
+                root: fixtures,
+                live: false,
+            });
+
+            await customElements.whenDefined("test-component");
+            expect(el.hasAttribute('data-upgraded')).to.be.true;
+        })
+        it('manual', async () => {
+            const el = document.createElement('manual-component')
+            el.setAttribute('loading', 'manual');
+            fixtures.appendChild(el);
+
+            registry = new AutoLoader({
+                catalog,
+                root: fixtures,
+                live: false,
+            });
+
+            expect(el.hasAttribute('data-upgraded')).to.be.false;
+            await registry.upgrade(fixtures, "manual");
+            await customElements.whenDefined("manual-component");
+            expect(el.hasAttribute('data-upgraded')).to.be.true;
+        });
+        it('click', async () => {
+            const el = document.createElement('interaction-component')
+            el.setAttribute('loading', 'click');
+            fixtures.appendChild(el);
+
+            registry = new AutoLoader({
+                catalog,
+                root: fixtures,
+                // Discovery is async while `live` is on (it awaits the
+                // MutationObserver setup), so disable it to attach the
+                // click listener synchronously, before dispatching it.
+                live: false,
+            });
+
+            expect(el.hasAttribute('data-upgraded')).to.be.false;
+
+            await el.dispatchEvent(new MouseEvent('click'));
+            await customElements.whenDefined("interaction-component");
+
+            expect(el.hasAttribute('data-upgraded')).to.be.true;
+        });
+        it('visible', async () => {
+            const el = document.createElement('visible-component')
+            el.setAttribute('loading', 'visible');
+            fixtures.appendChild(el);
+
+            registry = new AutoLoader({
+                catalog,
+                root: fixtures,
+                live: false,
+            });
+
+            expect(el.hasAttribute('data-upgraded')).to.be.false;
+            await customElements.whenDefined("visible-component");
+            expect(el.hasAttribute('data-upgraded')).to.be.true;
+        });
+    });
+
+    describe("Errors", () => {
+        it("should handle errors in component definition", async () => {
+            fixtures.appendChild(document.createElement('error-component'));
+
+            registry = new AutoLoader({
+                catalog: catalog,
+                root: fixtures,
+            });
+            await new Promise(requestIdleCallback);
+
+            const el = document.querySelector('error-component');
+            expect(el.getAttribute("ce")).to.equal("error");
+            expect(el.getAttribute("error")).to.include("Failed to load component");
+        });
+        it("Should allow a fallback component", async () => {
+            fixtures.appendChild(document.createElement('error-component'));
+
+            registry = new AutoLoader({
+                catalog: catalog,
+                root: fixtures,
+                fallback: ErrorFallback
+            });
+            await new Promise(requestIdleCallback);
+            await new Promise(resolve => setTimeout(resolve, 100)); // Wait for fallback to render
+
+            const el = document.querySelector('error-component');
+            expect(el.querySelector('error-fallback')).to.exist;
+            expect(el.textContent).to.equal("Fallback content");
+        })
+    })
+});
