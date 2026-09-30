@@ -48,6 +48,13 @@ export type Options = {
   /** Use View Transitions API to animate the component upgrade */
   transition?: boolean;
 
+  /**
+   * Polyfill customElements.define to support deferring until later
+   *
+   * Defaults to `true` whenever transitions are enabled and supported.
+   */
+  deferDefine?: boolean;
+
   /** Lifecycle hooks of each component */
   hooks?: {
     viewTransition: {
@@ -166,9 +173,9 @@ class CEAutoLoader {
     }
 
     if (this.options.transition && SUPPORTS_SCOPED_VT) {
-      this.polyfill_defer_define();
+      // `deferDefine: false` opts out of patching the global registry entirely.
+      if (this.options.deferDefine !== false) this.polyfill_defer_define();
     } else {
-      this.polyfill_swallow_alreadyDefined();
       this.options.transition = false;
     }
 
@@ -360,8 +367,13 @@ class CEAutoLoader {
    * Handle components that failed to load
    */
   private handleComponentLoadError(rejection: PromiseRejectedResult) {
-    const { message, stack, details } = rejection.reason;
-    const origin = details.el as HTMLElement;
+    const { message, stack, details } = rejection.reason || {};
+    const origin = details?.el as HTMLElement;
+
+    if (!origin) {
+      return console.error("CEAutoLoader:", rejection.reason);
+    }
+
     const name = origin.tagName.toLowerCase();
 
     const retries = (this.#errors[name]?.retries || 0) + 1;
@@ -444,7 +456,7 @@ class CEAutoLoader {
       if (transitionClass) el.style.viewTransitionClass = transitionClass;
     });
 
-    await Promise.allSettled(
+    return await Promise.allSettled(
       components.map(async ({ el, name, module }) => {
         const transition = el.parentElement.startViewTransition({
           types: ['ce'],
@@ -454,9 +466,17 @@ class CEAutoLoader {
         });
 
         this.activeTransition = transition;
-        if (this.options.hooks?.viewTransition?.ready) {
-          transition.ready.then(() => this.options.hooks.viewTransition.ready(transition));
-        }
+
+        const when_ready = this.options.hooks?.viewTransition?.ready;
+        // The browser skips a transition when another one is already running on
+        // the element, which rejects `ready`: it must never become an unhandled
+        // rejection (and the hook is only for transitions that really started).
+        transition.ready.then(
+          () => {
+            if (when_ready) when_ready(transition);
+          },
+          () => { },
+        );
 
         await transition.updateCallbackDone;
 
@@ -488,14 +508,26 @@ class CEAutoLoader {
 
     // 3. Then, define the components on a single frame
     const success = results.filter(isFulfilled).map((r) => r.value)
-    if (this.options.transition) {
-      await this.runScopedViewTransition(success, (r) => this.define(r))
-    } else {
-      await Promise.allSettled(success.map((r) => this.define(r)))
-    }
+
+    // Only components we are about to define can morph: a loader that defined its
+    // own tag (possible while the defer queue is not installed) has already
+    // upgraded its element, so a transition for it would animate nothing.
+    const to_morph = success.filter((r) => !customElements.get(r.name));
+    const already_defined = success.filter((r) => customElements.get(r.name));
+
+    const definitions =
+      this.options.transition && to_morph.length
+        ? await this.runScopedViewTransition(to_morph, (r) => this.define(r))
+        : await Promise.allSettled(to_morph.map((r) => this.define(r)));
+
+    definitions.push(...(await Promise.allSettled(already_defined.map((r) => this.define(r)))));
+
+    // Defining can fail too (a loader that neither defined the tag nor returned a
+    // constructor): report it on the element like a load failure.
+    definitions.filter(isRejected).map((r) => this.handleComponentLoadError(r));
 
     // 4. Flush any component that was defined outside of autoloader bounds
-    if (this.options.transition) customElements.flush();
+    if (this.options.transition && customElements.flush) customElements.flush();
 
     return []
   }
@@ -583,17 +615,30 @@ class CEAutoLoader {
     try {
       performance.mark(`define:${name}:start`);
 
-      if (this.options.transition) {
-        if (!customElements.get(name) && !customElements.queue[name]) {
+      if (customElements.get(name)) {
+        // Already defined: either the module registered the tag itself, or another
+        // script got there first. Nothing to define (and nothing to morph).
+      } else if (customElements.dequeue && customElements.queue) {
+        // Definitions are being deferred, so the batch can land inside the view
+        // transition: queue this one and dequeue it right after.
+        if (!customElements.queue[name]) {
+          if (!module) {
+            throw new CEError(`${name} - the loader neither defined the element nor returned a constructor`, { name, el, module });
+          }
           customElements.define(name, module, {})
         }
         customElements.dequeue(name);
       } else {
+        if (!module) {
+          throw new CEError(`${name} - the loader neither defined the element nor returned a constructor`, { name, el, module });
+        }
         customElements.define(name, module, {});
       }
 
     } catch (error: any) {
       define_error = error;
+      // Already a CEError: don't wrap it twice.
+      if (error instanceof CEError) throw error;
       throw new CEError(`${name} - ${error.message}`, { name, el, module, error });
     } finally {
       el?.setAttribute("ce", "defined");
@@ -638,18 +683,6 @@ class CEAutoLoader {
    * Polyfills for custom element
    */
 
-
-  /**
-   * Polyfill customElements.define to avoid throwing errors when component is already defined.
-   */
-  public polyfill_swallow_alreadyDefined() {
-    const define = ORIGINAL_DEFINE;
-    customElements.define = function (name, ctor, options?) {
-      if (customElements.get(name)) return;
-
-      define(name, ctor, options)
-    }
-  }
 
   /**
    * Polyfill `customElements.define` to defer component definition.

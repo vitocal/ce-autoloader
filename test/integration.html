@@ -57,8 +57,10 @@
 </head>
 
 <body>
-    <div id="mocha"></div>
+    <!-- #fixtures comes first so it stays in the viewport: the mocha report grows
+         as the suite runs, and the `visible` directive needs real visibility. -->
     <div id="fixtures"></div>
+    <div id="mocha"></div>
     <div id="errors"></div>
 
     <script src="https://unpkg.com/mocha/mocha.js"></script>

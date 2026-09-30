@@ -6,4 +6,6 @@ import ErrorFallback from "@/components/error-fallback.js";
 globalThis.registry = new CERegistry({
   catalog: catalog,
   fallback: ErrorFallback,
+  deferDefine: true,
+  transition: true,
 });

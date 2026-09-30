@@ -194,7 +194,12 @@ describe('CEAutoLoader', () => {
 
     describe("Errors", () => {
         it("should handle errors in component definition", async () => {
-            fixtures.appendChild(document.createElement('error-component'));
+            // `loading="eager"` instead of the default `visible`: the mocha report
+            // grows as the suite runs, which pushes #fixtures below the fold, and
+            // the IntersectionObserver would then never fire for this element.
+            const el = document.createElement('error-component');
+            el.setAttribute("loading", "eager");
+            fixtures.appendChild(el);
 
             registry = new AutoLoader({
                 catalog: catalog,
@@ -202,12 +207,13 @@ describe('CEAutoLoader', () => {
             });
             await new Promise(requestIdleCallback);
 
-            const el = document.querySelector('error-component');
             expect(el.getAttribute("ce")).to.equal("error");
             expect(el.getAttribute("error")).to.include("Failed to load component");
         });
         it("Should allow a fallback component", async () => {
-            fixtures.appendChild(document.createElement('error-component'));
+            const el = document.createElement('error-component');
+            el.setAttribute("loading", "eager"); // see the note above
+            fixtures.appendChild(el);
 
             registry = new AutoLoader({
                 catalog: catalog,
@@ -217,7 +223,6 @@ describe('CEAutoLoader', () => {
             await new Promise(requestIdleCallback);
             await new Promise(resolve => setTimeout(resolve, 100)); // Wait for fallback to render
 
-            const el = document.querySelector('error-component');
             expect(el.querySelector('error-fallback')).to.exist;
             expect(el.textContent).to.equal("Fallback content");
         })
