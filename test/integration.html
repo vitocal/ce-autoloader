@@ -109,7 +109,14 @@
                 customElements.define('test-component', BaseComp);
             },
             "nested-component": async () => {
-                class NestedComponent extends BaseComp { };
+                class NestedComponent extends BaseComp {
+                    constructor() {
+                        super();
+                    }
+                    render() {
+                        return html`<test-component></test-component>`;
+                    }
+                };
                 customElements.define('nested-component', NestedComponent);
             },
             "dynamic-component": async () => {
@@ -158,7 +165,7 @@
                 expect(el.hasAttribute('data-upgraded')).to.be.true;
             });
 
-            it('should upgrade nested components', async () => {
+            it('should upgrade nested components', async (done) => {
                 const container = document.createElement('div');
                 const el = document.createElement('nested-component');
                 container.appendChild(el);
@@ -172,6 +179,8 @@
                 await customElements.whenDefined("nested-component");
 
                 expect(el.hasAttribute('data-upgraded')).to.be.true;
+                expect(el.textContent).to.equal("Hello World");
+                done()
             });
 
             it('should upgrade dynamically added components (MutationObserver)', async () => {

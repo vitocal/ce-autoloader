@@ -4,13 +4,10 @@
     "module": "esnext",
     "target": "es2025",
     "libReplacement": true,
-    "lib": [
-      "dom",
-      "esnext"
-    ],
     "useDefineForClassFields": false,
     "skipLibCheck": true,
     "isolatedModules": true,
+    "noEmit": true,
     /* Linting */
     "strict": false,
     "noUnusedLocals": true,
@@ -34,10 +31,9 @@
     }
   },
   "include": [
-    "src/",
-    // "pages/examples/"
+    "src/*",
   ],
   "exclude": [
-    "**/node_modules"
+    "node_modules"
   ]
 }
