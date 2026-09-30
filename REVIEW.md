@@ -127,11 +127,11 @@ That combination — tiny, standards-only, framework-agnostic — is the heart o
 
 ### Tier 0 — correctness (small diffs, big payoff)
 
-- [ ] **Fix the await in `runScopedViewTransition`** (`src/index.ts:441`): `forEach` returns `undefined`. Use `for...of` or `Promise.all(elements.map(...))` so definitions are actually awaited and errors surface.
-- [ ] **Guard element-scoped view transitions.** Check `Element.prototype.startViewTransition` and fall back to a plain `define()` (with a try/catch); re-check `prefers-reduced-motion` per element, not just once in the constructor.
+- [X] ~~**Fix the await in `runScopedViewTransition`** (`src/index.ts:441`): `forEach` returns `undefined`. Use `for...of` or `Promise.all(elements.map(...))` so definitions are actually awaited and errors surface.~~
+- [X] ~~**Guard element-scoped view transitions.** Check `Element.prototype.startViewTransition` and fall back to a plain `define()` (with a try/catch); re-check `prefers-reduced-motion` per element, not just once in the constructor.~~
 - [ ] **Make the define-queue safe.** Make the `customElements.define` patch opt-in, auto-drain the queue when a non-catalog definition arrives, and document what it means for third-party scripts.
 - [ ] **Stop destroying light DOM in `retry()`** (`src/index.ts:626–636`). Snapshot once, or remove only what the fallback injected.
-- [ ] **Fix packaging.** Either emit a real CJS/UMD entry or remove `main`/`exports.require` and declare ESM-only; add `"sideEffects": false` and a `./package.json` export; decide whether `shadow-observer` is a dependency or externalized.
+- [ ] ~~**Fix packaging.** Either emit a real CJS/UMD entry or remove `main`/`exports.require` and declare ESM-only; add `"sideEffects": false` and a `./package.json` export; decide whether `shadow-observer` is a dependency or externalized.~~
 - [ ] **Add completion signals**: `ce:load` / `ce:error` CustomEvents and `registry.whenLoaded(tag)`.
 
 ### Tier 1 — credibility
