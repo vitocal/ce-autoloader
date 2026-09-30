@@ -414,7 +414,7 @@ const registry = new CERegistry({
               <vi-example class="card w-full">
                 <!-- prettier-ignore -->
                 <div slot="example" class="flex-y">
-                  <confetti-button loading="manual" id="confetti" onclick="registry.upgrade('manual')">
+                  <confetti-button loading="manual" id="confetti" onclick="registry.upgrade(document.body,'manual')">
                     * custom (click) *
                   </confetti-button>
                 </div>

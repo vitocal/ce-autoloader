@@ -22,7 +22,7 @@ export type LoadError = {
   retries?: number;
 };
 
-export type Directives = "eager" | "visible" | "click" | string;
+export type Directives = "eager" | "visible" | "click" | "manual";
 export type Options = {
   /* The component catalog */
   catalog?: Catalog;
@@ -97,7 +97,8 @@ function debounceMutations(fn: (mutations: MutationRecord[], observer: MutationO
  */
 function matchCustomElement(root: Element) {
   const selector = ":not(:defined)";
-  return [...new Set([root, ...root.querySelectorAll(selector)])].filter((el) => isCustomElement(el)) as HTMLElement[];
+  return [...new Set([root, ...root.querySelectorAll(selector)])]
+    .filter((el) => isCustomElement(el)) as HTMLElement[];
 }
 
 const isFulfilled = <T>(result: PromiseSettledResult<T>): result is PromiseFulfilledResult<T> =>
@@ -220,14 +221,14 @@ class CEAutoLoader {
   }
 
   /**
-   * Some filters to avoid duplicates
+   * Returns an filter fn that filter elements that has the matching loading=`directive` value
    */
-  private filterByDirective(elements: HTMLElement[], directive?: Directives) {
-    if (!directive) {
-      return elements.filter((el) => !el.hasAttribute("loading"));
+  private filterByLoadingAttribute(directive?: Directives) {
+    if (directive) {
+      return (el) => (el.getAttribute("loading") === directive);
+    } else {
+      return (el) => (!el.hasAttribute("loading"));
     }
-
-    return elements.filter((el) => el.getAttribute("loading") == directive);
   }
 
   /**
@@ -259,28 +260,26 @@ class CEAutoLoader {
     }
 
     // Load elements that matches directives
-    for (const directive of this.options.directives ?? []) {
-      this.upgrade(directive, root);
+    for (const directive of this.options.directives) {
+      this.upgrade(root, directive);
     }
 
-    // Load everyone else right away
-    const result = await this.upgrade(undefined, root);
+    // Load everyone else using the default directive
+    const result = this.upgrade(root);
+
     this.#initialized = true;
     return result;
   }
 
   /**
-   * Upgrade the custom elements using the given `directive`.
+   * Upgrade the custom elements that has the given loading=`directive`.
    *
-   * @param directive - Filter by elements that matches the given directive (eg: `loading="visible"`),
-   * If directive is null, will upgrade all elements in the `this.#options.root`.
+   * @param directive - the behaviour of the loading, when the loading should happen.
+   * If no directive is null, will upgrade all elements that doesnt have a loading attribute
    *
-   * To manually upgrade elements, use the `loading="manual"` attribute, but it
-   * can be any string really. Then call `registry.upgrade("manual")` to upgrade all elements with that attribute.
+   * Or call directly `loadAndDefine([HTMLElement1, HTMLElement2])
    */
-  async upgrade(directive?: Directives, root: HTMLElement = this.options.root) {
-    const ce_elements = matchCustomElement(root);
-    const elements = this.filterByDirective(ce_elements, directive);
+  upgrade(root: HTMLElement = this.options.root, directive?: Directives) {
 
     const when_visible: IntersectionObserverCallback = (entries, _observer) => {
       let html_elements = entries
@@ -290,7 +289,7 @@ class CEAutoLoader {
         .filter((el) => !this.loading_locks[el.tagName]);
 
       if (html_elements.length > 0) {
-        this.loadAndDefine(html_elements, "visible");
+        this.loadAndDefine(html_elements);
       }
     };
 
@@ -312,37 +311,36 @@ class CEAutoLoader {
       });
     };
 
-
     const when_clicked = async (ev: PointerEvent) => {
       ev.stopImmediatePropagation();
 
       const target = ev.currentTarget as HTMLElement;
-      await this.loadAndDefine([target], "click");
+      await this.loadAndDefine([target]);
     }
 
     const interaction = (elements: HTMLElement[]) => {
       return elements.map((el) => el.addEventListener("click", when_clicked, { once: true }));
     };
 
-    // Directives apply special conditions to when the component is loaded
-    if (directive === "visible") {
-      return visible(elements);
-    } else if (directive === "click") {
-      return interaction(elements);
-    } else if (directive === "eager") {
-      return await this.loadAndDefine(elements, "eager");
-    } else if (directive === undefined || directive === null) {
-      // Use defaultDirective if it's not specified
-      if (this.options.defaultDirective === "visible") {
+    // Directives are special conditions when the component should be loaded
+    const applyLoadingDirective = (elements: HTMLElement[], directive: Directives) => {
+      if (directive === "visible") {
         return visible(elements);
-      } else if (this.options.defaultDirective === "click") {
+      } else if (directive === "click") {
         return interaction(elements);
-      } else if (this.options.defaultDirective === "eager") {
-        return await this.loadAndDefine(elements, "eager");
+      } else if (directive === "manual" || directive === "eager") {
+        this.loadAndDefine(elements);
+        return elements;
+      } else {
+        console.error("Invalid directive for upgrade()", directive, ce_elements);
       }
-    } else {
-      return await this.loadAndDefine(elements, directive);
     }
+
+    const ce_elements = matchCustomElement(root);
+    applyLoadingDirective(
+      ce_elements.filter(this.filterByLoadingAttribute(directive)),
+      directive || this.options.defaultDirective
+    );
   }
 
   /**
@@ -439,7 +437,7 @@ class CEAutoLoader {
       return { el, ...rest };
     });
 
-    await elements.forEach(async ({ el, name, module }) => {
+    await elements.map(async ({ el, name, module }) => {
       const transition = el.parentElement.startViewTransition({
         types: ['ce'],
         update: async () => {
@@ -462,19 +460,14 @@ class CEAutoLoader {
         this.activeTransition = null;
       })
     });
-
-    return [];
   }
 
   /**
    * Load and define components
-   * @param {string} source - source should match the "loading" attribute
+   *
    */
-  private async loadAndDefine(comps: HTMLElement[], source: string) {
-    let elements = comps.filter((el) => {
-      const on = el.getAttribute("loading");
-      return on === source || on === null;
-    });
+  private async loadAndDefine(comps: HTMLElement[]) {
+    let elements = comps;
 
     if (elements.length === 0) {
       return [];
@@ -633,7 +626,7 @@ class CEAutoLoader {
     el.removeAttribute("retries");
     el.innerHTML = "";
 
-    return await this.loadAndDefine([el], el.getAttribute("loading") || "retry");
+    return await this.loadAndDefine([el]);
   }
 
   /**

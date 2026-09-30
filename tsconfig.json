@@ -34,13 +34,10 @@
     }
   },
   "include": [
-    "src",
-    "pages/components/",
+    "src/",
     // "pages/examples/"
   ],
   "exclude": [
-    "pages/components/",
-    "docs/**",
-    "node_modules/**"
+    "**/node_modules"
   ]
 }
