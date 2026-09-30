@@ -406,7 +406,7 @@ const registry = new CERegistry({
               <p>
                 Any custom string (e.g., loading="lazy-load") can be used as a loading strategy, and triggered
                 manually via
-                <code>registry.upgrade('lazy-load')</code>. This is useful for custom workflows that don't fit
+                <code>registry.upgrade(document.body, 'lazy-load')</code>. This is useful for custom workflows that don't fit
                 into
                 the built-in strategies.
               </p>
@@ -414,7 +414,7 @@ const registry = new CERegistry({
               <vi-example class="card w-full">
                 <!-- prettier-ignore -->
                 <div slot="example" class="flex-y">
-                  <confetti-button loading="manual" id="confetti" onclick="registry.upgrade(document.body,'manual')">
+                  <confetti-button loading="manual" id="confetti" onclick="registry.upgrade(document.body, 'manual')">
                     * custom (click) *
                   </confetti-button>
                 </div>

@@ -75,7 +75,7 @@ export default defineConfig({
     },
     manifest: false,
     outDir: "docs/",
-    emptyOutDir: false,
+    emptyOutDir: true,
     sourcemap: true,
   },
 

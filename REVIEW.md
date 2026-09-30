@@ -28,9 +28,9 @@ One sentence: **`<script type="module">` plus a catalog map, and the DOM becomes
 | --- | --- |
 | **Catalog** | A single map of `tag name → URL` or `tag name → () => import(...)`. It's also the ownership boundary: `nord-*`, `decide-*`, `explore-*` are team or library namespaces. |
 | **Discovery** | A `MutationObserver` watches the DOM (via `shadow-observer` to reach into shadow roots, with a native fallback) and scans with `querySelectorAll(':not(:defined)')`. A 100 ms debounce keeps it civil. |
-| **Directives** | The `loading` attribute: `eager` (now), `visible` (in viewport), `click` (first interaction), `manual` (you call `registry.upgrade("manual")`). Anything unknown currently falls through to an immediate load. |
+| **Directives** | The `loading` attribute: `eager` (now), `visible` (in viewport), `click` (first interaction), `manual` (you call `registry.upgrade(root, "manual")`). Anything unknown currently falls through to an immediate load. |
 | **States as CSS** | Every element gets a `ce` attribute — `loading`, `defined`, `error`. Skeletons, spinners and fade-ins become plain CSS. No JS required. |
-| **Define queue** | `customElements.define` is replaced by a queue (`customElements.waiting` / `.registered`) plus a `DEFINE()` flusher, so upgrades can be scheduled instead of firing one by one. |
+| **Define queue** | While transitions are enabled, `customElements.define` is replaced by a queue (`customElements.queue`) with `customElements.dequeue()` / `customElements.flush()`, so definitions can be batched instead of firing one by one. |
 | **Transitions** | Definitions can be wrapped in a `ViewTransition` (`types: ['ce']`, `view-transition-name`, `view-transition-class`) so a placeholder can morph into a real component. |
 | **Telemetry** | `performance.mark` / `measure` for every `load:<tag>` and `define:<tag>`, visible natively in the DevTools Performance panel. No vendor SDK. |
 | **Errors** | Failed loads set `ce="error"` plus `error` / `stack` / `retries` attributes, can render a fallback component, and can be retried with `registry.retry(el)`. |
@@ -109,7 +109,7 @@ That combination — tiny, standards-only, framework-agnostic — is the heart o
 6. **The error path touches user content.** `retry()` clears `innerHTML` (which destroys slotted light DOM and server-rendered fallbacks), and error text plus stack traces are written into DOM attributes — a leak and injection surface if any template echoes attributes.
 7. **No versioning or integrity by default.** String catalogs are "where the code lives" with no hash and no pin — and `importmap.json` says `@latest` everywhere. The platform already has the answer: import-map `integrity` is widely supported now (Chrome 127+, Firefox 138+, Safari 18+, ≈88% global). Resolving catalog entries through bare specifiers would give you SRI for free.
 8. **GPL-3.0 is the quiet adoption blocker.** Corporate legal usually just says no, and the "framework alternative" audience checks the license before the API. Either go permissive (MIT/Apache-2.0 + CLA), or keep GPL and make copyleft an explicit, proud part of the pitch.
-9. **Small doc/code drift.** The README says definitions are queued and flushed in an animation frame, but `define()` defines synchronously — only the undocumented `flushDefineQueue()` uses rAF. The README lists `hover` among directives, but `upgrade()` has no hover branch, so `loading="hover"` loads immediately. The "Documentation" link just points back at the demo.
+9. **Docs are hand-maintained, so they drift.** The "Documentation" link just points back at the demo, and the README's `Options`/API snippets have lagged behind `src/index.ts` before (a stale `upgrade(tag)` signature, plus `autoDiscover` and `hover` options that don't exist). Generating the API reference from the source would remove the whole class of drift.
 10. **No imperative completion API.** The `ce` attribute is great for styling, but there's no `ce:load` / `ce:error` event and no `registry.whenLoaded(tag)`, so imperative consumers must poll or observe attributes.
 
 ### Quick summary

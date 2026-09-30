@@ -13,6 +13,13 @@ describe("Observability", () => {
         registry = undefined;
     });
 
+    // Clean up the last registry too, so its observers don't leak into
+    // other suites and load tags with a stale catalog.
+    after(() => {
+        registry?.clean();
+        registry = undefined;
+    });
+
 
     it("should create performance measurement load:${component-name}", async () => {
         const el = document.createElement("perf-test");

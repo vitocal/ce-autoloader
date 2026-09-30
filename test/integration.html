@@ -153,6 +153,13 @@
 
             });
 
+            // Clean up the last registry too, so its observers don't leak into
+            // the next suite (Observability) and load tags with a stale catalog.
+            after(() => {
+                registry?.clean();
+                registry = undefined;
+            });
+
             it('should upgrade existing components on start', async () => {
                 const el = document.createElement('test-component');
                 fixtures.appendChild(el);
@@ -165,7 +172,7 @@
                 expect(el.hasAttribute('data-upgraded')).to.be.true;
             });
 
-            it('should upgrade nested components', async (done) => {
+            it('should upgrade nested components', async () => {
                 const container = document.createElement('div');
                 const el = document.createElement('nested-component');
                 container.appendChild(el);
@@ -180,14 +187,13 @@
 
                 expect(el.hasAttribute('data-upgraded')).to.be.true;
                 expect(el.textContent).to.equal("Hello World");
-                done()
             });
 
             it('should upgrade dynamically added components (MutationObserver)', async () => {
                 registry = new AutoLoader({
                     catalog,
                     root: fixtures,
-                    observe: true
+                    live: true
                 });
 
                 const el = document.createElement('dynamic-component');
@@ -209,7 +215,7 @@
                     registry = new AutoLoader({
                         catalog,
                         root: fixtures,
-                        observe: false,
+                        live: false,
                     });
 
                     await customElements.whenDefined("test-component");
@@ -223,11 +229,12 @@
                     registry = new AutoLoader({
                         catalog,
                         root: fixtures,
-                        observe: false,
+                        live: false,
                     });
 
                     expect(el.hasAttribute('data-upgraded')).to.be.false;
-                    await registry.upgrade("manual");
+                    await registry.upgrade(fixtures, "manual");
+                    await customElements.whenDefined("manual-component");
                     expect(el.hasAttribute('data-upgraded')).to.be.true;
                 });
                 it('click', async () => {
@@ -238,6 +245,10 @@
                     registry = new AutoLoader({
                         catalog,
                         root: fixtures,
+                        // Discovery is async while `live` is on (it awaits the
+                        // MutationObserver setup), so disable it to attach the
+                        // click listener synchronously, before dispatching it.
+                        live: false,
                     });
 
                     expect(el.hasAttribute('data-upgraded')).to.be.false;
@@ -255,7 +266,7 @@
                     registry = new AutoLoader({
                         catalog,
                         root: fixtures,
-                        observe: false,
+                        live: false,
                     });
 
                     expect(el.hasAttribute('data-upgraded')).to.be.false;

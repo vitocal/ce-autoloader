@@ -106,7 +106,7 @@ const isRejected = <T>(result: PromiseSettledResult<T>): result is PromiseReject
 
 const SUPPORTS_SCOPED_VT = "startViewTransition" in Element.prototype;
 
-
+var ORIGINAL_DEFINE: typeof customElements.define = (ORIGINAL_DEFINE || customElements.define.bind(customElements))
 
 /**
  * CEAutoLoader automatically loads and defines custom elements from a catalog.
@@ -633,11 +633,11 @@ class CEAutoLoader {
    * Polyfill customElements.define to avoid throwing errors when component is already defined.
    */
   public polyfill_swallow_alreadyDefined() {
-    const __CE_DEFINE__ = customElements.define.bind(customElements);
+    const define = ORIGINAL_DEFINE;
     customElements.define = function (name, ctor, options?) {
       if (customElements.get(name)) return;
 
-      __CE_DEFINE__(name, ctor, options)
+      define(name, ctor, options)
     }
   }
 
@@ -646,14 +646,16 @@ class CEAutoLoader {
    * Call `customElements.flush()` or `customElements.dequeue()` to run.
    */
   public polyfill_defer_define() {
-    const __CE_DEFINE__ = customElements.define.bind(customElements);
+    if (customElements.dequeue) return;
+
+    const define = ORIGINAL_DEFINE;
 
     customElements.queue = {};
     customElements.dequeue = function (name) {
       if (customElements.get(name)) return
 
       const { ctor, options } = customElements.queue[name];
-      __CE_DEFINE__(name, ctor, options);
+      define(name, ctor, options);
       delete customElements.queue[name];
     }
     customElements.flush = function () {
