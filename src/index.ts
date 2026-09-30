@@ -1,8 +1,11 @@
 /**
- * A Loader can be a URL or a function that returns a Promise<CustomElementConstructor>
+ * A Loader can be a URL or any function that returns a `Promise<CustomElementConstructor>`
  */
 export type Loader = string | ((name: string, el?: HTMLElement) => Promise<CustomElementConstructor>);
 
+/**
+ * A catalog maps between tag names and a custom element.
+ */
 export type Catalog = Record<string, Loader>;
 
 export type LoadResult = {
@@ -30,9 +33,6 @@ export type Options = {
 
   /** Use the page import-map as a catalog */
   useImportMapsCatalog?: boolean;
-
-  /** Disable the automatic component discovery when instantiating CERegistry  */
-  autoDiscover?: boolean;
 
   /** Fallback for components with errors */
   fallback?: CustomElementConstructor;
@@ -137,7 +137,6 @@ class CEAutoLoader {
       defaultDirective: "visible",
       transition: "startViewTransition" in document.body &&
         !window.matchMedia(`(prefers-reduced-motion: reduce)`).matches,
-      autoDiscover: true,
       useImportMapsCatalog: false,
       intersectionOptions: {
         scrollMargin: "20%",
@@ -162,13 +161,15 @@ class CEAutoLoader {
       monkeyPatchDefine();
     }
 
-    if (this.options.autoDiscover) this.discover();
+    this.discover();
   }
 
   private async getMutationObserver() {
     try {
       return (await import('shadow-observer')).ShadowObserver;
     } catch (error) {
+      return Promise.resolve(MutationObserver);
+    } finally {
       return Promise.resolve(MutationObserver);
     }
   }

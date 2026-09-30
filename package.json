@@ -3,14 +3,14 @@
   "version": "0.1.2",
   "description": "A webcomponents auto loader and registry",
   "type": "module",
-  "main": "./dist/ce-autoloader.umd.cjs",
+  "main": "./dist/ce-autoloader.js",
   "module": "./dist/ce-autoloader.js",
   "types": "./dist/dist.d.ts",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/dist.d.ts",
-      "import": "./dist/ce-autoloader.js",
-      "require": "./dist/ce-autoloader.umd.cjs"
+      "import": "./dist/ce-autoloader.js"
     }
   },
   "customElements": "custom-elements.json",
