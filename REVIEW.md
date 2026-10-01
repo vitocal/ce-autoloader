@@ -33,12 +33,12 @@ One sentence: **`<script type="module">` plus a catalog map, and the DOM becomes
 | **Define queue** | While transitions are enabled, `customElements.define` is replaced by a queue (`customElements.queue`) with `customElements.dequeue()` / `customElements.flush()`, so definitions can be batched instead of firing one by one. The patch is an explicit switch (`deferDefine`, on by default); `deferDefine: false` never touches the registry. Only tags that resolve to a catalog entry are deferred — everything else is forwarded to the original `define`. |
 | **Transitions** | Definitions can be wrapped in a `ViewTransition` (`types: ['ce']`, `view-transition-name`, `view-transition-class`) so a placeholder can morph into a real component. |
 | **Telemetry** | `performance.mark` / `measure` for every `load:<tag>` and `define:<tag>`, visible natively in the DevTools Performance panel. No vendor SDK. |
-| **Errors** | Failed loads set `ce="error"` plus `error` / `stack` / `retries` attributes, can render a fallback component, and can be retried with `registry.retry(el)`. |
+| **Errors** | A failed load or definition calls `hooks.error`, marks the tag as failed (the watcher stops retrying it) and paints the element — `ce="error"`, the `error` / `stack` attributes and the `fallback` component — unless `devErrors: false`. A tag that resolves to no catalog entry is never painted: it was never the loader's to load and a third party may define it later, so it stays `:not(:defined)`. |
 
 ### Numbers we verified
 
-- **3,391 bytes gzipped** for the main bundle (`gzip -c dist/ce-autoloader.js`) — the "3kb, no dependencies" claim holds. (3,258 before Stage 1 of the define-patch plan; the `deferDefine` switch, the guards and the explicit errors added ~130 bytes, and Stage 2 should give them back.)
-- **One source file**, 683 lines of readable TypeScript, zero runtime dependencies in the shipped entry.
+- **3,337 bytes gzipped** for the main bundle (`gzip -c dist/ce-autoloader.js`) — the "3kb, no dependencies" claim holds. (3,391 before this change; deleting `retry()` bought ~54 bytes, and the `getLoader()` boundary plus the stale-state fixes spent a few of them.)
+- **One source file**, 751 lines of readable TypeScript, zero runtime dependencies in the shipped entry.
 - The React / Vue / Svelte / Lit / Stencil / vanilla claim is **real**: it's verified by the demo catalogs, not marketing.
 
 That combination — tiny, standards-only, framework-agnostic — is the heart of the project's appeal.
@@ -72,7 +72,7 @@ That combination — tiny, standards-only, framework-agnostic — is the heart o
 **Cons**
 - **Two places to keep in sync** (the catalog and the page). Wildcards help, but a typo only shows up at runtime.
 - **Theming is still your job.** Shadow DOM boundaries don't care that the loader is cute; you still need CSS custom-property discipline.
-- **No prerender.** An empty `<my-chart>` is invisible to scrapers unless you put fallback markup inside it — and `registry.retry()` currently clears that markup.
+- **No prerender.** An empty `<my-chart>` is invisible to scrapers unless you put fallback markup inside it — and rendering a `fallback` replaces that markup.
 - **Import maps + CDN ES modules is a second unfamiliar skill** stacked on top of web components.
 - Safe while solo; risky the day a friend's widget or an analytics tag joins the page.
 
@@ -106,7 +106,7 @@ That combination — tiny, standards-only, framework-agnostic — is the heart o
 3. **Element-scoped view transitions are Chromium-only.** Today that includes Chrome/Edge 147+, while Firefox and Safari report no support (≈65% of global usage, from the caniuse data checked for this review). The default is accidentally protected by an `"startViewTransition" in document.body` check — but the README advises setting `transition: true`, and *then* Firefox and Safari throw inside the awaited path and components never define at all. Check `Element.prototype.startViewTransition` and fall back to a plain define.
 4. **Packaging needs a pass.** `main` and `exports.require` point at `./dist/ce-autoloader.umd.cjs`, which the build never emits (it's ESM-only), so `require('ce-autoloader')` fails. `shadow-observer` is declared a *peer* dependency but ends up bundled into `dist/`; there's no `sideEffects: false`, and the `?autoload` canary sits at module top level, so plain side-effect imports behave surprisingly.
 5. **Observer cost on big pages.** Every debounced mutation batch re-runs `querySelectorAll(':not(:defined)')` from the root, with `characterData: true` (unnecessary for element discovery) and a non-standard `shadow: 1` hint. Fine for demos, worth measuring on a 2,000-element CMS page.
-6. **The error path touches user content.** `retry()` clears `innerHTML` (which destroys slotted light DOM and server-rendered fallbacks), and error text plus stack traces are written into DOM attributes — a leak and injection surface if any template echoes attributes.
+6. **Rendering a `fallback` touches user content.** It clears the element's `innerHTML` (destroying slotted light DOM and server-rendered fallbacks), and error text plus stack traces are written into DOM attributes — a leak and injection surface if any template echoes attributes. Both can be switched off with `devErrors: false`; the `retry()` helper, which cleared content unconditionally, is gone (2026-09-30).
 7. **No versioning or integrity by default.** String catalogs are "where the code lives" with no hash and no pin — and `importmap.json` says `@latest` everywhere. The platform already has the answer: import-map `integrity` is widely supported now (Chrome 127+, Firefox 138+, Safari 18+, ≈88% global). Resolving catalog entries through bare specifiers would give you SRI for free.
 8. **GPL-3.0 is the quiet adoption blocker.** Corporate legal usually just says no, and the "framework alternative" audience checks the license before the API. Either go permissive (MIT/Apache-2.0 + CLA), or keep GPL and make copyleft an explicit, proud part of the pitch.
 9. **Docs are hand-maintained, so they drift.** The "Documentation" link just points back at the demo, and the README's `Options`/API snippets have lagged behind `src/index.ts` before (a stale `upgrade(tag)` signature, plus `autoDiscover` and `hover` options that don't exist). Generating the API reference from the source would remove the whole class of drift.
@@ -132,7 +132,8 @@ That combination — tiny, standards-only, framework-agnostic — is the heart o
 - [ ] **Make the define-queue safe.** Make the `customElements.define` patch opt-in, auto-drain the queue when a non-catalog definition arrives, and document what it means for third-party scripts.
   - [X] ~~**Stage 1 done** (`src/index.ts`): `customElements.define` forwards to the original `define` whenever the tag is not in a catalog (`getLoader()`), so third-party registrations are never swallowed. Every registry that installs the queue is consulted (`DEFERRED_REGISTRIES`), `dequeue()` is idempotent, `clean()` opts a registry out, and the patch is now an explicit switch — `deferDefine` (on by default; `false` never patches, and the swallow polyfill is gone, so unsupported browsers patch nothing). Define-phase failures are reported as `ce="error"` instead of being swallowed by `Promise.allSettled`, and a skipped transition no longer leaks an unhandled rejection. Covered by `test/transitions.test.js`.~~
   - [ ] Still open: making the patch **opt-in by default**, or replacing it with a transient capture — see the staged plan in `memory-bank/roadmap.md`.
-- [ ] **Stop destroying light DOM in `retry()`** (`src/index.ts:626–636`). Snapshot once, or remove only what the fallback injected.
+- [X] ~~**Stop destroying light DOM in `retry()`** (`src/index.ts:626–636`). Snapshot once, or remove only what the fallback injected.~~ Removed instead of fixed (2026-09-30): retrying is the app's business, and the method wiped content that the loader never injected. The `fallback` path still clears `innerHTML`, so it is opt-out behind `devErrors`.
+- [ ] **Keep error text out of attributes** (or clearly document the trade-off) — stack traces in markup can be cached and echoed. Partly addressed (2026-09-30): the surface is opt-out (`devErrors: false`) and tags outside the catalog are never painted, but the default still writes them.
 - [ ] ~~**Fix packaging.** Either emit a real CJS/UMD entry or remove `main`/`exports.require` and declare ESM-only; add `"sideEffects": false` and a `./package.json` export; decide whether `shadow-observer` is a dependency or externalized.~~
 - [ ] **Add completion signals**: `ce:load` / `ce:error` CustomEvents and `registry.whenLoaded(tag)`.
 
@@ -141,7 +142,7 @@ That combination — tiny, standards-only, framework-agnostic — is the heart o
 - [ ] **Docs truth pass**: directive list (including what `hover` really does today), queue semantics, real view-transition browser support, and a working "Documentation" link.
 - [ ] **Pin versions and add integrity.** Replace `@latest` in `importmap.json`, add `integrity` for CDN entries, and document "import map + integrity" as the recommended production setup.
 - [ ] **Make performance claims reproducible.** Replace the Core Web Vitals screenshot with a harness that anyone can run, plus the raw numbers and methodology.
-- [ ] **Cross-browser test matrix**: Chromium + WebKit + Firefox for the four directives, the error path, retry, and shadow-root discovery (Mocha + Puppeteer is already in place; WebKit/Firefox are one config away).
+- [ ] **Cross-browser test matrix**: Chromium + WebKit + Firefox for the four directives, the error path, and shadow-root discovery (Mocha + Puppeteer is already in place; WebKit/Firefox are one config away).
 - [ ] **A stress fixture** (1–2k elements) to measure discovery cost, then scope the rescan to the mutated subtree if needed.
 - [ ] **Trim the observer cost**: drop `characterData`, and stop skipping by the mutation *target's* tag name (one failed `<my-chart>` currently suppresses discovery for that tag across the page).
 - [ ] **Keep error text out of attributes** (or clearly document the trade-off) — stack traces in markup can be cached and echoed.

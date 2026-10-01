@@ -14,7 +14,7 @@ required) and the script exits non-zero on failures, after waiting (30 s) for `w
 
 | Suite | What it pins |
 | --- | --- |
-| `integration.test.js` | start-up upgrade, nested components, `MutationObserver` discovery, the four directives, errors + `fallback` |
+| `integration.test.js` | start-up upgrade, nested components, `MutationObserver` discovery, the four directives, errors (painted for catalog tags, silenced with `devErrors: false`, `hooks.error` always runs), `fallback`, and a tag with no catalog entry being left alone even with `devErrors` on |
 | `observability.test.js` | `load:<tag>` exists, is a measure, and its duration ≥ the loader's sleep |
 | `transitions.test.js` | the deferred queue: batching, `types: ["ce"]`, styles applied then cleared, hooks; `deferDefine: false` (no patch, no wasted transition, ctor-returning loaders still morph, non-catalog defines untouched, define-error path); self-registering components morph by default |
 
@@ -39,6 +39,7 @@ required) and the script exits non-zero on failures, after waiting (30 s) for `w
   `el.checkVisibility({ checkVisibilityCSS: true })`; and remember that pseudo-element animations only show up in
   `el.getAnimations({ subtree: true })` — plain `el.getAnimations()` returns `[]` for them, which reads as "the
   animation isn't running" when it is.
+- **The catalog decides what counts as a failure.** A failing catalog loader gets `ce="error"` by default; a tag with no catalog entry never does (it stays `:not(:defined)`, even with `devErrors: true`), and neither does one with `devErrors: false`. In both silent cases the `loading` state must be gone — that is what the "keep the DOM clean" test pins.
 - Elements must live inside `#fixtures`: `runScopedViewTransition` starts the transition on `el.parentElement`.
 
 ## Gaps
@@ -48,8 +49,9 @@ the pure helpers · multi-component batches and the plain-define fallback are un
 sleep in the script is a race.
 
 ```bash
-npm run build                            # must stay clean (types included)
-npm test                                 # 24 tests, non-zero exit on failure
+npm run build                            # must stay clean (the dts step reports nothing)
+npx tsc --noEmit -p tsconfig.json        # still one pre-existing TS2345 — known issue #12
+npm test                                 # 26 tests, non-zero exit on failure
 npm run dev                              # harness at /test/integration.html
-gzip -c dist/ce-autoloader.js | wc -c    # budget check: 3,391 B
+gzip -c dist/ce-autoloader.js | wc -c    # budget check: 3,337 B
 ```

@@ -201,14 +201,22 @@ describe('CEAutoLoader', () => {
             el.setAttribute("loading", "eager");
             fixtures.appendChild(el);
 
+            let reported = null;
+
             registry = new AutoLoader({
                 catalog: catalog,
                 root: fixtures,
+                hooks: { error: (error) => (reported = error) },
             });
             await new Promise(requestIdleCallback);
 
             expect(el.getAttribute("ce")).to.equal("error");
             expect(el.getAttribute("error")).to.include("Failed to load component");
+
+            // The hook never depends on the option.
+            expect(reported, "hooks.error should be called").to.exist;
+            expect(reported.name).to.equal("error-component");
+            expect(reported.el).to.equal(el);
         });
         it("Should allow a fallback component", async () => {
             const el = document.createElement('error-component');
@@ -218,13 +226,71 @@ describe('CEAutoLoader', () => {
             registry = new AutoLoader({
                 catalog: catalog,
                 root: fixtures,
-                fallback: ErrorFallback
+                fallback: ErrorFallback,
             });
             await new Promise(requestIdleCallback);
             await new Promise(resolve => setTimeout(resolve, 100)); // Wait for fallback to render
 
             expect(el.querySelector('error-fallback')).to.exist;
             expect(el.textContent).to.equal("Fallback content");
+        })
+        it("should leave a tag that is not in the catalog alone", async () => {
+            const el = document.createElement('el-notloaded');
+            el.setAttribute("loading", "eager"); // see the note above
+            fixtures.appendChild(el);
+
+            let reported = null;
+
+            registry = new AutoLoader({
+                catalog: catalog,
+                root: fixtures,
+                // The css.html page showcases `:not(:defined)` with a tag that has no
+                // catalog entry. A third party may define it later, so an error state
+                // would be wrong — even with `devErrors` explicitly on — and the
+                // fallback must not be injected either.
+                devErrors: true,
+                fallback: ErrorFallback,
+                hooks: { error: (error) => (reported = error) },
+            });
+            await new Promise(requestIdleCallback);
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            expect(el.getAttribute("ce"), "no state should be painted").to.be.null;
+            expect(el.getAttribute("error")).to.be.null;
+            expect(el.querySelector('error-fallback')).to.not.exist;
+            expect(el.matches(":not(:defined)"), "the tag stays a placeholder").to.be.true;
+
+            // The failure is still reported, it just doesn't touch the DOM.
+            expect(reported, "hooks.error should be called").to.exist;
+            expect(reported.name).to.equal("el-notloaded");
+            expect(reported.error.message).to.include("not found in catalog");
+        })
+        it("should keep the DOM clean when devErrors is off", async () => {
+            const el = document.createElement('error-component');
+            el.setAttribute("loading", "eager"); // see the note above
+            fixtures.appendChild(el);
+
+            let reported = null;
+
+            registry = new AutoLoader({
+                catalog: catalog,
+                root: fixtures,
+                devErrors: false,
+                fallback: ErrorFallback,
+                hooks: { error: (error) => (reported = error) },
+            });
+            await new Promise(requestIdleCallback);
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // A real failure this time, silenced on purpose: no error state, but the
+            // `loading` state this failure set must not be left behind either.
+            expect(el.getAttribute("ce"), "no state should be painted").to.be.null;
+            expect(el.getAttribute("error")).to.be.null;
+            expect(el.querySelector('error-fallback')).to.not.exist;
+            expect(el.matches(":not(:defined)"), "the tag stays a placeholder").to.be.true;
+
+            expect(reported, "hooks.error should be called").to.exist;
+            expect(reported.name).to.equal("error-component");
         })
     })
 });

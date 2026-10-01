@@ -42,13 +42,6 @@ export default class ErrorFallback extends HTMLElement {
           margin: 1rem 0;
           overflow: hidden;
         }
-        .header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 1rem;
-          width: 100%;
-        }
         details {
           width: 100%;
         }
@@ -66,45 +59,11 @@ export default class ErrorFallback extends HTMLElement {
           margin-top: 0.5rem;
           white-space: pre-wrap;
         }
-        .retry-button {
-          background: white;
-          color: #ff4d4d;
-          border: none;
-          padding: 0.4rem 1rem;
-          border-radius: 20px;
-          font-weight: bold;
-          cursor: pointer;
-          font-size: 0.8rem;
-          transition: all 0.2s ease;
-          flex-shrink: 0;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-          font-family: inherit;
-        }
-        .retry-button:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-          background: #fff5f5;
-        }
-        .retry-button:active {
-          transform: translateY(0);
-        }
       </style>
-      <div class="header">
-        <details>
-          <summary>${this.error}</summary>
-          ${this.stack ? `<pre>${this.stack}</pre>` : ""}
-        </details>
-        <button class="retry-button" id="retry">Retry</button>
-      </div>`;
-
-    this.shadowRoot.getElementById("retry")?.addEventListener("click", () => this.handleRetry());
-  }
-
-  handleRetry() {
-    const parent = this.parentElement;
-    if (parent && (globalThis as any).registry) {
-      (globalThis as any).registry.retry(parent);
-    }
+      <details>
+        <summary>${this.error}</summary>
+        ${this.stack ? `<pre>${this.stack}</pre>` : ""}
+      </details>`;
   }
 }
 

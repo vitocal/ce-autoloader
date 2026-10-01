@@ -224,11 +224,6 @@
     loadCSSLayer("/shared.css", "ds");
     loadCSSLayer("https://nordcdn.net/ds/css/4.2.0/nord.min.css", "ds");
 
-    catalog["el-notloaded"] = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 60 * 60 * 1000));
-      return () => void 0; // never resolves
-    };
-
     catalog["nord-banner"] = async () => {
       await new Promise((resolve) => setTimeout(resolve, 3000));
       return await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/Banner.js`);
@@ -285,15 +280,23 @@
       </tr>
       <tr>
         <td><code>[ce="error"]</code></td>
-        <td>loading or defining failed</td>
+        <td>loading or defining failed (a component that is in the catalog)</td>
       </tr>
     </table>
 
     <div class="demo">
-      <el-notloaded2>:not(:defined)</el-notloaded2>
+      <el-notloaded>:not(:defined)</el-notloaded>
       <div class="ce" ce="loading">Loading...</div>
       <div class="ce" ce="defined">Defined!</div>
       <div class="ce" ce="error">Error!</div>
+    </div>
+
+    <div class="note">
+      <code>[ce="error"]</code> is painted for a component that really failed — a loader that throws, a module that
+      will not import, a <code>define()</code> that blows up. A tag that has no catalog entry is not a failure:
+      <code>el-notloaded</code> above stays <code>:not(:defined)</code>, because a third party may still define it.
+      <code>devErrors: false</code> keeps the error state out of production markup; failures are always reported
+      through <code>hooks.error</code>.
     </div>
   </section>
 

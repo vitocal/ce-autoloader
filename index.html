@@ -706,10 +706,15 @@ const registry = new CERegistry({
 
         <p>
           Additionaly, the attribute <code>[ce=error]</code> is also set on the component, allowing you to style it
-          differently when an error occurs.
+          differently when an error occurs. Only catalog components are reported: a tag that is not in the catalog
+          may be defined later by someone else, so it keeps matching <code>:not(:defined)</code> instead of looking
+          broken. Set <code>devErrors: false</code> to keep the state and the fallback out of production markup.
         </p>
 
-        <p>And you can also handle it manually by setting <code>hooks.error</code> on the constructor</p>
+        <p>
+          And you can also handle it manually by setting <code>hooks.error</code> on the constructor — the hook runs
+          whether or not <code>devErrors</code> is on.
+        </p>
       </div>
     </div>
 

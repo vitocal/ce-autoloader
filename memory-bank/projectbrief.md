@@ -1,7 +1,7 @@
 # Project brief
 
 **ce-autoloader** — a lazy loader + registry for web components. A tag that is on the page is fetched when the
-page says so; a tag that is absent costs nothing. ~3.4 kB gzip, no runtime dependencies, one source file
+page says so; a tag that is absent costs nothing. ~3.3 kB gzip, no runtime dependencies, one source file
 (`src/index.ts`, ~700 lines).
 
 - npm `ce-autoloader` 0.1.2 · GPL-3.0 · ESM-only
@@ -16,8 +16,10 @@ page says so; a tag that is absent costs nothing. ~3.4 kB gzip, no runtime depen
 4. **Standards only** — custom elements, dynamic `import()`, `MutationObserver`, `IntersectionObserver`, import
    maps, User Timing API, View Transitions API.
 5. **States as CSS** — `ce="loading|defined|error"` on the element; skeletons, spinners and fades are plain CSS.
-6. **Native telemetry** — `load:<tag>` / `define:<tag>` performance measures. Failures add `error` / `stack` /
-   `retries` attributes and can render a `fallback` element.
+6. **Native telemetry** — `load:<tag>` / `define:<tag>` performance measures. Failures of catalog components always
+   call `hooks.error` and are painted on the element (`ce="error"`, `error` / `stack`, a `fallback` element) unless
+   `devErrors: false`; a tag that has no catalog entry never was the loader's, so it stays `:not(:defined)` — a
+   third party may define it later.
 7. **No build step for consumers** — one `<script type="module">`; the catalog can also be the page's import map.
 
 ## Non-goals

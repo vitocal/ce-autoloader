@@ -19,7 +19,6 @@ export type LoadError = {
   name: string;
   el: HTMLElement;
   error: CEError;
-  retries?: number;
 };
 
 export type Directives = "eager" | "visible" | "click" | "manual";
@@ -36,6 +35,17 @@ export type Options = {
 
   /** Fallback for components with errors */
   fallback?: CustomElementConstructor;
+
+  /**
+   * Report a failure on the element itself: `ce="error"`, the `error` / `stack`
+   * attributes and the `fallback` element.
+   *
+   * On by default — a component of ours that fails to load or define should be
+   * visible on the page. Set it to `false` to keep production markup clean. A tag
+   * that is *not* in the catalog is never painted either way: the loader never owned
+   * it and a third party may define it later. `hooks.error` is called in all cases.
+   */
+  devErrors?: boolean;
 
   /** Directives are triggers to when the component should be loaded */
   directives?: Directives[];
@@ -141,7 +151,8 @@ class CEAutoLoader {
   // Lock components while loading to avoid retriggers
   loading_locks: Record<string, HTMLElement> = {}
 
-  // Components that failed to load
+  // Components that failed to load: the watcher skips them, so a failure is
+  // reported once instead of on every mutation.
   #errors: Record<string, LoadError> = {};
 
   constructor(options: Options = { catalog: {} }) {
@@ -153,6 +164,7 @@ class CEAutoLoader {
       transition: SUPPORTS_SCOPED_VT &&
         !window.matchMedia(`(prefers-reduced-motion: reduce)`).matches,
       useImportMapsCatalog: false,
+      devErrors: true,
       intersectionOptions: {
         scrollMargin: "20%",
       },
@@ -376,32 +388,45 @@ class CEAutoLoader {
 
     const name = origin.tagName.toLowerCase();
 
-    const retries = (this.#errors[name]?.retries || 0) + 1;
-
-    const error = {
+    const error: LoadError = {
       name: name,
       el: origin,
       error: rejection.reason,
-      retries: retries,
     };
+
     this.#errors[name] = error;
+
+    // Before anything touches the DOM: with `devErrors` off the hook is the only
+    // signal a failure produces.
+    if (this.options.hooks?.error) {
+      this.options.hooks.error(error);
+    }
+
+    // A tag with no catalog entry was never ours to load, so this is not a failure:
+    // it may be defined later by a third party, and painting it as an error would be
+    // wrong. Leaving it `:not(:defined)` is the honest state.
+    if (!this.getLoader(name)) return;
+
+    // Nothing is painted, but the load is over: drop the `loading` state this failure
+    // set (a failing `define()` leaves a `defined` behind for the same reason), so the
+    // element is a plain `:not(:defined)` placeholder again.
+    if (!this.options.devErrors) {
+      origin.removeAttribute("ce");
+      return;
+    }
 
     origin.setAttribute("ce", "error");
     origin.setAttribute("error", message);
     origin.setAttribute("stack", stack);
-    origin.setAttribute("retries", retries.toString());
 
     if (this.options.fallback) {
       // Instantiate and append fallback instead of defining the tag
       const fallback_instance = new this.options.fallback!();
       fallback_instance.setAttribute("error", message);
       fallback_instance.setAttribute("stack", stack);
-      fallback_instance.setAttribute("retries", retries.toString());
 
       origin.innerHTML = "";
       origin.appendChild(fallback_instance);
-    } else if (this.options.hooks?.error) {
-      this.options.hooks.error(error);
     }
   }
 
@@ -641,7 +666,9 @@ class CEAutoLoader {
       if (error instanceof CEError) throw error;
       throw new CEError(`${name} - ${error.message}`, { name, el, module, error });
     } finally {
-      el?.setAttribute("ce", "defined");
+      // Only claim the state that really happened: a failing `define()` must not leave
+      // the element looking upgraded.
+      if (!define_error) el?.setAttribute("ce", "defined");
 
       performance.mark(`define:${name}:end`);
       performance.measure(`define:${name}`, {
@@ -662,22 +689,6 @@ class CEAutoLoader {
     const [prefix, _comp_name] = name.split("-");
     return this.catalog[`${prefix}-*`];
   }
-
-  /**
-   * Retry loading a component that previously failed
-   */
-  async retry(el: HTMLElement) {
-    if (el.getAttribute("ce") !== "error") return;
-
-    el.removeAttribute("ce");
-    el.removeAttribute("error");
-    el.removeAttribute("stack");
-    el.removeAttribute("retries");
-    el.innerHTML = "";
-
-    return await this.loadAndDefine([el]);
-  }
-
 
   /**
    * Polyfills for custom element

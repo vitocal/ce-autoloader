@@ -105,8 +105,14 @@ const registry = new CERegistry({
      self-registering components then upgrade without a transition.
      (default: true whenever transitions are enabled) */
   deferDefine: true,
-  /* Fallback component class rendered when a load fails */
+  /* Fallback component class rendered when a catalog component fails to load */
   fallback: MyErrorComponent,
+  /* Paint a failure on the element itself: `ce="error"`, the `error` / `stack`
+     attributes and the `fallback`. On by default, so a component of yours that
+     breaks is visible on the page; `false` keeps production markup clean. A tag that
+     is not in the catalog is never painted, and `hooks.error` is always called.
+     (default: true) */
+  devErrors: true,
   /* Lifecycle hooks */
   hooks: {
     viewTransition: {
@@ -142,13 +148,15 @@ my-component[ce="defined"] {
   animation: fade-in 0.3s ease-out;
 }
 
-/* Error state */
+/* Error state — a catalog component that failed */
 my-component[ce="error"] {
   border: 1px solid red;
 }
 ```
 
 Each state change is a plain style change on the same element, so CSS `transition` / `animation` can animate it — no JavaScript and no View Transitions API needed. The [CSS animation reference](https://vitocal.github.io/ce-autoloader/pages/examples/animations/css.html) documents which technique fits which situation.
+
+`loading` and `defined` are set by the loader. `error` is painted only for a component that is in the catalog and really failed — a loader that throws, a module that will not import, a `define()` that blows up. A tag that isn't in the catalog was never the loader's business: it keeps matching `:not(:defined)`, because a third party may define it later. Set `devErrors: false` to keep the error state (and the `fallback`) out of production markup; either way `hooks.error` is called.
 
 ### Directives (The `loading` attribute)
 
@@ -186,7 +194,7 @@ For the hackers and performance nerds:
 - **Wildcard Resolvers:** Map an entire library prefix (e.g., `carbon-*`) to a dynamic import function.
 - **Deferred Definitions:** Most catalogs are modules that register their own tag (`customElements.define` at import time). While transitions are enabled, `ce-autoloader` defers those definitions (`deferDefine`, on by default) so they land _inside_ the view transition — that is what lets such a component morph instead of popping up. Only tags that resolve to a catalog entry are deferred: each is defined with `customElements.dequeue(tag)` and the rest are flushed. Anything else (a third-party script, a module registering extra tags) is passed straight to the original `define`, so it upgrades normally. Set `deferDefine: false` to never touch `customElements.define`: components whose loader _returns_ a constructor keep morphing, self-registering ones upgrade without an animation, and third-party code is never intercepted. Without transitions the registry patches nothing at all.
 - **Telemetry:** Every load and definition is timed using the User Timing API. Check your "Performance" tab in DevTools for `load:tag-name` and `define:tag-name` markers.
-- **Retry Logic:** If a component fails to load (e.g., flaky CDN), use `registry.retry(el)` to attempt a reload.
+- **Failure reporting:** A failed load or definition of a catalog component calls `hooks.error` with `{ name, el, error }` and is painted on the element — `ce="error"`, the `error` / `stack` attributes and the `fallback` component — unless `devErrors: false`. A failure is only attributed to a tag the catalog knows: a tag with no catalog entry is left as `:not(:defined)`, so a third-party component that registers itself later is never styled as broken.
 - **Manual Cleanup:** Use `registry.clean()` to disconnect all observers and stop watching the DOM.
 
 ## Browser support

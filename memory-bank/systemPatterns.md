@@ -21,6 +21,17 @@ then `upgrade(root)` for tags without a `loading` attribute.
 **to_morph** (not defined yet; wrapped in a view transition) and **already_defined** (plain define) → report
 define failures → `customElements.flush()` when the queue is installed.
 
+A failure lands in `handleComponentLoadError`: the tag goes into `#errors` (the watcher then skips it, so a failure
+is reported once) and `hooks.error` is called. Then the **catalog decides**: `getLoader(name)` resolves to nothing →
+return, since the loader never owned that tag and a third party may still define it (leaving it `:not(:defined)` is
+the honest state). Otherwise it is a real failure — a loader that throws, a module that will not import, a `define()`
+that blows up — and it is painted on the element (`ce="error"`, `error` / `stack` and, if configured, `fallback`)
+unless `devErrors: false`, in which case the stale `ce` is dropped instead.
+
+Known limit: what the platform runs behind the loader's back is invisible here. A constructor or `connectedCallback`
+that throws during the upgrade does not propagate out of `customElements.define()` — it is reported to `window` — so
+that failure never reaches this path (verified in a browser).
+
 `load(el)` → `getLoader(name)` (exact catalog key, else the wildcard prefix) → `ce="loading"` + a per-tag lock →
 `loadModule` (string → `import(url)`, function → `loader(name, el)`) → `load:<tag>` measure in `finally`.
 
@@ -44,7 +55,9 @@ snapshot window and the morph is lost. The queue retimes those definitions into 
 
 ## Conventions to keep
 
-`ce` values (`loading` / `defined` / `error`) and the measure names are public contract · option defaults live in
+`ce` values (`loading` / `defined` / `error`) and the measure names are public contract; `error` is only for tags
+the catalog knows about (a tag with no catalog entry stays `:not(:defined)`), `devErrors: false` opts out of painting
+it · option defaults live in
 one object in the constructor · one shared IntersectionObserver for all `visible` elements · no runtime
 dependencies · capability checks instead of polyfills, with a plain-define fallback.
 

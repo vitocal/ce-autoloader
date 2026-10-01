@@ -8,7 +8,7 @@
 - [x] Guard element-scoped view transitions; plain `define()` when the browser has none.
 - [x] Packaging: ESM-only, `sideEffects: false`, `shadow-observer` external.
 - [~] **Define queue safety** — Stage 1 done (see below); the patch is still on by default.
-- [ ] `retry()` must not wipe light DOM — snapshot once, or remove only what the fallback injected.
+- [x] `retry()` deleted (2026-09-30). It was unused, it wiped light DOM, and re-fetching is the app's call — a failure is reported, not retried.
 - [ ] Completion signals: `ce:load` / `ce:error` events + `registry.whenLoaded(tag)`.
 - [ ] Open inside the VT guard: re-check `prefers-reduced-motion` per element.
 
@@ -19,10 +19,15 @@
       page, not to the CDN). Rewrite `url()` in `loadCSSLayer`, or ship the font.
 - [ ] Pin `importmap.json` and add `integrity`; document import maps + integrity as the production setup.
 - [ ] Make the performance claims reproducible (replace the Core Web Vitals screenshot with a harness + method).
-- [ ] Cross-browser matrix — Chromium + WebKit + Firefox for the four directives, errors, retry, shadow roots.
+- [ ] Cross-browser matrix — Chromium + WebKit + Firefox for the four directives, errors, shadow roots.
 - [ ] Stress fixture (1–2k elements) to measure discovery cost, then scope rescans to the mutated subtree.
 - [ ] Stop gating discovery by the mutation *target's* tag name (one failed `<my-chart>` suppresses the tag page-wide).
-- [ ] Keep error text/stack out of DOM attributes, or document the trade-off.
+- [~] Error text/stack in DOM attributes is now opt-out (`devErrors: false`) and only ever for tags the catalog
+      knows; the default still writes them. (2026-09-30)
+- [ ] Surface a **first-render throw**. A constructor or `connectedCallback` that throws is reported to `window`,
+      never to `customElements.define()`, so the loader cannot see it (verified in a browser 2026-09-30). A scoped
+      `error` listener around the define — or wrapping the returned constructor — would catch it; both cost bytes
+      and only ever attribute the failure to a tag, not to an element.
 - [ ] `scrollMargin` → `rootMargin` (the documented 20% margin silently does nothing today).
 
 ## Tier 2 — direction
@@ -72,12 +77,13 @@ the platform is left patched.
 2. Element-scoped view transitions are Chromium-only; telling people to set `transition: true` was risky before the
    Tier 0 guard.
 3. `#errors` and the loading locks are keyed by tag name, which conflates instances.
-4. `retry()` clears user content; error text and stack live in attributes.
+4. The `fallback` render clears the element's content, and error text plus stack live in attributes — opt out with
+   `devErrors: false`.
 5. GPL-3.0 is the quiet blocker for corporate teams.
 6. Docs are hand-maintained and have drifted (the animation page was dead for months); a generated reference would
    remove that class of bug.
 7. No imperative completion API.
-8. The byte claim is re-verified at **3,391 B gzip** (`gzip -c dist/ce-autoloader.js`) — re-check after every change.
+8. The byte claim is re-verified at **3,337 B gzip** (`gzip -c dist/ce-autoloader.js`) — re-check after every change.
 
 Refs: [caniuse: `Element.startViewTransition`](https://caniuse.com/mdn-api_element_startviewtransition) ·
 [WICG/webcomponents#782](https://github.com/WICG/webcomponents/issues/782)
