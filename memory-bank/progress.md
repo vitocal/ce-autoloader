@@ -40,4 +40,5 @@ Tier 2: write up the standards proposal using this as evidence; license decision
 
 Fixed lately: define-phase failures were swallowed (`ce="error"` was never set) · skipped transitions leaked
 unhandled rejections · non-catalog definitions were swallowed by the queue · `docs/.nojekyll` was deleted by the
-docs build.
+docs build · the animation page's `ce` states never painted (a `:not(:defined) { visibility: hidden }` guard from
+Nord's design system, hidden in the `ds` layer).

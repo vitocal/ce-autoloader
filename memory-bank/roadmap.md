@@ -15,6 +15,8 @@
 ## Tier 1 — credibility
 
 - [ ] Docs truth pass (README still says `document.startViewTransition()`; state the real support story).
+- [ ] The `ds` layer CSS from the Nord CDN 404s on its font (`nordhealth-sans.woff2` resolves relative to each
+      page, not to the CDN). Rewrite `url()` in `loadCSSLayer`, or ship the font.
 - [ ] Pin `importmap.json` and add `integrity`; document import maps + integrity as the production setup.
 - [ ] Make the performance claims reproducible (replace the Core Web Vitals screenshot with a harness + method).
 - [ ] Cross-browser matrix — Chromium + WebKit + Firefox for the four directives, errors, retry, shadow roots.

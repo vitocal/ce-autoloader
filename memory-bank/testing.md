@@ -33,6 +33,12 @@ required) and the script exits non-zero on failures, after waiting (30 s) for `w
 - **The queue is global.** `beforeEach` / `afterEach` restore `customElements.define` and delete
   `queue` / `dequeue` / `flush`, otherwise a later registry queues into an earlier catalog. `afterEach` waits one
   idle frame first, so in-flight `loadAndDefine` chains never call a removed `customElements.flush()`.
+- **A correct state is not a painted state.** `ce="loading"` can be set, the shimmer `CSSAnimation` running, and
+  the element still invisible — a stylesheet in any *lower* layer saying `visibility: hidden` beats nothing you
+  wrote, and `:not(:defined)` matches for the whole of the load. Assert paint with
+  `el.checkVisibility({ checkVisibilityCSS: true })`; and remember that pseudo-element animations only show up in
+  `el.getAnimations({ subtree: true })` — plain `el.getAnimations()` returns `[]` for them, which reads as "the
+  animation isn't running" when it is.
 - Elements must live inside `#fixtures`: `runScopedViewTransition` starts the transition on `el.parentElement`.
 
 ## Gaps

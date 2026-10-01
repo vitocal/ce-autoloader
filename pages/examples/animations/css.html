@@ -1,11 +1,12 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Animating the lifecycle with CSS — ce-autoloader</title>
 
-    <script type="importmap">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Animating the lifecycle with CSS — ce-autoloader</title>
+
+  <script type="importmap">
       {
         "imports": {
           "lit": "/assets/vendor.js",
@@ -21,94 +22,107 @@
       }
     </script>
 
-    <style>
-      @layer normalize, ds, shared, page, components, scoped, hotfix;
+  <style>
+    @layer normalize, ds, shared, page, components, scoped, hotfix;
 
-      body {
-        display: flex;
-        flex-direction: column;
-        gap: 2em;
-        padding: 2em clamp(1em, 5vw, 4em) 6em;
-        overflow-x: hidden;
-      }
+    body {
+      display: flex;
+      flex-direction: column;
+      gap: 2em;
+      padding: 2em clamp(1em, 5vw, 4em) 6em;
+      overflow-x: hidden;
+    }
 
-      h1,
-      h2 {
-        margin-bottom: 0.25em;
-      }
-      section {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75em;
-        padding-left: 1em;
-        border-left: 3px solid color-mix(in oklab, teal 40%, transparent);
-      }
-      p,
-      li,
-      table {
-        max-width: 72ch;
-      }
-      code {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        font-size: 0.9em;
-      }
-      pre {
-        max-width: 100%;
-        overflow-x: auto;
-        padding: 0.75em 1em;
-        background: #0000000a;
-        border-radius: 0.5em;
-      }
-      table {
-        border-collapse: collapse;
-      }
-      th,
-      td {
-        text-align: left;
-        padding: 0.35em 0.75em 0.35em 0;
-        vertical-align: top;
-      }
-      .note {
-        background: #fffbe6;
-        border-left: 3px solid #e0a800;
-        padding: 0.6em 0.9em;
-        border-radius: 0 0.35em 0.35em 0;
-      }
-      .demo {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 1em;
-        min-height: 3em;
-      }
+    :root {
+      interpolate-size: allow-keywords;
+    }
 
-      /* ==================================================================
-         The lifecycle, in CSS.
+    h1,
+    h2 {
+      margin-bottom: 0.25em;
+    }
 
-           :not(:defined)   the tag is on the page, not registered yet
-           [ce="loading"]   ce-autoloader is fetching the module
-           [ce="defined"]   the module is registered, the element upgraded
-           [ce="error"]     loading or defining failed
+    section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75em;
+      padding-left: 1em;
+      border-left: 3px solid color-mix(in oklab, teal 40%, transparent);
+    }
 
-         `:defined` / `:not(:defined)` are the platform's own state, and they
-         also cover elements the registry never loaded. `ce="…"` is the richer,
-         loader-owned state.
-         ================================================================== */
+    p,
+    li,
+    table {
+      max-width: 72ch;
+    }
 
-      /* 1. Placeholder — reserve the space so nothing shifts later. */
-      :not(:defined) {
-        display: block;
-        min-width: fit-content;
-        min-height: 24px;
-        opacity: 0.55;
-        outline: 2px dashed teal;
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.9em;
+    }
+
+    pre {
+      max-width: 100%;
+      overflow-x: auto;
+      padding: 0.75em 1em;
+      background: #0000000a;
+      border-radius: 0.5em;
+    }
+
+    table {
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 0.35em 0.75em 0.35em 0;
+      vertical-align: top;
+    }
+
+    .note {
+      background: #fffbe6;
+      border-left: 3px solid #e0a800;
+      padding: 0.6em 0.9em;
+      border-radius: 0 0.35em 0.35em 0;
+    }
+
+    .demo {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1em;
+      min-height: 3em;
+
+      &>*:only-child {
+        flex: 1 1 auto;
       }
+    }
+
+    :not(:defined),
+    .ce {
+      display: block;
+      min-width: fit-content;
+      padding: 0.35em;
+      min-height: 1lh;
+      height: auto;
+      visibility: visible;
+      opacity: 0.05;
+      border-radius: 0.25rem;
+      transform: translateY(4px);
+      background-color: transparent;
+      filter: none;
+      overflow: clip;
+
+      transition: all 1s ease-out;
 
       /* 2. Loading — a skeleton or a spinner. */
-      [ce="loading"] {
+      &[ce="loading"] {
         position: relative;
         overflow: clip;
-        outline-color: transparent;
+        opacity: 0.75;
+        transform: translateY(0px);
+        background-color: #eee;
 
         &::after {
           content: "";
@@ -120,327 +134,220 @@
       }
 
       /* 3. Defined — the real component. */
-      [ce="defined"] {
-        outline-color: teal;
+      &[ce="defined"] {
+        opacity: 1;
+        transform: translateY(0px);
+        outline: none;
+      }
+
+      &[ce="defined"] {
+        animation: pop-in 2s ease-out;
       }
 
       /* 4. Error. */
-      [ce="error"] {
+      &[ce="error"] {
         outline: 2px solid red;
-      }
-
-      @keyframes shimmer {
-        from {
-          translate: -100% 0;
-        }
-        to {
-          translate: 100% 0;
-        }
-      }
-
-      /*
-        The transition is declared on the element (or on the state you are moving
-        *to*), never only inside `:not(:defined)`: the browser reads `transition`
-        from the new computed style, so a rule that stops applying cannot animate
-        the change it caused.
-      */
-      nord-button,
-      .card {
-        transition:
-          opacity 400ms ease-out,
-          outline-color 400ms ease-out,
-          translate 400ms ease-out;
-      }
-
-      /* ------------------------------------------------------------------
-         An element that is inserted *already defined* has no previous style,
-         so a transition has nothing to interpolate. Two ways to animate it:
-         an `animation` (keyframes), or `@starting-style`.
-         ------------------------------------------------------------------ */
-
-      @keyframes pop-in {
-        from {
-          opacity: 0;
-          translate: 0 8px;
-        }
-        to {
-          opacity: 1;
-          translate: 0;
-        }
-      }
-
-      .card {
-        display: grid;
-        gap: 0.15em;
-        padding: 0.6em 0.9em;
-        min-width: 9em;
-        border: 1px solid #0003;
-        border-radius: 0.5em;
-        background: #fff;
-      }
-
-      /* Keyframes: runs whenever the rule starts matching — including on the
-         very first frame after insertion. */
-      .card[data-animate="keyframes"] {
-        animation: pop-in 400ms ease-out 1 both;
-      }
-
-      /* `@starting-style` supplies the "from" style for the transition that the
-         `.card` rule above declares. */
-      .card[data-animate="starting-style"],
-      .card[data-animate="none"] {
         opacity: 1;
-        translate: 0;
       }
-      @starting-style {
-        .card[data-animate="starting-style"] {
-          opacity: 0;
-          translate: 0 8px;
-        }
+    }
+
+    @keyframes shimmer {
+      from {
+        translate: -100% 0;
       }
 
-      /* `display: none` cannot be interpolated unless you opt into discrete
+      to {
+        translate: 100% 0;
+      }
+    }
+
+    @keyframes pop-in {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1.0);
+      }
+    }
+
+    /* `display: none` cannot be interpolated unless you opt into discrete
          transitions — this is the case where `@starting-style` is *required*. */
-      .reveal {
-        display: block;
-        opacity: 1;
-        translate: 0;
-        padding: 0.75em 1em;
-        border: 1px solid #0003;
-        border-radius: 0.5em;
-        background: #fff;
-        transition:
-          display 400ms allow-discrete,
-          opacity 400ms ease-out,
-          translate 400ms ease-out;
+    .reveal {
+      padding: 0.75em 1em;
+      border: 1px solid #0003;
+      border-radius: 0.5em;
+      background: #fff;
+
+      display: none;
+      opacity: 0;
+      translate: 0 -8px;
+
+      transition:
+        display 1000ms allow-discrete,
+        opacity 1000ms ease-out,
+        translate 1000ms ease-out;
+    }
+
+    .reveal[ce="defined"],
+    .reveal:defined {
+      display: block;
+      opacity: 1;
+      translate: 0 -8px;
+    }
+
+
+    model-viewer {
+      border: 1px solid #0003;
+
+      &[ce="defined"] {
+        height: calc-size(auto, 400px);
+        animation: pop-in 1.5s ease-out;
       }
-      .reveal[data-hidden] {
-        display: none;
+    }
+
+    @starting-style {
+      .reveal:not([ce="defined"]) {
         opacity: 0;
         translate: 0 -8px;
       }
-      @starting-style {
-        .reveal:not([data-hidden]) {
-          opacity: 0;
-          translate: 0 -8px;
-        }
-      }
-    </style>
+    }
+  </style>
 
-    <script type="module">
-      import { loadCSSLayer } from "@/utils.ts";
-      import CERegistry from "/src/index.ts";
-      import catalog from "@/components/catalog.js";
+  <script type="module">
+    import { loadCSSLayer } from "@/utils.ts";
+    import CERegistry from "/src/index.ts";
+    import catalog from "@/components/catalog.js";
 
-      loadCSSLayer("/shared.css", "ds");
-      loadCSSLayer("https://nordcdn.net/ds/css/4.2.0/nord.min.css", "ds");
+    loadCSSLayer("/shared.css", "ds");
+    loadCSSLayer("https://nordcdn.net/ds/css/4.2.0/nord.min.css", "ds");
 
-      // A deliberately slow loader, so the `loading` state is observable. The
-      // catalog is patched *before* the registry is built: discovery starts with
-      // the constructor, so a patch applied later can lose the race for the
-      // first element (and fall back to the `nord-*` wildcard loader).
-      catalog["nord-button"] = async () => {
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-        return await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/Button.js`);
-      };
+    catalog["el-notloaded"] = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 60 * 60 * 1000));
+      return () => void 0; // never resolves
+    };
 
-      globalThis.registry = new CERegistry({
-        catalog,
-        transition: true,
-        deferDefine: true,
-      });
-    </script>
-  </head>
+    catalog["nord-banner"] = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      return await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/Banner.js`);
+    };
 
-  <body>
-    <header>
-      <h1>Animating the lifecycle with CSS</h1>
-      <p>
-        Every step of a lazily loaded component's life is exposed as an attribute (or a platform pseudo-class),
-        so most of the polish — skeletons, spinners, fades, error states — needs no JavaScript at all. This page
-        documents the CSS side of ce-autoloader; the
-        <a href="/pages/demos/view-transition.html">view transition demo</a> covers the morphing side.
-      </p>
-    </header>
+    catalog["nord-badge"] = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      return await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/Badge.js`);
+    };
 
-    <section>
-      <h2>1. The states you can style</h2>
-      <table>
-        <tr>
-          <th>Selector</th>
-          <th>When it matches</th>
-          <th>Owned by</th>
-        </tr>
-        <tr>
-          <td><code>:not(:defined)</code></td>
-          <td>the tag is on the page but not registered yet</td>
-          <td>the platform</td>
-        </tr>
-        <tr>
-          <td><code>[ce="loading"]</code></td>
-          <td>the module is being fetched</td>
-          <td>ce-autoloader</td>
-        </tr>
-        <tr>
-          <td><code>[ce="defined"]</code></td>
-          <td>the module resolved and the element upgraded</td>
-          <td>ce-autoloader</td>
-        </tr>
-        <tr>
-          <td><code>[ce="error"]</code></td>
-          <td>loading or defining failed</td>
-          <td>ce-autoloader</td>
-        </tr>
-      </table>
+    catalog["model-viewer"] = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      return await import(/* @vite-ignore */ `https://esm.sh/@google/model-viewer@latest&standalone`);
+    };
 
-      <p class="note">
-        <code>:defined</code> / <code>:not(:defined)</code> are the platform's own state and also cover elements
-        the registry never loaded (a component defined by someone else, one inserted after its definition).
-        <code>ce="…"</code> is the richer, loader-owned state: it distinguishes <em>loading</em> from
-        <em>defined</em> from <em>error</em>. Style the platform state for layout, the <code>ce</code> state for
-        the story.
-      </p>
+    globalThis.registry = new CERegistry({
+      catalog,
+      transition: false,
+      deferDefine: false,
+    });
+  </script>
+</head>
 
-      <div class="demo">
-        <nord-button>slow loader (3 s)</nord-button>
-        <span>Watch: dashed placeholder → shimmer → component.</span>
-      </div>
-    </section>
+<body>
+  <header>
+    <h1>Animating the lifecycle with CSS</h1>
+    <p>
+      Every step of a lazily loaded component's life is exposed as an attribute (or a platform pseudo-class),
+      so most of the polish — skeletons, spinners, fades, error states — needs no JavaScript at all. This page
+      documents the CSS side of ce-autoloader; the
+      <a href="/pages/demos/view-transition.html">view transition demo</a> covers the the advanced morphing animation.
+    </p>
 
-    <section>
-      <h2>2. Transitions between the states</h2>
-      <p>
-        The element is the <em>same node</em> while its state changes, so a plain CSS <code>transition</code>
-        interpolates the swap — no View Transitions API involved.
-      </p>
-      <pre><code>:not(:defined)  { opacity: .55; outline: 2px dashed teal }
-[ce="loading"]  { opacity: 1;   outline-color: transparent }
-[ce="defined"]  { outline-color: teal }
+  </header>
 
-/* Declare the transition on the element (or on the state you move *to*). */
-nord-button { transition: opacity 400ms, outline-color 400ms }</code></pre>
+  <section>
+    <h2>Default CSS selectors</h2>
+    <table>
+      <tr>
+        <th>Selector</th>
+        <th>When it matches</th>
+      </tr>
+      <tr>
+        <td><code>:not(:defined)</code></td>
+        <td>the tag is on the page but not registered yet</td>
+      </tr>
+      <tr>
+        <td><code>[ce="loading"]</code></td>
+        <td>the module is being fetched</td>
+      </tr>
+      <tr>
+        <td><code>[ce="defined"]</code></td>
+        <td>the module resolved and the element upgraded</td>
+      </tr>
+      <tr>
+        <td><code>[ce="error"]</code></td>
+        <td>loading or defining failed</td>
+      </tr>
+    </table>
 
-      <p class="note">
-        <strong>Gotcha:</strong> a <code>transition</code> declared only inside <code>:not(:defined)</code> will
-        not run. The browser reads <code>transition</code> from the <em>new</em> computed style, and that rule
-        stops applying the moment the element becomes defined.
-      </p>
+    <div class="demo">
+      <el-notloaded2>:not(:defined)</el-notloaded2>
+      <div class="ce" ce="loading">Loading...</div>
+      <div class="ce" ce="defined">Defined!</div>
+      <div class="ce" ce="error">Error!</div>
+    </div>
+  </section>
 
-      <div class="demo">
-        <nord-button>second loader (3 s)</nord-button>
-      </div>
-    </section>
+  <section>
+    <h2>Use CSS Transitions to animate state changes</h2>
 
-    <section>
-      <h2>3. Animating when there is nothing to transition</h2>
-      <p>
-        A component that is inserted <em>already defined</em> upgrades synchronously: no state change happens,
-        so <code>transition</code> has no previous value to interpolate. Use an <code>animation</code>
-        (keyframes) instead — it runs when the rule starts matching, including the first frame after insertion.
-      </p>
-      <pre><code>.card[data-animate="keyframes"] { animation: pop-in 400ms ease-out both }</code></pre>
+    <p>Use css transitions to seamless animate between component states</p>
 
-      <div class="demo">
-        <button type="button" data-insert="keyframes">insert with animation</button>
-        <button type="button" data-insert="starting-style">insert with @starting-style</button>
-        <button type="button" data-insert="none">insert with nothing</button>
-      </div>
-      <div class="demo" id="cards"></div>
-    </section>
-    <section>
-      <h2>4. Is <code>@starting-style</code> useful here?</h2>
-      <p>
-        Yes — but not for the state swap above. <code>@starting-style</code> supplies the <em>first</em> style
-        of an element that appears directly in its final state, which is exactly the situation a transition
-        cannot handle on its own. Reach for it when you want a <em>transition</em> (rather than a keyframe
-        animation) for an element that is created or revealed — for instance a component inserted after its
-        definition.
-      </p>
-      <pre><code>.card[data-animate="starting-style"] { opacity: 1; translate: 0; transition: opacity 400ms, translate 400ms }
+    <div class="note">
+      A <code>transition</code> declared only inside <code>:not(:defined)</code> will
+      not run. The browser reads <code>transition</code> from the <em>new</em> computed style, and that rule
+      stops applying the moment the element becomes defined.
 
-@starting-style {
-  .card[data-animate="starting-style"] { opacity: 0; translate: 0 8px }
-}</code></pre>
-      <p>
-        Compare the three buttons above: <code>animation</code> and <code>@starting-style</code> fade the card
-        in, the third one pops. Two caveats worth knowing:
-      </p>
-      <ul>
-        <li>the transition must still be declared on the element (or in a rule that keeps matching);</li>
-        <li>
-          <code>@starting-style</code> only supplies the starting style — the interpolation is still a
-          transition, so it honours <code>prefers-reduced-motion</code> like any other.
-        </li>
-      </ul>
-    </section>
+      A workaround is to use a <code>class</code> in the webcomponent, and declare the transition on that class instead.
+    </div>
 
-    <section>
-      <h2>5. Entering and leaving <code>display: none</code></h2>
-      <p>
-        This is where <code>@starting-style</code> is <em>required</em>: <code>display</code> is a discrete
-        property, so it needs <code>transition-behavior: allow-discrete</code> to animate at all, plus the
-        starting style to animate <em>into</em>.
-      </p>
-      <pre><code>.reveal {
-  display: block; opacity: 1;
-  transition: display 400ms allow-discrete, opacity 400ms, translate 400ms;
+    <pre><code>.ce                { transition: all 1s ease-out; opacity: .25; }
+.ce[ce="loading"]  { opacity: 0.75; }
+.ce[ce="defined"]  { opacity: 1; }
+</code></pre>
+
+    <div class="demo">
+      <nord-banner variant="info" class="ce">This is a banner message.</nord-banner>
+    </div>
+
+
+  </section>
+
+  <section>
+    <h2>Use CSS animations for the last <code>defined</code> state</h2>
+    <p>
+      The <em>defined</em> state is trickier to animate, because the element is replaced with a new node.
+      Use <code>@keyframes</code> to animate, and <code>calc-size()</code> to set the height of the element to a fixed
+      value,
+      so it can grow nicely the boundary box.
+    </p>
+    <pre><code>
+keyframes pop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
-.reveal[data-hidden] { display: none; opacity: 0; translate: 0 -8px }
+.ce[ce="defined"]  {
+  animation: pop-in 1.5s ease-out;
+  height: calc-size(auto, size);
+}
+</code></pre>
 
-@starting-style { .reveal:not([data-hidden]) { opacity: 0; translate: 0 -8px } }</code></pre>
+    <div class="demo">
+      <model-viewer loading="eager" class="ce custom" camera-controls touch-action="pan-y" auto-rotate width="100%"
+        height="400px" src="//modelviewer.dev/shared-assets/models/shishkebab.glb"
+        alt="A 3D model of a shishkebab"></model-viewer>
+    </div>
+  </section>
 
-      <div class="demo">
-        <button type="button" id="reveal-toggle">toggle</button>
-        <div class="reveal" id="reveal">I fade in and out instead of flickering.</div>
-      </div>
-    </section>
+</body>
 
-    <section>
-      <h2>6. CSS animations and the View Transitions API</h2>
-      <p>
-        With <code>transition: true</code> ce-autoloader wraps each definition in
-        <code>startViewTransition()</code>, which morphs the placeholder into the component (layout included) and
-        batches a whole batch of definitions. <code>deferDefine</code> (on by default) is what lets a component
-        that registers <em>itself</em> — a module calling <code>customElements.define</code> at import time —
-        join that morph instead of upgrading early.
-      </p>
-      <ul>
-        <li>
-          <strong>View transitions</strong> for the placeholder → component morph, and for route or state
-          changes where layout moves.
-        </li>
-        <li>
-          <strong>CSS transitions &amp; animations</strong> (this page) for everything local: skeletons,
-          spinners, fades, error states. They work in every browser and cost nothing.
-        </li>
-        <li><strong>Both</strong> compose: the morph moves the box, the CSS fades its contents.</li>
-      </ul>
-      <p class="note">
-        Element-scoped view transitions are Chromium-only today, which is why the CSS-only path matters: it is
-        the animation every user gets.
-      </p>
-    </section>
-
-    <script type="module">
-      // An element inserted *already defined* upgrades synchronously, so these
-      // cards demonstrate the "no state change to transition from" case.
-      let inserted = 0;
-      const cards = document.getElementById("cards");
-
-      document.querySelectorAll("[data-insert]").forEach((button) => {
-        button.addEventListener("click", () => {
-          const card = document.createElement("div");
-          card.className = "card";
-          card.dataset.animate = button.dataset.insert;
-          card.textContent = `card #${++inserted}`;
-          cards.append(card);
-        });
-      });
-
-      const reveal = document.getElementById("reveal");
-      document.getElementById("reveal-toggle").addEventListener("click", () => {
-        reveal.toggleAttribute("data-hidden");
-      });
-    </script>
-  </body>
 </html>
