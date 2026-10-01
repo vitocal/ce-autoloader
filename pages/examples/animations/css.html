@@ -6,48 +6,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Animating the lifecycle with CSS — ce-autoloader</title>
 
-  <script type="importmap">
-      {
-        "imports": {
-          "lit": "/assets/vendor.js",
-          "lit/decorators.js": "/assets/vendor.js",
-          "lit/directives/ref.js": "/assets/vendor.js",
-          "lit/directives/if-defined.js": "/assets/vendor.js",
-          "lit-element": "/assets/vendor.js",
-          "lit-html": "/assets/vendor.js",
-          "lit/directives/unsafe-html.js": "/assets/vendor.js",
-          "lit/directives/style-map.js": "/assets/vendor.js",
-          "syntax-highlight": "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm"
-        }
-      }
-    </script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
+  <!-- Page chrome. The demo state styles live in the blocks below, one per documented section. -->
   <style>
-    @layer normalize, ds, shared, page, components, scoped, hotfix;
-
     body {
       display: flex;
       flex-direction: column;
       gap: 2em;
       padding: 2em clamp(1em, 5vw, 4em) 6em;
       overflow-x: hidden;
+      font-family: system-ui, -apple-system, sans-serif;
     }
 
     :root {
       interpolate-size: allow-keywords;
+      --duration: 2s;
     }
 
     h1,
-    h2 {
+    h2,
+    h3 {
       margin-bottom: 0.25em;
-    }
-
-    section {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75em;
-      padding-left: 1em;
-      border-left: 3px solid color-mix(in oklab, teal 40%, transparent);
+      font-size: revert;
+      font-weight: revert;
     }
 
     p,
@@ -80,13 +62,6 @@
       vertical-align: top;
     }
 
-    .note {
-      background: #fffbe6;
-      border-left: 3px solid #e0a800;
-      padding: 0.6em 0.9em;
-      border-radius: 0 0.35em 0.35em 0;
-    }
-
     .demo {
       display: flex;
       flex-wrap: wrap;
@@ -98,144 +73,253 @@
         flex: 1 1 auto;
       }
     }
+  </style>
 
-    :not(:defined),
-    .ce {
-      display: block;
-      min-width: fit-content;
-      padding: 0.35em;
-      min-height: 1lh;
-      height: auto;
-      visibility: visible;
-      opacity: 0.05;
-      border-radius: 0.25rem;
-      transform: translateY(4px);
-      background-color: transparent;
+  <!-- 1. Default CSS selectors -->
+  <style>
+    /* 1. Unregistered state */
+    :not(:defined) {
+      opacity: 0.2;
+      filter: blur(2px);
+      transition: opacity var(--duration) ease;
+    }
+
+    /* 2. Loading state (module is fetching) */
+    [ce="loading"] {
+      position: relative;
+      overflow: hidden;
       filter: none;
-      overflow: clip;
+      opacity: 0.75;
+    }
 
-      transition: all 1s ease-out;
+    /* Skeleton Shimmer */
+    [ce="loading"]::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.2), transparent);
+      animation: shimmer 1.5s infinite;
+    }
 
-      /* 2. Loading — a skeleton or a spinner. */
-      &[ce="loading"] {
-        position: relative;
-        overflow: clip;
-        opacity: 0.75;
-        transform: translateY(0px);
-        background-color: #eee;
-
-        &::after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          animation: shimmer 1s ease-out infinite;
-          background: linear-gradient(to right, transparent 10%, #0006 50%, transparent 90%);
-        }
-      }
-
-      /* 3. Defined — the real component. */
-      &[ce="defined"] {
-        opacity: 1;
-        transform: translateY(0px);
-        outline: none;
-      }
-
-      &[ce="defined"] {
-        animation: pop-in 2s ease-out;
-      }
-
-      /* 4. Error. */
-      &[ce="error"] {
-        outline: 2px solid red;
-        opacity: 1;
-      }
+    [ce="error"] {
+      outline: 1px solid red;
+      color: red;
     }
 
     @keyframes shimmer {
-      from {
-        translate: -100% 0;
+      100% {
+        transform: translateX(100%);
       }
+    }
+  </style>
 
-      to {
-        translate: 100% 0;
-      }
+  <!-- 2. Use CSS transitions to animate state changes -->
+  <style>
+    .ce {
+      transition: all 1s ease-out;
+      opacity: .25;
+    }
+
+    .ce[ce="loading"] {
+      opacity: 0.75;
+    }
+
+    .ce[ce="defined"] {
+      opacity: 1;
+    }
+  </style>
+
+  <!-- 3. Use CSS animations for the last defined state -->
+  <style>
+    .ce[ce="defined"] {
+      animation: pop-in 1.5s ease-out;
+      height: calc-size(auto, size);
     }
 
     @keyframes pop-in {
       from {
         opacity: 0;
-        transform: scale(0.95);
       }
 
       to {
         opacity: 1;
-        transform: scale(1.0);
-      }
-    }
-
-    /* `display: none` cannot be interpolated unless you opt into discrete
-         transitions — this is the case where `@starting-style` is *required*. */
-    .reveal {
-      padding: 0.75em 1em;
-      border: 1px solid #0003;
-      border-radius: 0.5em;
-      background: #fff;
-
-      display: none;
-      opacity: 0;
-      translate: 0 -8px;
-
-      transition:
-        display 1000ms allow-discrete,
-        opacity 1000ms ease-out,
-        translate 1000ms ease-out;
-    }
-
-    .reveal[ce="defined"],
-    .reveal:defined {
-      display: block;
-      opacity: 1;
-      translate: 0 -8px;
-    }
-
-
-    model-viewer {
-      border: 1px solid #0003;
-
-      &[ce="defined"] {
-        height: calc-size(auto, 400px);
-        animation: pop-in 1.5s ease-out;
-      }
-    }
-
-    @starting-style {
-      .reveal:not([ce="defined"]) {
-        opacity: 0;
-        translate: 0 -8px;
       }
     }
   </style>
 
+  <!-- 4. Other examples -->
+  <style>
+    .grid {
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .card {
+      border: 1px solid #334155;
+      padding: 1.25rem;
+      border-radius: 12px;
+    }
+
+    /* SHOWCASE 1: Pop In (Bouncy Overshoot) */
+    demo-pop {
+      display: block;
+      padding: 1rem;
+      background: #3b82f6;
+      border-radius: 8px;
+    }
+
+    demo-pop[ce="defined"] {
+      animation: pop-in var(--duration) cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes pop-in {
+      from {
+        opacity: 0;
+        transform: scale(0.85);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* SHOWCASE 2: Smooth Height Expand & Fade */
+    demo-expand {
+      padding: 1rem;
+      background: #10b981;
+      border-radius: 8px;
+      transition: height var(--duration) ease-in-out;
+      overflow: hidden;
+      height: calc(1lh + 2rem);
+    }
+
+    demo-expand[ce="defined"] {
+      height: calc-size(auto, size);
+      animation: expand-fade var(--duration) ease-in-out forwards;
+    }
+
+    @keyframes expand-fade {
+      from {
+        opacity: 0.75;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* SHOWCASE 3: 3D Flip Entrance */
+    demo-flip {
+      display: block;
+      padding: 1rem;
+      background: #8b5cf6;
+      border-radius: 8px;
+      perspective: 600px;
+    }
+
+    demo-flip[ce="defined"] {
+      animation: flip-3d var(--duration) cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    }
+
+    @keyframes flip-3d {
+      from {
+        opacity: 0;
+        transform: rotateX(-70deg);
+      }
+
+      to {
+        opacity: 1;
+        transform: rotateX(0deg);
+      }
+    }
+
+    /* SHOWCASE 4: Reveal Clip-Mask Sweep */
+    demo-reveal {
+      display: block;
+      padding: 1rem;
+      background: #ec4899;
+      border-radius: 8px;
+    }
+
+    demo-reveal[ce="defined"] {
+      animation: reveal-sweep var(--duration) cubic-bezier(0.77, 0, 0.175, 1) forwards;
+    }
+
+    @keyframes reveal-sweep {
+      from {
+        opacity: 0;
+        clip-path: inset(0 100% 0 0);
+      }
+
+      to {
+        opacity: 1;
+        clip-path: inset(0 0 0 0);
+      }
+    }
+
+    /* SHOWCASE 5: Cascading Staggered Items */
+    demo-stagger-container {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    demo-stagger-item {
+      flex: 1;
+      padding: 1rem;
+      background: #f59e0b;
+      border-radius: 8px;
+      display: block;
+    }
+
+    demo-stagger-item[ce="defined"] {
+      opacity: 0;
+      animation: slide-up var(--duration) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    demo-stagger-item:nth-child(1)[ce="defined"] {
+      animation-delay: 0.05s;
+    }
+
+    demo-stagger-item:nth-child(2)[ce="defined"] {
+      animation-delay: 0.15s;
+    }
+
+    demo-stagger-item:nth-child(3)[ce="defined"] {
+      animation-delay: 0.25s;
+    }
+
+    @keyframes slide-up {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+
+  <script>
+    window.DEFAULT_CE_DELAY = 3000
+  </script>
   <script type="module">
-    import { loadCSSLayer } from "@/utils.ts";
     import CERegistry from "/src/index.ts";
     import catalog from "@/components/catalog.js";
 
-    loadCSSLayer("/shared.css", "ds");
-    loadCSSLayer("https://nordcdn.net/ds/css/4.2.0/nord.min.css", "ds");
-
-    catalog["nord-banner"] = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      return await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/Banner.js`);
-    };
+    // The page itself is a <zero-md> that renders ./css.md; add it to the catalog.
+    catalog["zero-md"] = "https://cdn.jsdelivr.net/npm/zero-md@3?register";
 
     catalog["nord-badge"] = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, DEFAULT_CE_DELAY));
       return await import(/* @vite-ignore */ `https://esm.sh/@nordhealth/components/lib/Badge.js`);
     };
 
     catalog["model-viewer"] = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, DEFAULT_CE_DELAY));
       return await import(/* @vite-ignore */ `https://esm.sh/@google/model-viewer@latest&standalone`);
     };
 
@@ -248,109 +332,63 @@
 </head>
 
 <body>
-  <header>
-    <h1>Animating the lifecycle with CSS</h1>
-    <p>
-      Every step of a lazily loaded component's life is exposed as an attribute (or a platform pseudo-class),
-      so most of the polish — skeletons, spinners, fades, error states — needs no JavaScript at all. This page
-      documents the CSS side of ce-autoloader; the
-      <a href="/pages/demos/view-transition.html">view transition demo</a> covers the the advanced morphing animation.
-    </p>
+  <zero-md no-shadow src="./css.md"></zero-md>
 
-  </header>
+  <script>
+    /**
+     * The demo components are plain classes, not catalog entries, so the lifecycle
+     * attributes painted on them (`ce="loading"` / `ce="defined"`) are faked here to
+     * show the CSS states without waiting on the network.
+     */
+    function runLifecycleSimulation() {
+      const elements = Array.from(document.querySelectorAll('demo-pop, demo-expand, demo-flip, demo-reveal, demo-stagger-item'));
+      if (!elements.length) return;
 
-  <section>
-    <h2>Default CSS selectors</h2>
-    <table>
-      <tr>
-        <th>Selector</th>
-        <th>When it matches</th>
-      </tr>
-      <tr>
-        <td><code>:not(:defined)</code></td>
-        <td>the tag is on the page but not registered yet</td>
-      </tr>
-      <tr>
-        <td><code>[ce="loading"]</code></td>
-        <td>the module is being fetched</td>
-      </tr>
-      <tr>
-        <td><code>[ce="defined"]</code></td>
-        <td>the module resolved and the element upgraded</td>
-      </tr>
-      <tr>
-        <td><code>[ce="error"]</code></td>
-        <td>loading or defining failed (a component that is in the catalog)</td>
-      </tr>
-    </table>
+      // Step 1: Reset to Unregistered / Loading state
+      setTimeout(() => {
+        elements.forEach(el => el.setAttribute('ce', 'loading'));
+      }, 1000);
 
-    <div class="demo">
-      <el-notloaded>:not(:defined)</el-notloaded>
-      <div class="ce" ce="loading">Loading...</div>
-      <div class="ce" ce="defined">Defined!</div>
-      <div class="ce" ce="error">Error!</div>
-    </div>
+      // Step 2: Simulate module resolution & customElement definition delay
+      setTimeout(() => {
+        const tags = ['demo-pop', 'demo-flip', 'demo-reveal', 'demo-stagger-container', 'demo-stagger-item'];
+        tags.forEach(tag => {
+          if (!customElements.get(tag)) {
+            customElements.define(tag, class extends HTMLElement { });
+          }
+        });
 
-    <div class="note">
-      <code>[ce="error"]</code> is painted for a component that really failed — a loader that throws, a module that
-      will not import, a <code>define()</code> that blows up. A tag that has no catalog entry is not a failure:
-      <code>el-notloaded</code> above stays <code>:not(:defined)</code>, because a third party may still define it.
-      <code>devErrors: false</code> keeps the error state out of production markup; failures are always reported
-      through <code>hooks.error</code>.
-    </div>
-  </section>
+        if (!customElements.get('demo-expand')) {
+          customElements.define('demo-expand', class extends HTMLElement {
+            connectedCallback() {
+              // Set a fixed height to allow smooth transition
+              const p = document.createElement('p')
+              p.innerText = 'Grows gracefully to reveal multi-line content using calc-size().';
+              this.appendChild(p);
+            }
+          });
+        }
 
-  <section>
-    <h2>Use CSS Transitions to animate state changes</h2>
+        // Step 3: Set state to defined to trigger keyframe entrances
+        elements.forEach(el => el.setAttribute('ce', 'defined'));
+      }, 3000);
+    }
 
-    <p>Use css transitions to seamless animate between component states</p>
+    // <zero-md> fetches ./css.md and renders it *after* this script runs, so wait
+    // for the demo elements to land before running the simulation.
+    function whenDemosReady(callback) {
+      if (document.querySelector('demo-pop')) return callback();
 
-    <div class="note">
-      A <code>transition</code> declared only inside <code>:not(:defined)</code> will
-      not run. The browser reads <code>transition</code> from the <em>new</em> computed style, and that rule
-      stops applying the moment the element becomes defined.
+      const timer = setInterval(() => {
+        if (document.querySelector('demo-pop')) {
+          clearInterval(timer);
+          callback();
+        }
+      }, 100);
+    }
 
-      A workaround is to use a <code>class</code> in the webcomponent, and declare the transition on that class instead.
-    </div>
-
-    <pre><code>.ce                { transition: all 1s ease-out; opacity: .25; }
-.ce[ce="loading"]  { opacity: 0.75; }
-.ce[ce="defined"]  { opacity: 1; }
-</code></pre>
-
-    <div class="demo">
-      <nord-banner variant="info" class="ce">This is a banner message.</nord-banner>
-    </div>
-
-
-  </section>
-
-  <section>
-    <h2>Use CSS animations for the last <code>defined</code> state</h2>
-    <p>
-      The <em>defined</em> state is trickier to animate, because the element is replaced with a new node.
-      Use <code>@keyframes</code> to animate, and <code>calc-size()</code> to set the height of the element to a fixed
-      value,
-      so it can grow nicely the boundary box.
-    </p>
-    <pre><code>
-keyframes pop-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-.ce[ce="defined"]  {
-  animation: pop-in 1.5s ease-out;
-  height: calc-size(auto, size);
-}
-</code></pre>
-
-    <div class="demo">
-      <model-viewer loading="eager" class="ce custom" camera-controls touch-action="pan-y" auto-rotate width="100%"
-        height="400px" src="//modelviewer.dev/shared-assets/models/shishkebab.glb"
-        alt="A 3D model of a shishkebab"></model-viewer>
-    </div>
-  </section>
-
+    whenDemosReady(runLifecycleSimulation);
+  </script>
 </body>
 
 </html>

@@ -10,6 +10,7 @@ import vue from "@vitejs/plugin-vue";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import preact from "@preact/preset-vite";
 import stencil from "@stencil-community/unplugin-stencil/vite";
+import { viteStaticCopy } from "vite-plugin-static-copy";
 
 const BASE = process.env.NODE_ENV === "production" ? "/ce-autoloader/" : "/";
 import importmap from "./importmap.json";
@@ -42,6 +43,11 @@ export default defineConfig({
     svelte({ compilerOptions: { customElement: true } }),
     preact(),
     importMapPlugin({ imports: importmap }),
+    // Pages fetch their markdown at runtime (`<zero-md src="./css.md">`); copy it into
+    // the build output so those requests resolve in the built site too.
+    viteStaticCopy({
+      targets: [{ src: "pages/**/*.md", dest: "." }],
+    }),
   ],
   base: BASE,
   appType: "mpa",
