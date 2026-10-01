@@ -7,5 +7,28 @@
         "*.tsv": "duckdb.dataFileViewer",
         "*.xlsx": "duckdb.dataFileViewer"
     },
-    "js/ts.tsdk.path": "node_modules/typescript/lib"
+    "js/ts.tsdk.path": "node_modules/typescript/lib",
+    // The user profile turns this ON globally, which makes VS Code report every
+    // diagnostic of every project — including node_modules/**/*.d.ts (the lit
+    // plugin flags preact/svelte .d.ts) and all the throwaway demos under pages/.
+    // Off here: only files you actually open get checked. Flip to true if you want
+    // project-wide checks in this repo.
+    "js/ts.tsserver.experimental.enableProjectDiagnostics": false,
+    // lit-plugin is a ts-server plugin, so it also walks node_modules; its
+    // no-invalid-tag-name rule misfires on preact/svelte .d.ts tag-name unions.
+    "lit-plugin.rules": {
+        "no-invalid-tag-name": "off"
+    },
+    // Don't crawl or watch dependencies. `skipLibCheck` + the per-folder
+    // `tsconfig.json` files are what actually keep `node_modules` diagnostics out
+    // of the Problems panel; these two only keep the editor off that tree.
+    "files.watcherExclude": {
+        "**/node_modules/**": true,
+        "**/dist/**": true,
+        "**/docs/**": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/dist": true
+    }
 }

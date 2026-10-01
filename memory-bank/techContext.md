@@ -5,10 +5,12 @@
 - TypeScript (`src/index.ts`) → ESM-only. `tsconfig`: `target es2025`, `module esnext`, `isolatedModules`,
   `strict: false`, `noUnusedLocals`; **`react` / `react-dom` are aliased to `preact/compat`** (Preact is the React in
   this repo).
-- Library build: `vite.config.js` — lib mode + `vite-plugin-dts`, `formats: ["es"]`, `external: ["shadow-observer"]`.
+- Library build: `vite.config.js` — lib mode + `vite-plugin-dts`, `formats: ["es"]`, `external: ["shadow-observer"]`. Only `tsconfig.json` (`include: ["src/*"]`) is used by `tsc` and the dts step.
 - Docs build: `vite.docs.js` — Vite MPA, `base: /ce-autoloader/` in production, output `docs/`, plugins for Vue,
   Svelte (`customElement: true`), Preact and import maps. The Stencil plugin is imported but never registered (issue
   #9).
+- Editor project: `pages/tsconfig.json` (`extends` the root, `include: ["**/*.ts", "**/*.tsx"]`) binds the demo sources to a *configured* project. A file outside every tsconfig lands in an **inferred** project, which ignores `skipLibCheck` — that is why untyped deps (`three`) leaked "missing declaration file" errors from `node_modules/**/*.d.ts`. `pages/env.d.ts` supplies the demo-only ambient types (CSS side-effect imports, `virtual:importmap`, `process`).
+- The big Problems-panel flood is not tsconfig at all: the user profile sets `typescript.tsserver.experimental.enableProjectDiagnostics: true`, so VS Code reports diagnostics for every file in every project, `node_modules` included. `.vscode/settings.json` overrides it to `false` for this workspace; `lit-plugin.rules.no-invalid-tag-name: "off"` stops the (ts-server-plugin) lit analyzer from flagging `preact`/`svelte` `.d.ts` tag-name unions.
 - No runtime dependencies. `peerDependencies: shadow-observer` (external, and currently unused). `sideEffects: false`.
   `package.json` advertises `custom-elements.json`, which nothing generates.
 

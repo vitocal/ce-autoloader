@@ -24,7 +24,6 @@ export default class PixQRCode extends LitElement {
       transactionId: "***",
       message: "Teste de QR Code",
       value: 1.0,
-      guid: "***",
     };
     this.generateQRCode();
   }
