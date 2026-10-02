@@ -7,7 +7,9 @@ export default class ErrorFallback extends HTMLElement {
   }
 
   connectedCallback() {
-    this.attachShadow({ mode: "open" });
+    if (!this.shadowRoot) {
+      this.attachShadow({ mode: "open" });
+    }
     this.render();
   }
 
@@ -45,7 +47,7 @@ export default class ErrorFallback extends HTMLElement {
         }
       </style>
       <details>
-        <summary>${this.error}</summary>
+        <summary>${this.error.split(` `)[0]}</summary>
         ${this.stack ? `<pre>${this.stack}</pre>` : ""}
       </details>`;
   }

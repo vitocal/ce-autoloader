@@ -87,5 +87,10 @@
   },
   "peerDependencies": {
     "shadow-observer": "^0.1.7"
+  },
+  "peerDependenciesMeta": {
+    "shadow-observer": {
+      "optional": true
+    }
   }
 }

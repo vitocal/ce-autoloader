@@ -5,7 +5,7 @@ export class CEError extends Error {
     details: any;
 
     constructor(message: string, details: any) {
-        super(`CEAutoLoader: ${message}`);
+        super(message);
         this.details = details;
     }
 }
@@ -80,6 +80,16 @@ export type Options = {
     transition?: boolean;
 
     /**
+     * Shadow root observation. `'auto'` (default) uses `shadow-observer` if the host
+     * application imported it (detected via `globalThis[Symbol.for('shadow-observer')]`),
+     * native `MutationObserver` otherwise.
+     *
+     * `true` forces shadow observation (warns if shadow-observer is not loaded).
+     * `false` forces native `MutationObserver`.
+     */
+    shadowObserver?: boolean | 'auto';
+
+    /**
      * Queue `customElements.define` for catalog tags during a load, so a
      * component that registers its own tag still morphs inside the view
      * transition.
@@ -90,11 +100,11 @@ export type Options = {
 
     /** Lifecycle hooks of each component */
     hooks?: {
-        viewTransition: {
+        viewTransition?: {
             ready?: (transition: ViewTransition) => Promise<void>;
             finished?: (transition: ViewTransition) => Promise<void>;
         };
-        error?: (error: LoadError) => Promise<void>;
+        error?: (error: LoadError) => void;
     };
 };
 

@@ -1,7 +1,7 @@
 # Progress
 
 _2026-10-02 · `option-deferDefine` @ `7098efc` + staged work · package 0.1.2 · `dist/ce-autoloader.js` = 9.70 kB
-raw / **3,327 B gzip** · 30 tests · `tsc --noEmit` clean · #8, #14–#18 fixed, docs trued up._
+raw / **3,327 B gzip** · 36 tests · `tsc --noEmit` clean · #1, #8, #14–#18 fixed, docs trued up._
 
 House rule: **one fact, one home.** `REVIEW.md` is the audit (tiers, long-form critique); the bank is the short
 version. Anything that belongs in both goes in `REVIEW.md` and is summarised here in a line.
@@ -70,7 +70,7 @@ never patch and only guard `define()` (self-registering catalogs lose the morph)
 
 | # | Issue | State |
 | --- | --- | --- |
-| 1 | `getMutationObserver()` always returns the native observer — a `return` inside `finally` wins, so `shadow-observer` is awaited and then ignored | open |
+| 1 | `getMutationObserver()` always returns the native observer — a `return` inside `finally` wins, so `shadow-observer` is awaited and then ignored | **fixed** 2026-10-02 — replaced dynamic import with `globalThis[Symbol.for('shadow-observer')]` detection; `shadow: 1` (OPEN) → `shadow: 3` (OPEN | CLOSED); `dom_watcher` ShadowRoot guard fixed |
 | 2 | The define patch is document-wide: `customElements.get()` is `undefined` for queued classes until `dequeue()` | documented limit (Stage 2 rejected) |
 | 3 | A `fallback` render cleared `innerHTML`, taking slotted / server-rendered content with it | **fixed** — the fallback is appended now |
 | 4 | The loading locks are keyed by tag name, which conflates instances (`#errors` is gone) | open |

@@ -14,7 +14,7 @@
   #9).
 - Editor project: `pages/tsconfig.json` (`extends` the root, `include: ["**/*.ts", "**/*.tsx"]`) binds the demo sources to a *configured* project. A file outside every tsconfig lands in an **inferred** project, which ignores `skipLibCheck` — that is why untyped deps (`three`) leaked "missing declaration file" errors from `node_modules/**/*.d.ts`. `pages/env.d.ts` supplies the demo-only ambient types (CSS side-effect imports, `virtual:importmap`, `process`).
 - The big Problems-panel flood is not tsconfig at all: the user profile sets `typescript.tsserver.experimental.enableProjectDiagnostics: true`, so VS Code reports diagnostics for every file in every project, `node_modules` included. `.vscode/settings.json` overrides it to `false` for this workspace; `lit-plugin.rules.no-invalid-tag-name: "off"` stops the (ts-server-plugin) lit analyzer from flagging `preact`/`svelte` `.d.ts` tag-name unions.
-- No runtime dependencies. `peerDependencies: shadow-observer` (external, and currently unused). `sideEffects: false`.
+- No runtime dependencies. `peerDependencies: shadow-observer` (optional, via `peerDependenciesMeta`). The library no longer imports it — the host app imports it to enable shadow root discovery, and the library detects it via `globalThis[Symbol.for('shadow-observer')]`. `sideEffects: false`.
   `package.json` advertises `custom-elements.json`, which nothing generates.
 
 ## Commands
@@ -24,7 +24,7 @@
 | `npm run dev`                            | docs/demo dev server, port 5173                                                                                                        |
 | `npm run build`                          | library → `dist/` (also on `prepack`); the dts step is clean today                                                                     |
 | `npx tsc --noEmit -p tsconfig.json`      | **clean** as of the `types.ts` split (issue #12 fixed)                                                                                 |
-| `npm test`                               | `scripts/run-integration-tests.js`: dev server + headless Puppeteer + Mocha, 24 tests, non-zero exit on failure                        |
+| `npm test`                               | `scripts/run-integration-tests.js`: dev server + headless Puppeteer + Mocha, 36 tests, non-zero exit on failure                        |
 | `gzip -c dist/ce-autoloader.js \| wc -c` | budget check: 3,327 B (9.70 kB raw)                                                                                                     |
 | `NODE_ENV=production npm run build:docs` | rebuilds all of `docs/` with new hashes — **restore `docs/.nojekyll`** (Vite empties the output dir), and never run it just to "check" |
 

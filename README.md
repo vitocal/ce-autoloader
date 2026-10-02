@@ -198,6 +198,27 @@ For the hackers and performance nerds:
 
 Latest Chrome, Firefox, Safari and Edge for the loader itself. The optional `transition` morph depends on element-scoped view transitions, which are Chromium-only today.
 
+## Shadow DOM
+
+By default, `ce-autoloader` uses the native `MutationObserver`, which does not reach into shadow roots. To discover and upgrade components inside shadow roots (both open and closed), import the optional peer dependency `shadow-observer` in your application:
+
+```js
+import "shadow-observer";
+import CERegistry from "ce-autoloader";
+
+const registry = new CERegistry({ catalog: { ... } });
+```
+
+The `shadow-observer` module patches `Element.prototype.attachShadow` so that new shadow roots created after the registry starts are automatically observed. Components inside those shadow roots are discovered and upgraded just like light-DOM components.
+
+To explicitly disable shadow root observation (even if `shadow-observer` is loaded), pass `shadowObserver: false`:
+
+```js
+const registry = new CERegistry({ catalog: { ... }, shadowObserver: false });
+```
+
+**Limitation:** Only shadow roots created *after* the registry starts are observed. Pre-existing shadow roots are not scanned.
+
 ## Development
 
 To build the library, run `npm run build`

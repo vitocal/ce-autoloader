@@ -180,7 +180,7 @@
         </p>
       </div>
 
-      <hero-example view-transition-name="hero-example"></hero-example>
+      <hero-example view-transition-name="hero-example" loading="eager"></hero-example>
     </div>
 
     <div class="" id="about">
@@ -837,17 +837,13 @@ export default r2wc(Greeter, {
       </div>
     </div>
   </footer>
-
-  <script type="module" src="pages/index.js"></script>
-  <script type="module">
+  <script type="module" defer>
     import { setupImportMap } from '@/utils.ts'
 
     setupImportMap();
-    window.addEventListener("error", (event) => {
-      // Check if the error came from a script involving your web component
-      console.error(event);
-    });
   </script>
+  <script type="module" src="pages/index.ts"></script>
+
 </body>
 
 </html>

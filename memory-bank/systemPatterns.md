@@ -9,7 +9,9 @@ are `deferDefine: false` / `devErrors: false`, and `transition` is derived from 
 a bare `{ catalog }` lands on safe-define.
 
 `discover` → `watchDOMMutations()` (100 ms debounce) + `upgrade(root, directive)` for each configured directive, then
-`upgrade(root)` for tags without a `loading` attribute.
+`upgrade(root)` for tags without a `loading` attribute. When the host application imports `shadow-observer` (optional peer
+dep), the observer is upgraded to `ShadowObserver`, which forwards `observe` into new programmatic shadow roots (open
+and closed, `shadow: 3`). The `shadowObserver` option (`'auto' | true | false`) controls this explicitly.
 
 `upgrade` → `matchCustomElement(root)` (`:not(:defined)` and the name contains `-`) → filter by `loading` → dispatch:
 

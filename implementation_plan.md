@@ -2,225 +2,188 @@
 
 ## Overview
 
-Correct the default `intersectionOptions` in `CEAutoLoader` from the Baseline-2025-only
-`{ scrollMargin: "20%" }` to the Baseline-since-2019 `{ rootMargin: "20%" }`, true up the
-docs/memory-bank, and add a browser test that pins the default observer's `rootMargin` to `20%`.
+Fix issue #1 (`getMutationObserver()` always returns the native observer due to a `return`
+inside `finally` that wins over the `try` block) and enable shadow root discovery for both
+open and closed shadow roots. The `shadow-observer` peer dependency becomes truly optional:
+ce-autoloader detects whether the host application imported it (via
+`globalThis[Symbol.for('shadow-observer')]`) and uses `ShadowObserver` when available,
+falling back to native `MutationObserver` otherwise. BLUE/GREEN tests confirm both paths.
 
-**Context / evidence (issue #8, "`intersectionOptions.scrollMargin` is ignored — the real option is `rootMargin`").**
-The literal claim is **refuted**: `scrollMargin` is a valid `IntersectionObserverInit` member
-(`node_modules/typescript/lib/lib.dom.d.ts:1343`; MDN; verified live in Chrome 154 — a target
-1.5 viewports below the fold reported `isIntersecting: true` with `{ scrollMargin: "100%" }` but
-`false` with `{}`, and `new IntersectionObserver(cb, { scrollMargin: "20%" }).scrollMargin` is
-`"20% 20% 20% 20%"`). The **real defect is the default value**: `scrollMargin` is MDN
-"Baseline Newly available — September 2025" — Chrome/Edge 120+, Firefox 141+, Safari 26+,
-**87.94% global** — while `rootMargin` has been Baseline since March 2019 (~100%). On the other
-~12% of browsers the unknown `scrollMargin` dict member is **silently ignored**, so the intended
-20% preload margin becomes a no-op with no capability check or fallback. This also contradicts
-the project's stated convention ("capability checks instead of polyfills") and `REVIEW.md`, which
-labels the feature "IntersectionObserver | **Baseline** | … with a 20% scroll margin".
+**Context (issue #1: "`getMutationObserver()` always returns the native observer").**
+The method does `try { return (await import('shadow-observer')).ShadowObserver; }` but
+the `finally { return Promise.resolve(MutationObserver); }` block **always** executes a
+return, which wins over the `try` block's return. The shadow-observer module is awaited and
+then silently discarded. The `dom_watcher` method also has a `if (target instanceof ShadowRoot)
+continue;` guard that skips mutations delivered from inside shadow roots — correct for the
+native path (which never delivers them) but a hard block on the shadow-observer path.
+Additionally, `shadow: 1` in the observe options means OPEN only; closed shadow roots are
+never forwarded.
 
-**Scope.** One behaviour change (`src/index.ts` default), the mirrored docs/prose
-(`README.md`, `REVIEW.md`, `memory-bank/*`), and one new Mocha suite (`test/integration.test.js`).
-No change to how options are plumbed — `this.options.intersectionOptions` is already forwarded
-verbatim to `new IntersectionObserver(when_visible, this.options.intersectionOptions)`
-(`src/index.ts:317`). Note the existing shallow merge (`...options`) means a user-supplied
-`intersectionOptions` **replaces** the default object wholesale; that behaviour is kept as-is.
+**Scope.** One method rewrite (`getMutationObserver`), two method fixes (`watchDOMMutations`,
+`dom_watcher`), one new option (`shadowObserver`), one new test file (`test/shadow.test.js`),
+and doc/memory-bank updates. The `peerDependency` on `shadow-observer` stays; we just add
+`peerDependenciesMeta` to mark it optional.
 
-**Approach.** Ship `rootMargin: "20%"` as the default so the preload margin works on every
-supported browser; keep `scrollMargin` fully available to callers who need the nested-scroll
-behaviour on modern engines (it is just no longer the default). Add tests that capture the
-constructed observer by stubbing `window.IntersectionObserver`, then assert the default and a
-custom pass-through.
+**Approach.** Replace the dynamic `import('shadow-observer')` with a synchronous check of
+`globalThis[Symbol.for('shadow-observer')]` — the module sets this symbol on load, so
+importing it is the host app's choice. Add a `shadowObserver` option (`'auto' | true | false`)
+for explicit control and test seam. Change `shadow: 1` (OPEN) to `shadow: 3` (OPEN | CLOSED).
+Fix the `dom_watcher` ShadowRoot guard so it does not throw on `ShadowRoot` targets.
 
 ## Types
 
-No type-system changes.
-
-- `Options.intersectionOptions?: IntersectionObserverInit` (`src/types.ts:71-72`) already permits
-  both `rootMargin` and `scrollMargin` (the bundled DOM lib declares both). Only its doc comment
-  is touched (see **Files**).
-- No new interfaces/enums/unions.
+- `src/types.ts` — add `shadowObserver` option to `Options`:
+  ```ts
+  /**
+   * Shadow root observation. `'auto'` (default) uses `shadow-observer` if the host
+   * application imported it, native `MutationObserver` otherwise.
+   * `true` forces shadow observation (warns if shadow-observer is not loaded).
+   * `false` forces native `MutationObserver`.
+   */
+  shadowObserver?: boolean | 'auto';
+  ```
 
 ## Files
 
-New files:
-- `implementation_plan.md` (this document; workspace root).
+### Modified files
 
-Modified files:
-- `src/index.ts` — default options, lines 121-123:
-  ```ts
-  intersectionOptions: {
-    scrollMargin: "20%",
-  },
-  ```
-  becomes
-  ```ts
-  intersectionOptions: {
-    rootMargin: "20%",
-  },
-  ```
-- `src/types.ts` — comment at line 71: `/** Intersection Observer customization */` →
-  `/** Intersection Observer customization. Default: { rootMargin: "20%" } */`.
-- `README.md` — line 100: `intersectionOptions: { scrollMargin: "20%" },` →
-  `intersectionOptions: { rootMargin: "20%" },` (the surrounding comment on line 99 stays).
-- `REVIEW.md` — line 183: `… The visible directive, with a 20% scroll margin.` →
-  `… The visible directive, with a 20% root margin.`
-- `memory-bank/techContext.md` — line 65: replace
-  "- `intersectionOptions.scrollMargin` does nothing (#8);" with a resolved note, e.g.
-  "- `intersectionOptions` defaults to `rootMargin: \"20%\"` (#8): `scrollMargin` is valid but
-  Baseline-newly-available (Sept 2025, ~88%), so it was the wrong default."
-- `memory-bank/progress.md` — line 29 (Tier 1 list): drop `scrollMargin` → `rootMargin` from the
-  remaining work; line 80 (issue #8 row): change `open` → `**fixed**` with a one-line note.
-  Also bump the header test count (line 4) if it changes.
-- `memory-bank/activeContext.md` — add a `✅` bullet under "Right now" describing the fix and the
-  new tests, and update the "Verified: 28/28 tests" line (line 35) to the new count.
-- `test/integration.test.js` — add a new nested `describe("intersectionOptions", …)` suite
-  (details in **Testing**).
-- `dist/ce-autoloader.js` — regenerated by `npm run build`; `dist/` is gitignored, so this is a
-  local verification artifact only, not a commit.
+- `src/index.ts`:
+  - **`getMutationObserver()`** (lines 151-159): Replace broken dynamic import with
+    synchronous globalThis symbol detection. Method becomes sync (no longer async).
+  - **`watchDOMMutations()`** (lines 164-177): Remove `async`/`await`. Change `shadow: 1`
+    to `shadow: 3` (OPEN | CLOSED).
+  - **`dom_watcher()`** (lines 178-203): Replace `if (target instanceof ShadowRoot)
+    continue;` with `if (target instanceof Element && target.getAttribute('ce') === 'error')
+    continue;` — so ShadowRoot targets don't throw on `.getAttribute` and are not skipped.
+  - **`discover()`** (line 274): Remove `await` on `watchDOMMutations()` (now sync).
 
-Not modified:
-- `docs/**` — prebuilt site bundles (`docs/chunks/pages.js` already uses
-  `{ rootMargin: "0px 0px 100% 0px" }`; `docs/chunks/src.js` carries a stale library default).
-  Regenerating docs requires `NODE_ENV=production npm run build:docs` and restoring
-  `docs/.nojekyll`; out of scope (see `memory-bank/techContext.md`).
-- `index.html`, `pages/**` — no `intersectionOptions`/`scrollMargin` usage.
+- `src/types.ts`: Add `shadowObserver?: boolean | 'auto'` to Options.
+
+- `package.json`: Add `peerDependenciesMeta`:
+  ```json
+  "peerDependenciesMeta": {
+    "shadow-observer": { "optional": true }
+  }
+  ```
+
+- `test/integration.html`:
+  - Add `<script type="module">import "shadow-observer";</script>` before the test suites.
+  - Add `<script type="module" src="./shadow.test.js"></script>`.
+
+- Documentation:
+  - `README.md`: Add "Shadow DOM" section.
+  - `REVIEW.md`: Update Discovery row, mark issue #1 as **fixed**.
+  - `memory-bank/activeContext.md`, `progress.md`, `techContext.md`, `systemPatterns.md`:
+    mark issue #1 fixed, update test count.
+
+### New files
+
+- `test/shadow.test.js` — BLUE/GREEN shadow DOM tests (see **Testing**).
+
+### Not modified
+
+- `vite.config.js`: `external: ["shadow-observer"]` stays (documentation value).
+- `importmap.json`, `docs/**`, `index.html`, `pages/**`.
 
 ## Functions
 
-No signature changes. Behaviour is affected only through the constructor's default object literal.
+### Modified
 
-- `CEAutoLoader.constructor(options)` — `src/index.ts:110-149`; the `intersectionOptions`
-  default literal (lines 121-123) changes value. The `...options` spread (line 124) still
-  replaces the default object wholesale when the caller passes `intersectionOptions`.
-- `CEAutoLoader.upgrade(root, directive)` — `src/index.ts:296-362`; unchanged. It already builds
-  the shared observer with `this.options.intersectionOptions` (line 317).
-- Helpers `getMutationObserver`, `watchDOMMutations`, `loadAndDefine`, `load`, `define`,
-  `handleComponentLoadError` — unchanged.
+- **`getMutationObserver()`** → sync. New body:
+  ```ts
+  private getMutationObserver(): typeof MutationObserver {
+    if (this.options.shadowObserver === false) return MutationObserver;
+    const ShadowObserverImpl = globalThis[Symbol.for('shadow-observer')];
+    if (ShadowObserverImpl) return ShadowObserverImpl;
+    if (this.options.shadowObserver === true) {
+      console.warn("CEAutoLoader: shadowObserver is true but shadow-observer is not loaded.");
+    }
+    return MutationObserver;
+  }
+  ```
+
+- **`watchDOMMutations()`** → sync. Removes `let _MutationObserver = await ...`.
+  Changes `shadow: 1` to `shadow: 3`.
+
+- **`dom_watcher()`** — the `if (target instanceof ShadowRoot) continue;` block becomes
+  `if (target instanceof Element && target.getAttribute('ce') === 'error') continue;`.
+
+- **`discover()`** — `await this.watchDOMMutations()` becomes `this.watchDOMMutations()`.
 
 ## Classes
 
 No class additions, removals, or structural modifications.
 
-- `CEAutoLoader` (`src/index.ts:93`) — only the default option literal changes (see **Functions**).
-- Test-only class: `SpyIntersectionObserver` (declared inside the new test suite, not shipped) —
-  `class SpyIntersectionObserver extends NativeIntersectionObserver` (the saved native
-  constructor) recording `(callback, options)` and the instance. Verified in Chrome 154:
-  subclassing works, `instanceof IntersectionObserver` holds, and the normalized `rootMargin` is
-  readable.
-
 ## Dependencies
 
-None. No new packages, no version changes, no integration/config updates. The change uses only
-the existing DOM `IntersectionObserver` API and the current Mocha/Chai/Puppeteer harness.
-
+- `package.json`: Add `peerDependenciesMeta` for `shadow-observer` (optional: true).
+- No new packages, no version changes.
 
 ## Testing
 
-**Approach.** The shared observer is created inside `upgrade()` → `visible()`
-(`src/index.ts:314-330`) and is stored in a `#private` field, so the only way to observe it from
-a test is to stub the global constructor. Because `discover()` runs synchronously when
-`live: false` (no `await` before the directive loop), constructing the registry creates the
-observer deterministically, and a `loading="visible"`/`eager` element is not even needed.
+### Approach
 
-**New suite** — add to `test/integration.test.js`, nested inside the top-level
-`describe("CEAutoLoader", …)`, placed after the `describe("loading attribute", …)` block
-(ends line 191) and before `describe("Errors", …)` (line 193), so it inherits the outer
-`beforeEach` (clears `#fixtures`, cleans `registry`) and the outer `after`:
+BLUE/GREEN test pairs (same convention as `test/transitions.test.js`):
+- **BLUE** (`shadowObserver: false`): Native MutationObserver, components inside shadow
+  roots are NOT upgraded.
+- **GREEN** (`shadowObserver: 'auto'`, default): ShadowObserver, components inside both
+  open and closed shadow roots ARE upgraded.
 
-```js
-  describe("intersectionOptions", () => {
-    let NativeIntersectionObserver;
-    let created;
+The test page imports `shadow-observer` so the globalThis symbol is set. BLUE tests use
+`shadowObserver: false` to opt out. GREEN tests rely on the default auto-detection.
 
-    beforeEach(() => {
-      NativeIntersectionObserver = window.IntersectionObserver;
-      created = [];
+### New file: `test/shadow.test.js`
 
-      // The shared observer is created inside `visible()`; wrap the global so the
-      // test can read the options it received and its normalized rootMargin.
-      class SpyIntersectionObserver extends NativeIntersectionObserver {
-        constructor(callback, options) {
-          super(callback, options);
-          created.push({ options, observer: this });
-        }
-      }
+Six tests across two describe blocks:
 
-      window.IntersectionObserver = SpyIntersectionObserver;
-    });
+**BLUE — shadow-observer disabled:**
+1. "should not upgrade components inside open shadow roots" — creates a shadow host with
+   `mode: "open"`, appends a catalog component inside, waits 300ms, asserts `data-upgraded`
+   is false and `:not(:defined)`.
+2. "should not upgrade components inside closed shadow roots" — same with `mode: "closed"`.
 
-    afterEach(() => {
-      created.forEach(({ observer }) => observer.disconnect());
-      window.IntersectionObserver = NativeIntersectionObserver;
-    });
+**GREEN — shadow-observer enabled:**
+3. "should upgrade components inside open shadow roots" — creates registry first (so observer
+   is set up), then creates host + shadow + component, awaits `whenDefined`, asserts upgraded.
+4. "should upgrade components inside closed shadow roots" — same with `mode: "closed"`.
+5. "should upgrade nested components inside shadow roots" — component inside a div inside a
+   shadow root.
+6. "should respect loading directives inside shadow roots" — component with no `loading`
+   attribute (default `visible` directive) inside a shadow root.
 
-    it("defaults the shared IntersectionObserver to a 20% rootMargin", () => {
-      // `live: false` makes discover() run synchronously, so the default
-      // `visible` directive builds the observer before the constructor returns.
-      registry = new AutoLoader({ catalog, root: fixtures, live: false });
+### Test traps
 
-      const observer = created[0]?.observer;
-      expect(observer, "an IntersectionObserver should have been created").to.exist;
-      expect(observer.rootMargin).to.equal("20% 20% 20% 20%");
-    });
+- **Timing**: GREEN tests create the registry BEFORE the shadow root, so the ShadowObserver's
+  `attachShadow` patch is in place. A 50ms wait ensures the observer is set up.
+- **Unique tag names**: Custom elements cannot be un-defined; each test uses its own tag.
+- **BLUE tests skip `whenDefined()`**: The tag is never defined, so `whenDefined()` would
+  hang. Use a fixed timeout instead.
+- **`shadow: 3` required**: The current `shadow: 1` (OPEN only) would fail the closed shadow
+  root GREEN test.
 
-    it("forwards a custom intersectionOptions verbatim", () => {
-      registry = new AutoLoader({
-        catalog,
-        root: fixtures,
-        live: false,
-        // A caller-supplied object replaces the default wholesale (shallow merge).
-        intersectionOptions: { rootMargin: "0px 0px 100% 0px", threshold: 0.5 },
-      });
+### Validation
 
-      const observer = created[0]?.observer;
-      expect(observer.rootMargin).to.equal("0px 0px 100% 0px");
-      expect(observer.thresholds).to.deep.equal([0.5]);
-    });
-  });
-```
-
-Notes / edge cases:
-
-- The first test **fails on the current code** (`observer.rootMargin` is `"0px 0px 0px 0px"`,
-  since `{ scrollMargin: "20%" }` leaves `rootMargin` at its default) and passes after the fix —
-  it is the bug-confirming regression test.
-- The second test also guards that `window.IntersectionObserver` is not captured at import time
-  and that the option object reaches the constructor unchanged.
-- Restoring the global in `afterEach` is mandatory: `test/transitions.test.js` and the other
-  suites in the same page need the native constructor. `created` observers are disconnected to
-  avoid leaks into later suites.
-- No changes are needed to `test/integration.html` or `scripts/run-integration-tests.js`.
-
-**Validation strategy (run in order):**
-
-1. `npx tsc --noEmit -p tsconfig.json` — must stay clean.
-2. `npm test` (headless Puppeteer + Mocha via `scripts/run-integration-tests.js`) — expect the new
-   tests plus the existing 28 to pass, non-zero exit on failure.
-3. Optional live check with the Chrome DevTools MCP against
-   `http://localhost:5173/test/integration.html` (`window.__MOCHA_STATS__` /
-   `#mocha-report .test`) and confirm `observer.rootMargin` is `"20% 20% 20% 20%"`.
-4. Optional: `npm run build` to refresh the gitignored `dist/`, then
-   `grep -n rootMargin dist/ce-autoloader.js` to confirm the shipped default.
+1. `npx tsc --noEmit -p tsconfig.json` — clean.
+2. `npm test` — 30 existing + 6 new = 36 tests passing.
+3. Optional: verify `globalThis[Symbol.for('shadow-observer')]` in DevTools.
 
 ## Implementation Order
 
-1. `src/index.ts`: change the `intersectionOptions` default to `{ rootMargin: "20%" }`.
-2. `test/integration.test.js`: add the `intersectionOptions` suite (the default-margin test is
-   expected to fail before step 1 and pass after; both are in place after this step).
-3. Run `npx tsc --noEmit -p tsconfig.json` and `npm test`; confirm all suites pass.
-4. `README.md`, `REVIEW.md`: replace the `scrollMargin` example/prose with `rootMargin`.
-5. `memory-bank/techContext.md`, `memory-bank/progress.md`, `memory-bank/activeContext.md`:
-   mark issue #8 fixed, remove it from the Tier 1 backlog, refresh the test count and date.
-6. Optional: `npm run build` to refresh `dist/`; verify with
-   `grep -n rootMargin dist/ce-autoloader.js`.
-7. Re-run `npm test` once more if the build touches shared files (it does not).
+1. `src/types.ts`: Add `shadowObserver` option.
+2. `src/index.ts`: Rewrite `getMutationObserver()`, update `watchDOMMutations()`, fix
+   `dom_watcher()`, update `discover()`.
+3. `package.json`: Add `peerDependenciesMeta`.
+4. `test/shadow.test.js`: Create BLUE/GREEN tests.
+5. `test/integration.html`: Add shadow-observer import and test script tag.
+6. Run `npx tsc --noEmit` and `npm test`; confirm 36/36 pass.
+7. Documentation: README.md, REVIEW.md, memory-bank.
+8. Optional: `npm run build`; verify `dist/` output.
 
-## Confirmation of the reported issue (verdict)
+## Known limitations
 
-| Claim | Verdict | Evidence |
-| --- | --- | --- |
-| "`intersectionOptions.scrollMargin` is ignored" | **Refuted on Chrome 120+/FF 141+/Safari 26+; true on ~12%** | `scrollMargin` is a real `IntersectionObserverInit` member and moves the intersection rect (verified live in Chrome 154); it is silently ignored where unsupported |
-| "the real option is `rootMargin`" | **Wrong as a rename, right as a default choice** | They are distinct features (`rootMargin` expands the ROOT box; `scrollMargin` adds margins to every scroll container on the path to the target) and are combined when the root scrolls. `rootMargin` is the Baseline-safe default |
-| Plumbing of `intersectionOptions` is broken | **No** | `src/index.ts:317` forwards the object verbatim to `new IntersectionObserver(...)` |
-
+- **Existing shadow roots**: Shadow-observer only observes roots created AFTER the observer
+  is set up. Pre-existing shadow roots are not scanned. This is a documented limitation of
+  `shadow-observer` itself.
+- **Initial scan**: `matchCustomElement(root)` uses `querySelectorAll(':not(:defined)')`
+  which does not cross shadow boundaries. Shadow root components are discovered only via
+  the mutation observer (live mode).

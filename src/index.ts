@@ -118,6 +118,7 @@ class CEAutoLoader {
         !window.matchMedia(`(prefers-reduced-motion: reduce)`).matches,
       useImportMapsCatalog: false,
       devErrors: false,
+      shadowObserver: 'auto',
       intersectionOptions: {
         rootMargin: "20%",
       },
@@ -148,28 +149,38 @@ class CEAutoLoader {
     this.discover();
   }
 
-  private async getMutationObserver() {
-    try {
-      return (await import('shadow-observer')).ShadowObserver;
-    } catch (error) {
-      return Promise.resolve(MutationObserver);
-    } finally {
-      return Promise.resolve(MutationObserver);
+  /**
+   * Returns the MutationObserver constructor to use.
+   *
+   * Detects `shadow-observer` via `globalThis[Symbol.for('shadow-observer')]` — the
+   * module sets this symbol on load, so importing it is the host app's choice.
+   * When available, ShadowObserver extends MutationObserver to forward `observe`
+   * into new programmatic shadow roots (open and closed).
+   */
+  private getMutationObserver(): typeof MutationObserver {
+    if (this.options.shadowObserver === false) return MutationObserver;
+
+    const ShadowObserverImpl = (globalThis as any)[Symbol.for('shadow-observer')];
+    if (ShadowObserverImpl) return ShadowObserverImpl;
+
+    if (this.options.shadowObserver === true) {
+      console.warn("CEAutoLoader: shadowObserver is true but shadow-observer is not loaded. Falling back to native MutationObserver.");
     }
+    return MutationObserver;
   }
 
   /**
    * Watch for new elements in the DOM
    */
-  private async watchDOMMutations() {
-    let _MutationObserver = await this.getMutationObserver();
-    const observer = new _MutationObserver(debounceMutations(this.dom_watcher.bind(this), 100));
+  private watchDOMMutations() {
+    const ObserverCtor = this.getMutationObserver();
+    const observer = new ObserverCtor(debounceMutations(this.dom_watcher.bind(this), 100));
 
     observer.observe(this.options.root || document.body, {
       childList: true,
       subtree: true,
-      shadow: 1
-    });
+      shadow: 3,  // OPEN | CLOSED — forward into both open and closed shadow roots
+    } as MutationObserverInit & { shadow: number });
 
     this.#observers["mutation"] = observer;
 
@@ -178,13 +189,11 @@ class CEAutoLoader {
   private async dom_watcher(mutations: MutationRecord[]) {
     for (const mutation of mutations.filter((m) => m.type === "childList")) {
       let target = mutation.target;
-      if (target instanceof ShadowRoot) {
-        continue;
-      }
 
-      // Ignore mutations on elements that failed to load
-      let el = (target as HTMLElement);
-      if (el.getAttribute('ce') === 'error') {
+      // Skip mutations on elements that failed to load.
+      // ShadowRoot is not an Element, so the instanceof check fails gracefully
+      // and mutations from inside shadow roots are still processed.
+      if (target instanceof Element && (target as Element).getAttribute('ce') === 'error') {
         continue;
       }
 
@@ -271,7 +280,7 @@ class CEAutoLoader {
    */
   async discover(root = this.options.root) {
     if (!this.#initialized && this.options.live) {
-      await this.watchDOMMutations();
+      this.watchDOMMutations();
     }
 
     // Load elements that matches directives
@@ -373,21 +382,21 @@ class CEAutoLoader {
     }
 
     // 1. Load the appropriate modules
-    const results = await Promise.allSettled(elements.map((e) => this.load(e)))
+    const loaded = await Promise.allSettled(elements.map((e) => this.load(e)))
 
     // 2. handle load errors on per-case component basis
-    results.filter(isRejected).map((r) => this.handleComponentLoadError(r));
+    loaded.filter(isRejected).map((r) => this.handleComponentLoadError(r));
 
     // 3. Then, define the components on a single frame
-    const success = results.filter(isFulfilled).map((r) => r.value)
+    const success = loaded.filter(isFulfilled).map((r) => r.value)
 
-    const definitions = this.options.transition
+    const defined = this.options.transition
       ? await this.runScopedViewTransition(success, (r) => this.define(r))
       : await Promise.allSettled(success.map((r) => this.define(r)));
 
     // Defining can fail too (a loader that neither defined the tag nor returned a
     // constructor): report it on the element like a load failure.
-    definitions.filter(isRejected).map((r) => this.handleComponentLoadError(r));
+    defined.filter(isRejected).map((r) => this.handleComponentLoadError(r));
 
     // Flush any component that was defined outside of autoloader bounds
     // or is already on the queue
