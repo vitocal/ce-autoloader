@@ -10,15 +10,10 @@
 
 ## 1. The big idea, in plain words
 
-**The problem.** A typical modern page downloads a lot of JavaScript *before* anyone knows whether it's needed.
-The decision about "what code does this page get?" is made at build time by a bundler, far away from the HTML
-where the actual answer lives. Lazy loading exists, but it's usually bolted on case by case, and it drags a whole
-toolchain behind it.
+**The problem.** A typical modern page downloads a lot of JavaScript.
+The decision about "what code does this page get?" is made at build time by a bundler, far away from the HTML where the actual answer lives. Lazy loading exists for javascript resources, but it's usually bolted on per route, and it drags a whole toolchain of js behind it.
 
-**The idea here.** Flip the default. A component that isn't on the page isn't downloaded. A component that *is*
-on the page is downloaded when the page says so — `loading="visible"`, `loading="click"`, `loading="eager"` — using
-nothing but the browser's own standards: Custom Elements, dynamic `import()`, `IntersectionObserver`, and (optionally)
-import maps.
+**The idea here.** Ce-autoloader does lazy load of custom-elements. <Any-component> that *is* on the HTML is downloaded — and we can configure when with directive `loading` like visible,click using nothing but the browser's own standards: Custom Elements, dynamic `import()`, `IntersectionObserver`, and import maps.
 
 One sentence: **`<script type="module">` plus a catalog map, and the DOM becomes the dependency graph.**
 

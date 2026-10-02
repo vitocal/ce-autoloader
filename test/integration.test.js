@@ -328,5 +328,34 @@ describe("CEAutoLoader", () => {
       expect(reported.name).to.equal("empty-component");
       expect(reported.error.message).to.include("neither defined the element nor returned a constructor");
     });
+
+    it("should not append a second fallback when a failed component re-intersects", async () => {
+      // No `loading` attribute means the default `visible` directive. A failed
+      // component stays `:not(:defined)`, so the IntersectionObserver keeps
+      // watching it. It must never be re-loaded: `load()` would overwrite
+      // `ce="error"` with `ce="loading"`, defeating the "already reported"
+      // guard in `handleComponentLoadError` and appending another fallback.
+      const el = document.createElement("error-component");
+      fixtures.appendChild(el);
+
+      registry = new AutoLoader({
+        catalog: catalog,
+        root: fixtures,
+        fallback: ErrorFallback,
+      });
+      await new Promise(requestIdleCallback);
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      expect(el.querySelectorAll("error-fallback")).to.have.length(1);
+
+      // Re-observe the (still failed) element so the shared IntersectionObserver
+      // delivers it again, as a real scroll back into the viewport would.
+      registry.upgrade(fixtures);
+      await new Promise(requestIdleCallback);
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      expect(el.getAttribute("ce")).to.equal("error");
+      expect(el.querySelectorAll("error-fallback"), "the fallback must not be duplicated").to.have.length(1);
+    });
   });
 });

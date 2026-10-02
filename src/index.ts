@@ -300,6 +300,10 @@ class CEAutoLoader {
         .filter((entry) => entry.isIntersecting)
         .filter((entry) => !customElements.get(entry.target.tagName.toLowerCase()))
         .map((entry) => entry.target as HTMLElement)
+        // Don't retry a component that already failed: `ce="error"` is the
+        // "already reported" marker. Without this, re-entering the viewport
+        // would load it again and append a second fallback.
+        .filter((el) => el.getAttribute("ce") !== "error")
         .filter((el) => !this.loading_locks[el.tagName])
 
       if (html_elements.length > 0) {
