@@ -1,7 +1,7 @@
 # Progress
 
 _2026-10-01 · `option-deferDefine` @ `7098efc` + staged work · package 0.1.2 · `dist/ce-autoloader.js` = 9.66 kB
-raw / **3,320 B gzip** · 27 tests · `tsc --noEmit` clean · #14–#17 fixed, docs trued up._
+raw / **3,320 B gzip** · 28 tests · `tsc --noEmit` clean · #14–#18 fixed, docs trued up._
 
 House rule: **one fact, one home.** `REVIEW.md` is the audit (tiers, long-form critique); the bank is the short
 version. Anything that belongs in both goes in `REVIEW.md` and is summarised here in a line.
@@ -87,6 +87,7 @@ never patch and only guard `define()` (self-registering catalogs lose the morph)
 | 15 | A load failure was reported twice (step 2 + a step-5 re-run of the same list), so `hooks.error` fired twice | **fixed** 2026-10-01 |
 | 16 | A define-phase failure was swallowed on the non-transition path (`Promise.allSettled(success.map(define))` discarded): left `ce="loading"`, no hook | **fixed** 2026-10-01 |
 | 17 | `transition.finished`'s cleanup ran after `await updateCallbackDone`, so a failing update leaked `view-transition-name`/`-class` and left `finished` unhandled | **fixed** 2026-10-01 (handler attached before the await) |
+| 18 | A failed `visible` component that re-entered the viewport was re-loaded: `load()` overwrote `ce="error"` with `ce="loading"`, defeating the "already reported" guard, so `handleComponentLoadError` appended a **duplicate fallback** every re-intersection (the demo's `<vi-error>` accumulated one `<error-fallback>` per scroll pass) | **fixed** 2026-10-01 (`when_visible` now skips `ce="error"` targets, mirroring `dom_watcher`) |
 
 ## Fixed lately
 
