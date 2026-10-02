@@ -2,10 +2,13 @@
 
 ## Stack
 
-- TypeScript (`src/index.ts`) → ESM-only. `tsconfig`: `target es2025`, `module esnext`, `isolatedModules`,
-  `strict: false`, `noUnusedLocals`; **`react` / `react-dom` are aliased to `preact/compat`** (Preact is the React in
-  this repo).
-- Library build: `vite.config.js` — lib mode + `vite-plugin-dts`, `formats: ["es"]`, `external: ["shadow-observer"]`. Only `tsconfig.json` (`include: ["src/*"]`) is used by `tsc` and the dts step.
+- TypeScript (`src/index.ts` + `src/types.ts`) → ESM-only. `tsconfig`: `target es2025`, `module esnext`,
+  `isolatedModules`, `strict: false`, `noUnusedLocals`; **`react` / `react-dom` are aliased to `preact/compat`**
+  (Preact is the React in this repo). Types and the `CEError` class live in `src/types.ts` now (the old ambient
+  `src/types.d.ts` is gone) — that split is what finally made `tsc --noEmit` clean.
+- Library build: `vite.config.js` — lib mode + `vite-plugin-dts`, `formats: ["es"]`, `external: ["shadow-observer"]`.
+  Only `tsconfig.json` (`include: ["src/*"]`) is used by `tsc` and the dts step. Note: the dts step writes
+  `dist/dist.d.ts` even when `--outDir` points elsewhere.
 - Docs build: `vite.docs.js` — Vite MPA, `base: /ce-autoloader/` in production, output `docs/`, plugins for Vue,
   Svelte (`customElement: true`), Preact and import maps. The Stencil plugin is imported but never registered (issue
   #9).
@@ -20,9 +23,9 @@
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm run dev`                            | docs/demo dev server, port 5173                                                                                                        |
 | `npm run build`                          | library → `dist/` (also on `prepack`); the dts step is clean today                                                                     |
-| `npx tsc --noEmit -p tsconfig.json`      | still one pre-existing TS2345 — issue #12                                                                                              |
-| `npm test`                               | `scripts/run-integration-tests.js`: dev server + headless Puppeteer + Mocha, 26 tests, non-zero exit on failure                        |
-| `gzip -c dist/ce-autoloader.js \| wc -c` | budget check: 3,337 B                                                                                                                  |
+| `npx tsc --noEmit -p tsconfig.json`      | **clean** as of the `types.ts` split (issue #12 fixed)                                                                                 |
+| `npm test`                               | `scripts/run-integration-tests.js`: dev server + headless Puppeteer + Mocha, 24 tests, non-zero exit on failure                        |
+| `gzip -c dist/ce-autoloader.js \| wc -c` | budget check: 3,319 B (9.54 kB raw)                                                                                                    |
 | `NODE_ENV=production npm run build:docs` | rebuilds all of `docs/` with new hashes — **restore `docs/.nojekyll`** (Vite empties the output dir), and never run it just to "check" |
 
 **While iterating, use the Chrome DevTools MCP instead of `npm test`**: same Mocha report (`window.__MOCHA_STATS__`,
@@ -40,11 +43,15 @@ the CI entry point; it needs network (Mocha from unpkg, `uhtml` from esm.sh).
 - **The viewport is part of the setup.** `#fixtures` is declared before `#mocha`, and tests about something else set
   `loading="eager"`.
 - **A define-phase failure surfaces a frame after one `requestIdleCallback`** — poll with the `waitFor` helper.
-- **The catalog decides what a failure is.** A failing catalog loader gets `ce="error"`; a tag with no catalog entry
-  never does, even with `devErrors: true`; `devErrors: false` paints nothing, but then the `loading` state must be gone
-  too. Elements must sit inside `#fixtures` (`runScopedViewTransition` uses `el.parentElement`).
-- **The queue is global.** Restore `customElements.define` and delete `queue` / `dequeue` / `flush` between tests,
-  after one idle frame.
+- **`devErrors` no longer suppresses painting.** A failing catalog loader is painted `ce="error"` at the default
+  settings; `devErrors: true` only *adds* painting for a tag with no catalog entry; with `devErrors: false` that
+  unknown tag keeps matching `:not(:defined)`. Elements must sit inside `#fixtures` (`runScopedViewTransition` uses
+  `el.parentElement`).
+- **The live path is currently broken.** `dom_watcher`'s guard `if (el.getAttribute('ce') != 'error') continue;`
+  skips every mutation target that is not already `ce="error"`, so a dynamically added catalog tag never upgrades.
+  The "MutationObserver" test still passes because the initial `discover()` scan races in first — do not trust it.
+- **The define patches are global.** Restore `customElements.define` and delete `queue` / `dequeue` / `flush` between
+  tests, after one idle frame — and note `polyfill_safe_define` installs a patch on the *default* path too.
 
 ## Gotchas
 

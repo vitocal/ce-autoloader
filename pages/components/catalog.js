@@ -36,7 +36,7 @@ let catalog = {
   },
 
   "vi-error": (name, attrs) => {
-    throw new Error(`An error occurred while loading the component "${name}"`);
+    throw new Error(`I've crashed 😭`);
   },
   "vi-notloaded": async (full_name, el) => {
     await new Promise((resolve) => setTimeout(resolve, 900 * 1000));

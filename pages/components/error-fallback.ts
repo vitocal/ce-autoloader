@@ -2,24 +2,8 @@ export default class ErrorFallback extends HTMLElement {
   error: string = "";
   stack: string = "";
 
-  static get observedAttributes() {
-    return ["error", "stack"];
-  }
-
   constructor() {
     super();
-    this.error = this.getAttribute("error") || "";
-    this.stack = this.getAttribute("stack") || "";
-  }
-
-  attributeChangedCallback(name: string, _oldValue: any, newValue: any) {
-    if (name === "error") {
-      this.error = newValue;
-      this.render();
-    } else if (name === "stack") {
-      this.stack = newValue;
-      this.render();
-    }
   }
 
   connectedCallback() {

@@ -1,38 +1,50 @@
 # Active context
 
-_2026-09-30 · branch `option-deferDefine` @ `dad19a4`, plus uncommitted work on the failure path._
+_2026-10-01 · branch `option-deferDefine` @ `7098efc`, plus **staged (uncommitted)** work across `src/`, the types
+split, the tests and the demo wiring._
 
 ## Right now
 
-**Failures are attributed by the catalog: a catalog component that fails is painted (`devErrors`, default on), a tag
-with no catalog entry never is. `retry()` is gone.**
+**The defaults went lean: nothing is deferred, nothing animates — but every registry still patches
+`customElements.define`, to make it *idempotent* (`polyfill_safe_define`), not to queue. The failure model was
+reworked, and `devErrors` now means the opposite of what the README says.**
 
-- `handleComponentLoadError`: record the tag in `#errors` (the watcher then skips it) → `hooks.error` → **return if
-  `getLoader(name)` is empty** → paint `ce="error"` + `error`/`stack` + `fallback`, unless `devErrors: false`.
-  The `getLoader()` boundary outranks the option; the CSS page's `<el-notloaded>` is what forced it.
-- Two stale states the new tests flushed out: with painting off a failure kept `ce="loading"`, and a failed
-  `define()` claimed `ce="defined"`. Both are gone.
-- Demos: the docs site relies on the default (no explicit option), the CSS page documents the boundary, and
-  `error-fallback` lost its dead Retry button.
-- Verified: **26/26 tests**; the CSS page live (`<el-notloaded>` untouched, a synthetic throwing catalog loader
-  painted); the docs site (`vi-error` painted with no option set anywhere). Bundle **3,337 B gzip**.
+- Defaults: `deferDefine: false`, `devErrors: false`, and `transition` derived from the **raw** `options.deferDefine`
+  — so `new CEAutoLoader({ catalog })` takes the safe-define path. `transition: true` without `deferDefine: true`
+  now **throws `SyntaxError`**.
+- Failures: `#errors` is gone; the tag is painted `ce="error"` and the fallback is **appended** (no more
+  `innerHTML = ""`); the message moved off the element's attributes onto the fallback instance's `.error` / `.stack`.
+  `devErrors` now *extends* painting to non-catalog tags instead of suppressing it (verified live).
+- Types split into `src/types.ts` (a real module exporting `CEError`); `src/types.d.ts` deleted. `tsc --noEmit` is
+  **clean** — issue #12 fixed.
+- Demos: the docs site and the CSS page pin `transition: false, deferDefine: false`.
+- Verified: **24/24 tests**; bundle **9.54 kB raw / 3,319 B gzip**.
+- ⚠️ **`dom_watcher` is inverted** — verified in a browser: a dynamically added catalog tag no longer upgrades, so
+  the live/`MutationObserver` path is dead. The one test that covers it passes on a race (the initial `discover()`
+  scan catches the element).
 
 ## Next
 
-1. **Define-patch Stage 2** — transient capture instead of the global queue (see `progress.md`).
-2. Tier 0 leftovers: completion signals (`ce:load` / `ce:error`, `whenLoaded(tag)`); the first-render-throw gap
-   (issue #13).
-3. Tier 1: pin + `integrity`, docs truth pass, runnable benchmark, cross-browser matrix. Full lists in `REVIEW.md`.
+1. **Fix `dom_watcher`** (inverted guard, above) — the live/observer path is the product, not a nice-to-have.
+2. **Doc truth pass** — README + `types.ts` still say `devErrors` *suppresses* painting and that `deferDefine: false`
+   patches nothing; both are now wrong.
+3. **Decide the failure model on purpose** — "catalog always paints, `devErrors` adds unknown tags" (what the tests
+   encode today) vs the older "catalog is the boundary, `devErrors` suppresses".
+4. **Define-patch Stage 2** — transient capture instead of the global queue (see `progress.md`).
+5. Tier 1: pin + `integrity`, runnable benchmark, cross-browser matrix. Full list in `REVIEW.md`.
 
 ## Decisions and lessons
 
-- **`deferDefine` on by default** — catalogs self-register (18 of 20 demo components), and strict opt-in loses the
-  morph for them. Flipping it is one line in the constructor's defaults.
-- **`devErrors` on by default, with the catalog as the boundary** — an error in one of our own components has to be
-  visible; `false` is the production-hygiene switch. The non-catalog case is not a toggle at all. (A first attempt
-  defaulted it off with no boundary, which hid real failures — worse than a wrong-looking placeholder.)
-- Two checkers disagree on a pre-existing error: `tsc --noEmit` reports TS2345 at `definitions.push(...)`, the
-  `npm run build` dts step reports nothing. The `tsc` answer is the honest one.
-- **A correct state is not a painted state.** `ce="loading"` was set, the shimmer running, and the element invisible
-  — a stylesheet in a lower layer said `visibility: hidden`. Check `checkVisibility()` before blaming the loader.
+- **Lean defaults, explicit opt-in.** Deferring and animating are choices now; the vanilla behaviour is
+  "import → idempotent define → mark `.ce`". `transition: true` *requires* `deferDefine: true`, because a transition
+  the queue cannot deliver is a broken promise (self-registering catalogs would pop, not morph).
+- **`deferDefine: false` is no longer "touch nothing".** The default path installs `polyfill_safe_define` — an
+  idempotent `define` — so a self-registering module and the loader cannot collide over the same tag.
+- **Failures belong to the element, not to attributes.** `.error` / `.stack` live on the fallback instance (its
+  `observedAttributes` are gone); the origin keeps only `ce="error"`. Appending (instead of clearing) means
+  server-rendered or slotted light DOM survives a failure — issue #3 falls out for free.
+- **`devErrors` re-read as "also paint failures I don't own."** Catalog failures always paint; a non-catalog tag
+  paints only with `devErrors: true`, which is genuinely useful while debugging a typo'd tag name.
+- **A correct state is not a painted state.** `ce="loading"` set, the shimmer running, the element invisible — a
+  stylesheet in a lower cascade layer said `visibility: hidden`. Check `checkVisibility()` before blaming the loader.
 - **Demo pages rot silently.** The animation page was dead for months. Run them.

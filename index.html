@@ -406,7 +406,8 @@ const registry = new CERegistry({
               <p>
                 Any custom string (e.g., loading="lazy-load") can be used as a loading strategy, and triggered
                 manually via
-                <code>registry.upgrade(document.body, 'lazy-load')</code>. This is useful for custom workflows that don't fit
+                <code>registry.upgrade(document.body, 'lazy-load')</code>. This is useful for custom workflows that
+                don't fit
                 into
                 the built-in strategies.
               </p>
@@ -699,21 +700,12 @@ const registry = new CERegistry({
 
         <p>
           Define your own fallback component via
-          <code>fallback</code>, that is displayed when a module throws an error during loading.
+          <code>fallback</code>, that is displayed when a module throws an error during loading:
         </p>
 
         <vi-error></vi-error>
-
         <p>
-          Additionaly, the attribute <code>[ce=error]</code> is also set on the component, allowing you to style it
-          differently when an error occurs. Only catalog components are reported: a tag that is not in the catalog
-          may be defined later by someone else, so it keeps matching <code>:not(:defined)</code> instead of looking
-          broken. Set <code>devErrors: false</code> to keep the state and the fallback out of production markup.
-        </p>
-
-        <p>
-          And you can also handle it manually by setting <code>hooks.error</code> on the constructor — the hook runs
-          whether or not <code>devErrors</code> is on.
+          You can also attach a function whenever an error occurs by setting <code>hooks.error</code>.
         </p>
       </div>
     </div>

@@ -1,5 +1,6 @@
 class ViError extends HTMLElement {
   connectedCallback() {
+    throw new Error("I've crashed while rendering 😭");
     this.render();
   }
 

@@ -1,296 +1,287 @@
 import { expect } from "chai";
 import { html } from "https://esm.sh/uhtml";
-import AutoLoader from '../src/index.ts';
+import AutoLoader from "../src/index.ts";
 
 class BaseComp extends HTMLElement {
-    connectedCallback() {
-        this.setAttribute('data-upgraded', 'true');
-        this.appendChild(this.render())
-    }
+  connectedCallback() {
+    this.setAttribute("data-upgraded", "true");
+    this.appendChild(this.render());
+  }
 
-    render() {
-        return html`Hello World`;
-    }
-};
+  render() {
+    return html`Hello World`;
+  }
+}
 
 class ErrorFallback extends HTMLElement {
-    connectedCallback() {
-        this.appendChild(this.render());
-    }
-    render() {
-        return html`<p>Fallback content</p>`;
-    }
+  connectedCallback() {
+    this.appendChild(this.render());
+  }
+  render() {
+    return html`<p>Fallback content</p>`;
+  }
 }
-customElements.define('error-fallback', ErrorFallback);
-
+customElements.define("error-fallback", ErrorFallback);
 
 // Component catalog
 const catalog = {
-    "test-component": async () => {
-        customElements.define('test-component', BaseComp);
-    },
-    "nested-component": async () => {
-        class NestedComponent extends BaseComp {
-            render() {
-                return html`<test-component></test-component>`;
-            }
-        };
-        customElements.define('nested-component', NestedComponent);
-    },
-    "dynamic-component": async () => {
-        class DynamicComponent extends BaseComp { };
-        customElements.define('dynamic-component', DynamicComponent);
-    },
-    "manual-component": async () => {
-        class ManualComponent extends BaseComp { };
-        customElements.define('manual-component', ManualComponent);
-    },
-    "interaction-component": async () => {
-        class InteractionComponent extends BaseComp { };
-        customElements.define('interaction-component', InteractionComponent);
-    },
-    "visible-component": async () => {
-        class VisibleComponent extends BaseComp { };
-        customElements.define('visible-component', VisibleComponent);
-    },
-    "error-component": async () => {
-        throw new Error("Failed to load component");
+  "test-component": async () => {
+    customElements.define("test-component", BaseComp);
+  },
+  "nested-component": async () => {
+    class NestedComponent extends BaseComp {
+      render() {
+        return html`<test-component></test-component>`;
+      }
     }
+    customElements.define("nested-component", NestedComponent);
+  },
+  "dynamic-component": async () => {
+    class DynamicComponent extends BaseComp {}
+    customElements.define("dynamic-component", DynamicComponent);
+  },
+  "manual-component": async () => {
+    class ManualComponent extends BaseComp {}
+    customElements.define("manual-component", ManualComponent);
+  },
+  "interaction-component": async () => {
+    class InteractionComponent extends BaseComp {}
+    customElements.define("interaction-component", InteractionComponent);
+  },
+  "visible-component": async () => {
+    class VisibleComponent extends BaseComp {}
+    customElements.define("visible-component", VisibleComponent);
+  },
+  "error-component": async () => {
+    throw new Error("Failed to load component");
+  },
 };
 
-describe('CEAutoLoader', () => {
-    let registry;
-    const fixtures = document.getElementById('fixtures');
+describe("CEAutoLoader", () => {
+  let registry;
+  const fixtures = document.getElementById("fixtures");
 
-    beforeEach(() => {
-        fixtures.innerHTML = '';
+  beforeEach(() => {
+    fixtures.innerHTML = "";
 
-        // Reset observers, but we can't really unregister the custom elements.
-        registry?.clean();
-        registry = undefined;
+    // Reset observers, but we can't really unregister the custom elements.
+    registry?.clean();
+    registry = undefined;
+  });
+
+  // Clean up the last registry too, so its observers don't leak into
+  // the next suite (Observability) and load tags with a stale catalog.
+  after(() => {
+    registry?.clean();
+    registry = undefined;
+  });
+
+  it("should upgrade existing components on start", async () => {
+    const el = document.createElement("test-component");
+    fixtures.appendChild(el);
+
+    registry = new AutoLoader({
+      catalog,
+      root: fixtures,
+    });
+    await customElements.whenDefined("test-component");
+    expect(el.hasAttribute("data-upgraded")).to.be.true;
+  });
+
+  it("should upgrade nested components", async () => {
+    const container = document.createElement("div");
+    const el = document.createElement("nested-component");
+    container.appendChild(el);
+    fixtures.appendChild(container);
+
+    registry = new AutoLoader({
+      catalog,
+      root: fixtures,
     });
 
-    // Clean up the last registry too, so its observers don't leak into
-    // the next suite (Observability) and load tags with a stale catalog.
-    after(() => {
-        registry?.clean();
-        registry = undefined;
+    await customElements.whenDefined("nested-component");
+
+    expect(el.hasAttribute("data-upgraded")).to.be.true;
+    expect(el.textContent).to.equal("Hello World");
+  });
+
+  it("should upgrade dynamically added components (MutationObserver)", async () => {
+    registry = new AutoLoader({
+      catalog,
+      root: fixtures,
+      live: true,
     });
 
-    it('should upgrade existing components on start', async () => {
-        const el = document.createElement('test-component');
-        fixtures.appendChild(el);
+    const el = document.createElement("dynamic-component");
+    fixtures.appendChild(el);
 
-        registry = new AutoLoader({
-            catalog,
-            root: fixtures,
-        });
-        await customElements.whenDefined("test-component");
-        expect(el.hasAttribute('data-upgraded')).to.be.true;
+    // Wait for MutationObserver and async hydration
+    await customElements.whenDefined("dynamic-component");
+
+    expect(el.hasAttribute("data-upgraded")).to.be.true;
+  });
+
+  describe("loading attribute", () => {
+    it("eager", async () => {
+      const el = document.createElement("test-component");
+      el.setAttribute("loading", "eager");
+      fixtures.appendChild(el);
+
+      registry = new AutoLoader({
+        catalog,
+        root: fixtures,
+        live: false,
+      });
+
+      await customElements.whenDefined("test-component");
+      expect(el.hasAttribute("data-upgraded")).to.be.true;
     });
+    it("manual", async () => {
+      const el = document.createElement("manual-component");
+      el.setAttribute("loading", "manual");
+      fixtures.appendChild(el);
 
-    it('should upgrade nested components', async () => {
-        const container = document.createElement('div');
-        const el = document.createElement('nested-component');
-        container.appendChild(el);
-        fixtures.appendChild(container);
+      registry = new AutoLoader({
+        catalog,
+        root: fixtures,
+        live: false,
+      });
 
-        registry = new AutoLoader({
-            catalog,
-            root: fixtures,
-        });
-
-        await customElements.whenDefined("nested-component");
-
-        expect(el.hasAttribute('data-upgraded')).to.be.true;
-        expect(el.textContent).to.equal("Hello World");
+      expect(el.hasAttribute("data-upgraded")).to.be.false;
+      await registry.upgrade(fixtures, "manual");
+      await customElements.whenDefined("manual-component");
+      expect(el.hasAttribute("data-upgraded")).to.be.true;
     });
+    it("click", async () => {
+      const el = document.createElement("interaction-component");
+      el.setAttribute("loading", "click");
+      fixtures.appendChild(el);
 
-    it('should upgrade dynamically added components (MutationObserver)', async () => {
-        registry = new AutoLoader({
-            catalog,
-            root: fixtures,
-            live: true
-        });
+      registry = new AutoLoader({
+        catalog,
+        root: fixtures,
+        // Discovery is async while `live` is on (it awaits the
+        // MutationObserver setup), so disable it to attach the
+        // click listener synchronously, before dispatching it.
+        live: false,
+      });
 
-        const el = document.createElement('dynamic-component');
-        fixtures.appendChild(el);
+      expect(el.hasAttribute("data-upgraded")).to.be.false;
 
-        // Wait for MutationObserver and async hydration
-        await customElements.whenDefined("dynamic-component");
+      await el.dispatchEvent(new MouseEvent("click"));
+      await customElements.whenDefined("interaction-component");
 
-        expect(el.hasAttribute('data-upgraded')).to.be.true;
+      expect(el.hasAttribute("data-upgraded")).to.be.true;
     });
+    it("visible", async () => {
+      const el = document.createElement("visible-component");
+      el.setAttribute("loading", "visible");
+      fixtures.appendChild(el);
 
+      registry = new AutoLoader({
+        catalog,
+        root: fixtures,
+        live: false,
+      });
 
-    describe("loading attribute", () => {
-        it("eager", async () => {
-            const el = document.createElement('test-component')
-            el.setAttribute('loading', 'eager');
-            fixtures.appendChild(el);
-
-            registry = new AutoLoader({
-                catalog,
-                root: fixtures,
-                live: false,
-            });
-
-            await customElements.whenDefined("test-component");
-            expect(el.hasAttribute('data-upgraded')).to.be.true;
-        })
-        it('manual', async () => {
-            const el = document.createElement('manual-component')
-            el.setAttribute('loading', 'manual');
-            fixtures.appendChild(el);
-
-            registry = new AutoLoader({
-                catalog,
-                root: fixtures,
-                live: false,
-            });
-
-            expect(el.hasAttribute('data-upgraded')).to.be.false;
-            await registry.upgrade(fixtures, "manual");
-            await customElements.whenDefined("manual-component");
-            expect(el.hasAttribute('data-upgraded')).to.be.true;
-        });
-        it('click', async () => {
-            const el = document.createElement('interaction-component')
-            el.setAttribute('loading', 'click');
-            fixtures.appendChild(el);
-
-            registry = new AutoLoader({
-                catalog,
-                root: fixtures,
-                // Discovery is async while `live` is on (it awaits the
-                // MutationObserver setup), so disable it to attach the
-                // click listener synchronously, before dispatching it.
-                live: false,
-            });
-
-            expect(el.hasAttribute('data-upgraded')).to.be.false;
-
-            await el.dispatchEvent(new MouseEvent('click'));
-            await customElements.whenDefined("interaction-component");
-
-            expect(el.hasAttribute('data-upgraded')).to.be.true;
-        });
-        it('visible', async () => {
-            const el = document.createElement('visible-component')
-            el.setAttribute('loading', 'visible');
-            fixtures.appendChild(el);
-
-            registry = new AutoLoader({
-                catalog,
-                root: fixtures,
-                live: false,
-            });
-
-            expect(el.hasAttribute('data-upgraded')).to.be.false;
-            await customElements.whenDefined("visible-component");
-            expect(el.hasAttribute('data-upgraded')).to.be.true;
-        });
+      expect(el.hasAttribute("data-upgraded")).to.be.false;
+      await customElements.whenDefined("visible-component");
+      expect(el.hasAttribute("data-upgraded")).to.be.true;
     });
+  });
 
-    describe("Errors", () => {
-        it("should handle errors in component definition", async () => {
-            // `loading="eager"` instead of the default `visible`: the mocha report
-            // grows as the suite runs, which pushes #fixtures below the fold, and
-            // the IntersectionObserver would then never fire for this element.
-            const el = document.createElement('error-component');
-            el.setAttribute("loading", "eager");
-            fixtures.appendChild(el);
+  describe("Errors", () => {
+    it("should handle errors in component definition", async () => {
+      // `loading="eager"` instead of the default `visible`: the mocha report
+      // grows as the suite runs, which pushes #fixtures below the fold, and
+      // the IntersectionObserver would then never fire for this element.
+      const el = document.createElement("error-component");
+      el.setAttribute("loading", "eager");
+      fixtures.appendChild(el);
 
-            let reported = null;
+      let reported = null;
 
-            registry = new AutoLoader({
-                catalog: catalog,
-                root: fixtures,
-                hooks: { error: (error) => (reported = error) },
-            });
-            await new Promise(requestIdleCallback);
+      registry = new AutoLoader({
+        catalog: catalog,
+        root: fixtures,
+        hooks: { error: (error) => (reported = error) },
+      });
+      await new Promise(requestIdleCallback);
 
-            expect(el.getAttribute("ce")).to.equal("error");
-            expect(el.getAttribute("error")).to.include("Failed to load component");
+      expect(el.getAttribute("ce")).to.equal("error");
 
-            // The hook never depends on the option.
-            expect(reported, "hooks.error should be called").to.exist;
-            expect(reported.name).to.equal("error-component");
-            expect(reported.el).to.equal(el);
-        });
-        it("Should allow a fallback component", async () => {
-            const el = document.createElement('error-component');
-            el.setAttribute("loading", "eager"); // see the note above
-            fixtures.appendChild(el);
+      // The hook never depends on the option.
+      expect(reported, "hooks.error should be called").to.exist;
+      expect(reported.name).to.equal("error-component");
+      expect(reported.el).to.equal(el);
+    });
+    it("should allow a fallback component", async () => {
+      const el = document.createElement("error-component");
+      el.setAttribute("loading", "eager"); // see the note above
+      fixtures.appendChild(el);
 
-            registry = new AutoLoader({
-                catalog: catalog,
-                root: fixtures,
-                fallback: ErrorFallback,
-            });
-            await new Promise(requestIdleCallback);
-            await new Promise(resolve => setTimeout(resolve, 100)); // Wait for fallback to render
+      registry = new AutoLoader({
+        catalog: catalog,
+        root: fixtures,
+        fallback: ErrorFallback,
+      });
+      await new Promise(requestIdleCallback);
+      await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for fallback to render
 
-            expect(el.querySelector('error-fallback')).to.exist;
-            expect(el.textContent).to.equal("Fallback content");
-        })
-        it("should leave a tag that is not in the catalog alone", async () => {
-            const el = document.createElement('el-notloaded');
-            el.setAttribute("loading", "eager"); // see the note above
-            fixtures.appendChild(el);
+      expect(el.querySelector("error-fallback")).to.exist;
+      expect(el.textContent).to.equal("Fallback content");
+    });
+    it("should display all errors when (devErrors: true) ", async () => {
+      const el = document.createElement("error-component");
+      el.setAttribute("loading", "eager"); // see the note above
+      fixtures.appendChild(el);
 
-            let reported = null;
+      let reported = null;
 
-            registry = new AutoLoader({
-                catalog: catalog,
-                root: fixtures,
-                // The css.html page showcases `:not(:defined)` with a tag that has no
-                // catalog entry. A third party may define it later, so an error state
-                // would be wrong — even with `devErrors` explicitly on — and the
-                // fallback must not be injected either.
-                devErrors: true,
-                fallback: ErrorFallback,
-                hooks: { error: (error) => (reported = error) },
-            });
-            await new Promise(requestIdleCallback);
-            await new Promise(resolve => setTimeout(resolve, 100));
+      registry = new AutoLoader({
+        catalog: catalog,
+        root: fixtures,
+        devErrors: true,
+        fallback: ErrorFallback,
+        hooks: { error: (error) => (reported = error) },
+      });
+      await new Promise(requestIdleCallback);
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-            expect(el.getAttribute("ce"), "no state should be painted").to.be.null;
-            expect(el.getAttribute("error")).to.be.null;
-            expect(el.querySelector('error-fallback')).to.not.exist;
-            expect(el.matches(":not(:defined)"), "the tag stays a placeholder").to.be.true;
+      expect(el.getAttribute("ce")).to.exist;
+      expect(el.getAttribute("error")).to.be.null;
+      expect(el.querySelector("error-fallback")).to.exist;
+      expect(el.matches(":not(:defined)"), "the tag stays a placeholder").to.be.true;
 
-            // The failure is still reported, it just doesn't touch the DOM.
-            expect(reported, "hooks.error should be called").to.exist;
-            expect(reported.name).to.equal("el-notloaded");
-            expect(reported.error.message).to.include("not found in catalog");
-        })
-        it("should keep the DOM clean when devErrors is off", async () => {
-            const el = document.createElement('error-component');
-            el.setAttribute("loading", "eager"); // see the note above
-            fixtures.appendChild(el);
+      expect(reported, "hooks.error should be called").to.exist;
+      expect(reported.name).to.equal("error-component");
+      expect(reported.error.message).to.include("Failed to load component");
+    });
+    it("should leave tags not in catalog alone when devErrors: false", async () => {
+      const el = document.createElement("el-notfound");
+      el.setAttribute("loading", "eager"); // see the note above
+      fixtures.appendChild(el);
 
-            let reported = null;
+      let reported = null;
 
-            registry = new AutoLoader({
-                catalog: catalog,
-                root: fixtures,
-                devErrors: false,
-                fallback: ErrorFallback,
-                hooks: { error: (error) => (reported = error) },
-            });
-            await new Promise(requestIdleCallback);
-            await new Promise(resolve => setTimeout(resolve, 100));
+      registry = new AutoLoader({
+        catalog: catalog,
+        root: fixtures,
+        devErrors: false,
+        fallback: ErrorFallback,
+        hooks: { error: (error) => (reported = error) },
+      });
+      await new Promise(requestIdleCallback);
 
-            // A real failure this time, silenced on purpose: no error state, but the
-            // `loading` state this failure set must not be left behind either.
-            expect(el.getAttribute("ce"), "no state should be painted").to.be.null;
-            expect(el.getAttribute("error")).to.be.null;
-            expect(el.querySelector('error-fallback')).to.not.exist;
-            expect(el.matches(":not(:defined)"), "the tag stays a placeholder").to.be.true;
+      expect(el.getAttribute("ce"), "no state should be painted").to.be.null;
+      expect(el.getAttribute("error")).to.be.null;
+      expect(el.querySelector("error-fallback")).to.not.exist;
+      expect(el.matches(":not(:defined)"), "the tag stays a placeholder").to.be.true;
 
-            expect(reported, "hooks.error should be called").to.exist;
-            expect(reported.name).to.equal("error-component");
-        })
-    })
+      // The failure is still reported, it just doesn't touch the DOM.
+      expect(reported, "hooks.error should be called").to.exist;
+      expect(reported.name).to.equal("el-notfound");
+      expect(reported.error.message).to.include("not found in catalog");
+    });
+  });
 });

@@ -1,92 +1,7 @@
-/**
- * A Loader can be a URL or any function that returns a `Promise<CustomElementConstructor>`
- */
-export type Loader = string | ((name: string, el?: HTMLElement) => Promise<CustomElementConstructor>);
+import type { Catalog, Loader, Options, Directives, LoadError, LoadResult } from './types';
+import { CEError } from './types'
 
-/**
- * A catalog maps between tag names and a custom element.
- */
-export type Catalog = Record<string, Loader>;
-
-export type LoadResult = {
-  name: string;
-  el?: HTMLElement;
-  loader?: Loader;
-  module?: CustomElementConstructor;
-};
-
-export type LoadError = {
-  name: string;
-  el: HTMLElement;
-  error: CEError;
-};
-
-export type Directives = "eager" | "visible" | "click" | "manual";
-export type Options = {
-  /* The component catalog */
-  catalog?: Catalog;
-  /* The root element to search for custom elements */
-  root?: HTMLElement;
-  /** Watch for new custom elements in the page? */
-  live?: boolean;
-
-  /** Use the page import-map as a catalog */
-  useImportMapsCatalog?: boolean;
-
-  /** Fallback for components with errors */
-  fallback?: CustomElementConstructor;
-
-  /**
-   * Report a failure on the element itself: `ce="error"`, the `error` / `stack`
-   * attributes and the `fallback` element.
-   *
-   * On by default — a component of ours that fails to load or define should be
-   * visible on the page. Set it to `false` to keep production markup clean. A tag
-   * that is *not* in the catalog is never painted either way: the loader never owned
-   * it and a third party may define it later. `hooks.error` is called in all cases.
-   */
-  devErrors?: boolean;
-
-  /** Directives are triggers to when the component should be loaded */
-  directives?: Directives[];
-  /** Overwrite the default directive */
-  defaultDirective?: Directives;
-
-  /** Intersection Observer customization */
-  intersectionOptions?: IntersectionObserverInit;
-
-  /** Use View Transitions API to animate the component upgrade */
-  transition?: boolean;
-
-  /**
-   * Polyfill customElements.define to support deferring until later
-   *
-   * Defaults to `true` whenever transitions are enabled and supported.
-   */
-  deferDefine?: boolean;
-
-  /** Lifecycle hooks of each component */
-  hooks?: {
-    viewTransition: {
-      ready?: (transition: ViewTransition) => Promise<void>;
-      finished?: (transition: ViewTransition) => Promise<void>;
-    };
-    error?: (error: LoadError) => Promise<void>;
-  };
-};
-
-/**
- * Error thrown by CEAutoLoader
- */
-class CEError extends Error {
-  details: any;
-
-  constructor(message: string, details: any) {
-    super(`CEAutoLoader: ${message}`);
-    this.details = details;
-  }
-}
-
+/** Helpers */
 function isCustomElement(element: Element) {
   return element instanceof HTMLElement && element.tagName.includes("-");
 }
@@ -109,6 +24,25 @@ function debounceMutations(fn: (mutations: MutationRecord[], observer: MutationO
   };
 }
 
+const isFulfilled = <T>(result: PromiseSettledResult<T>): result is PromiseFulfilledResult<T> => result.status === "fulfilled";
+const isRejected = <T>(result: PromiseSettledResult<T>): result is PromiseRejectedResult => result.status === "rejected";
+
+/** Performance mark helper */
+const measure = (type: string, name: string) => {
+  const id = `${type}:${name}`, start = `${id}:start`, end = `${id}:end`;
+  performance.mark(start);
+  return {
+    end: (opts?: any) => {
+      performance.mark(end);
+      return performance.measure(id, {
+        start, end,
+        detail: { type, name, ...opts }
+      });
+    }
+  };
+};
+
+
 /**
  * CSS selector to match custom elements
  */
@@ -118,21 +52,43 @@ function matchCustomElement(root: Element) {
     .filter((el) => isCustomElement(el)) as HTMLElement[];
 }
 
-const isFulfilled = <T>(result: PromiseSettledResult<T>): result is PromiseFulfilledResult<T> => result.status === "fulfilled";
-const isRejected = <T>(result: PromiseSettledResult<T>): result is PromiseRejectedResult => result.status === "rejected";
-
-const SUPPORTS_SCOPED_VT = "startViewTransition" in Element.prototype;
-
-var ORIGINAL_DEFINE: typeof customElements.define = (ORIGINAL_DEFINE || customElements.define.bind(customElements))
-
 /**
- * Multiple registries can co-exist on the same page.
- * Since the polyfill is global, it's necessary to consult all registries.
- */
-const DEFERRED_REGISTRIES: CEAutoLoader[] = [];
+ * CEAutoLoader manages loading web components in the page asynchronously.
+ *
+ * Every custom web component (aka `<c-name ></c-name>`) on a `document` is
+ * consulted in the `catalog` and and loaded via `dynamic import(file)`.
+ *
+ * It'll load those files and add `ce="loading"` to those `DOM Elements`, that you
+ * can style with css until the component becomes [registered](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements#registering_a_custom_element)
+ *
+ * Once registered, the CustomElement generally style it's own DOM node.
+ *
+ * @usage
+ *
+ * ```jsx
+ * let registry = new CEautoLoader({catalog: {
+ *  "json-viewer": () => import ("https://esm.sh/@alenaksu/json-viewer")
+ * });
+ * ```
+ *
+ * - A catalog is an object of the format {"web-component-name": `https://url`}
+ * - A ES Module CustomElement should be exported as default from the file. *
+ * @usage
+ *
+ * ```js
+* export default class hi-helloworld extends HTMLElement {
+  connectedCallback() {
+      this.render()
+  }
 
-/**
- * CEAutoLoader automatically loads and defines custom elements from a catalog.
+  render() {
+      this.innerHTML = `Hi, <span>Hello</span>`;
+  }
+}
+  ```
+ *
+ * - But they're javascript code they can do whatever it's available to `document`
+
  */
 class CEAutoLoader {
   options: Options;
@@ -151,44 +107,42 @@ class CEAutoLoader {
   // Lock components while loading to avoid retriggers
   loading_locks: Record<string, HTMLElement> = {}
 
-  // Components that failed to load: the watcher skips them, so a failure is
-  // reported once instead of on every mutation.
-  #errors: Record<string, LoadError> = {};
-
   constructor(options: Options = { catalog: {} }) {
     this.options = {
       live: true,
       root: document.body,
       directives: ["eager", "visible", "click"],
       defaultDirective: "visible",
-      transition: SUPPORTS_SCOPED_VT &&
+      deferDefine: false,
+      transition: options.deferDefine && SUPPORTS_SCOPED_VT &&
         !window.matchMedia(`(prefers-reduced-motion: reduce)`).matches,
       useImportMapsCatalog: false,
-      devErrors: true,
+      devErrors: false,
       intersectionOptions: {
         scrollMargin: "20%",
       },
       ...options,
     };
 
-    if (!this.options.catalog) {
+    if (!this.options.useImportMapsCatalog) {
       const importMapScript = document.querySelector('script[type="importmap"]');
-      const map = JSON.parse(importMapScript?.textContent || '{}');
+      const map = JSON.parse(importMapScript?.textContent || '{}') as ImportMap;
 
-      if (Object.keys(map.imports).length == 0) {
-        throw new Error("CEAutoloader: Catalog is empty, please fill the importmap or pass the catalog option.");
-      }
-
-      this.catalog = map.imports;
+      const customelements = Object.entries(map?.imports || {}).filter(([name, _target]) => name.includes('-'))
+      this.catalog = {
+        ...Object.fromEntries(customelements),
+        ...this.options.catalog,
+      };
     } else {
       this.catalog = options.catalog;
     }
 
-    if (this.options.transition && SUPPORTS_SCOPED_VT) {
-      // `deferDefine: false` opts out of patching the global registry entirely.
-      if (this.options.deferDefine !== false) this.polyfill_defer_define();
+    if (this.options.deferDefine) {
+      this.polyfill_defer_define();
+    } else if (this.options.transition) {
+      throw new SyntaxError("CEAutoLoader: Transition option without `deferDefine: true` is not supported")
     } else {
-      this.options.transition = false;
+      this.polyfill_safe_define();
     }
 
     this.discover();
@@ -209,7 +163,7 @@ class CEAutoLoader {
    */
   private async watchDOMMutations() {
     let _MutationObserver = await this.getMutationObserver();
-    const observer = new _MutationObserver(debounceMutations(this.watcher.bind(this), 100));
+    const observer = new _MutationObserver(debounceMutations(this.dom_watcher.bind(this), 100));
 
     observer.observe(this.options.root || document.body, {
       childList: true,
@@ -221,16 +175,16 @@ class CEAutoLoader {
 
     return;
   }
-  private async watcher(mutations: MutationRecord[]) {
+  private async dom_watcher(mutations: MutationRecord[]) {
     for (const mutation of mutations.filter((m) => m.type === "childList")) {
-      // Ignore mutations on elements that failed to load
-      const target = mutation.target;
+      let target = mutation.target;
       if (target instanceof ShadowRoot) {
         continue;
       }
 
-      const name = (target as HTMLElement).tagName.toLowerCase();
-      if (this.#errors[name]) {
+      // Ignore mutations on elements that failed to load
+      let el = (target as HTMLElement);
+      if (el.getAttribute('ce') === 'error') {
         continue;
       }
 
@@ -245,17 +199,6 @@ class CEAutoLoader {
           await this.discover(node);
         }
       }
-    }
-  }
-
-  /**
-   * Returns an filter fn that filter elements that has the matching loading=`directive` value
-   */
-  private filterByLoadingAttribute(directive?: Directives) {
-    if (directive) {
-      return (el) => (el.getAttribute("loading") === directive);
-    } else {
-      return (el) => (!el.hasAttribute("loading"));
     }
   }
 
@@ -284,7 +227,47 @@ class CEAutoLoader {
   }
 
   /**
-   * Discover the custom elements in the `root` and upgrade them lazily
+ * Returns an filter fn that filter elements that has the matching loading=`directive` value
+ */
+  private filterByLoadingAttribute(directive?: Directives) {
+    if (directive) {
+      return (el) => (el.getAttribute("loading") === directive);
+    } else {
+      return (el) => (!el.hasAttribute("loading"));
+    }
+  }
+
+  /**
+  * Matches a component name to a wildcard resolver (if exists)
+  * e.g. "nord-button" -> "nord-*"
+  */
+  private getWildcardResolver(name: string): Loader | null {
+    const [prefix, _comp_name] = name.split("-");
+    return this.catalog[`${prefix}-*`];
+  }
+
+  /** Get the appropriate loader matching name */
+  public getLoader(name: string): Loader {
+    return this.catalog?.[name] || this.getWildcardResolver(name);
+  }
+
+  /** Load a module asynchronously */
+  private async loadModule(name: string, loader: Loader) {
+    let module = null
+    if (typeof loader === "string") {
+      module = await import(/* @vite-ignore */ loader);
+    } else if (typeof loader === "function") {
+      module = await loader(name, undefined);
+    } else {
+      throw new CEError(`Loader of ${name} is invalid! Should be a url or a function`, { name, module });
+    }
+
+    return module
+  }
+
+
+  /**
+   * Discover custom-elements in the `root` and upgrade them lazily
    */
   async discover(root = this.options.root) {
     if (!this.#initialized && this.options.live) {
@@ -304,12 +287,11 @@ class CEAutoLoader {
   }
 
   /**
-   * Upgrade all custom elements that has the loading=`directive`.
+   * Upgrade all custom-elements that has the `loading=directive` attribute.
    *
-   * @param directive - the behaviour of the loading, when the loading should happen.
-   * If no directive is null, will upgrade all elements that doesnt have a loading attribute
+   * @param directive - If no directive is passed, will upgrade elements that DOESNT have a loading attribute
    *
-   * Or call directly `loadAndDefine([HTMLElement1, HTMLElement2])
+   * @see {@link loadAndDefine}
    */
   upgrade(root: HTMLElement = this.options.root, directive?: Directives) {
 
@@ -318,7 +300,7 @@ class CEAutoLoader {
         .filter((entry) => entry.isIntersecting)
         .filter((entry) => !customElements.get(entry.target.tagName.toLowerCase()))
         .map((entry) => entry.target as HTMLElement)
-        .filter((el) => !this.loading_locks[el.tagName]);
+        .filter((el) => !this.loading_locks[el.tagName])
 
       if (html_elements.length > 0) {
         this.loadAndDefine(html_elements);
@@ -375,6 +357,123 @@ class CEAutoLoader {
     );
   }
 
+
+
+  /**
+   * Load and define components
+   *
+   */
+  private async loadAndDefine(elements: HTMLElement[]) {
+    if (elements.length === 0) {
+      return [];
+    }
+
+    // 1. Load the appropriate modules
+    const results = await Promise.allSettled(elements.map((e) => this.load(e)))
+
+    // 2. handle load errors on per-case component basis
+    results.filter(isRejected).map((r) => this.handleComponentLoadError(r));
+
+    // 3. Then, define the components on a single frame
+    const success = results.filter(isFulfilled).map((r) => r.value)
+    const failed = results.filter(isRejected);
+
+    this.options.transition
+      ? await this.runScopedViewTransition(success, (r) => this.define(r))
+      : await Promise.allSettled(success.map((r) => this.define(r)));
+
+    // Defining can fail too
+    failed.map((r) => this.handleComponentLoadError(r));
+
+    // Flush any component that was defined outside of autoloader bounds
+    // or is already on the queue
+    if (this.options.deferDefine) {
+      requestIdleCallback(() => customElements.flush());
+    }
+
+    return []
+  }
+
+
+  /**
+   * Load a single component
+   */
+  async load(el: HTMLElement): Promise<LoadResult> {
+    const name = el.tagName.toLowerCase();
+
+    let loader = this.getLoader(name);
+    if (!loader) {
+      throw new CEError(`${name} not found in catalog`, { name, el, module: null });
+    }
+
+    let module;
+    // let before_imports = { ...customElements.waiting };
+    let load_error = null;
+    let perf = measure('load', name);
+
+    try {
+      this.loading_locks[el.tagName] = el;
+      el.setAttribute("ce", "loading");
+
+      module = await this.loadModule(name, loader);
+    } catch (error: any) {
+      load_error = error;
+      throw new CEError(`${name} - ${error.message}`, { name, el, module, cause: error });
+    } finally {
+      delete this.loading_locks[el.tagName];
+
+      perf.end({ error: load_error });
+    }
+
+    return { name, module, loader, el };
+  }
+
+  /**
+   * Define a single component
+   */
+  async define({ name, el, module }: LoadResult) {
+    /**
+     * The loader may return a `HTMLCustomElement`,
+     * or it may define the element itself via customElements.define.
+     */
+    if (isModule(module)) {
+      module = module.default;
+    }
+
+    let define_error = null;
+    let perf = measure('define', name);
+
+    try {
+      if (customElements.get(name)) {
+        // Already defined: either the module registered the tag itself, or another
+        // script got there first. Nothing to define .
+      } else if (this.options.deferDefine) {
+        if (!customElements.queue[name]) {
+          if (!module) throw new CEError(`${name} - the loader neither defined the element nor returned a constructor`, { name, el, module });
+          else ORIGINAL_DEFINE(name, module, {})
+        } else {
+          customElements.dequeue(name);
+        }
+      } else {
+        if (!module) {
+          throw new CEError(`${name} - the loader neither defined the element nor returned a constructor`, { name, el, module });
+        }
+        customElements.define(name, module, {});
+      }
+
+      el?.setAttribute("ce", "defined");
+
+    } catch (error: any) {
+      define_error = error;
+      if (error instanceof CEError) throw error;
+      throw new CEError(`${name} - ${error.message}`, { name, el, module, error });
+    } finally {
+      perf.end({ error: define_error });
+    }
+
+    return { name, module, el };
+  }
+
   /**
    * Handle components that failed to load
    */
@@ -387,52 +486,32 @@ class CEAutoLoader {
     }
 
     const name = origin.tagName.toLowerCase();
+    const error: LoadError = { name: name, el: origin, error: rejection.reason, };
 
-    const error: LoadError = {
-      name: name,
-      el: origin,
-      error: rejection.reason,
-    };
-
-    this.#errors[name] = error;
-
-    // Before anything touches the DOM: with `devErrors` off the hook is the only
-    // signal a failure produces.
     if (this.options.hooks?.error) {
       this.options.hooks.error(error);
     }
 
-    // A tag with no catalog entry was never ours to load, so this is not a failure:
-    // it may be defined later by a third party, and painting it as an error would be
-    // wrong. Leaving it `:not(:defined)` is the honest state.
-    if (!this.getLoader(name)) return;
-
-    // Nothing is painted, but the load is over: drop the `loading` state this failure
-    // set (a failing `define()` leaves a `defined` behind for the same reason), so the
-    // element is a plain `:not(:defined)` placeholder again.
-    if (!this.options.devErrors) {
-      origin.removeAttribute("ce");
-      return;
-    }
+    // A tag not in catalog was never ours to load, so it's not a failure:
+    if (!this.getLoader(name) && !this.options.devErrors) return;
+    if (origin.getAttribute('ce') === 'error') return;
 
     origin.setAttribute("ce", "error");
-    origin.setAttribute("error", message);
-    origin.setAttribute("stack", stack);
-
     if (this.options.fallback) {
-      // Instantiate and append fallback instead of defining the tag
       const fallback_instance = new this.options.fallback!();
-      fallback_instance.setAttribute("error", message);
-      fallback_instance.setAttribute("stack", stack);
 
-      origin.innerHTML = "";
+      /** @ts-ignore */
+      fallback_instance.error = message;
+      /** @ts-ignore */
+      fallback_instance.stack = stack;
+
       origin.appendChild(fallback_instance);
     }
   }
 
   /**
-   * Perform a view transition of `components`
-   */
+ * Perform a view transition of `components`
+ */
   // private async runViewTransition(components: LoadResult[], defineFunction: () => Promise<void>) {
   //   const elements = components.map(({ el }) => {
   //     const transitionName = el.getAttribute("view-transition-name") || el.tagName;
@@ -516,199 +595,26 @@ class CEAutoLoader {
     );
   }
 
-  /**
-   * Load and define components
-   *
-   */
-  private async loadAndDefine(elements: HTMLElement[]) {
-    if (elements.length === 0) {
-      return [];
-    }
 
-    // 1. Load the appropriate modules
-    const results = await Promise.allSettled(elements.map((e) => this.load(e)))
-
-    // 2. Then, handle errors on per-case component basis
-    results.filter(isRejected).map((r) => this.handleComponentLoadError(r));
-
-    // 3. Then, define the components on a single frame
-    const success = results.filter(isFulfilled).map((r) => r.value)
-
-    // Only components we are about to define can morph: a loader that defined its
-    // own tag (possible while the defer queue is not installed) has already
-    // upgraded its element, so a transition for it would animate nothing.
-    const to_morph = success.filter((r) => !customElements.get(r.name));
-    const already_defined = success.filter((r) => customElements.get(r.name));
-
-    const definitions =
-      this.options.transition && to_morph.length
-        ? await this.runScopedViewTransition(to_morph, (r) => this.define(r))
-        : await Promise.allSettled(to_morph.map((r) => this.define(r)));
-
-    definitions.push(...(await Promise.allSettled(already_defined.map((r) => this.define(r)))));
-
-    // Defining can fail too (a loader that neither defined the tag nor returned a
-    // constructor): report it on the element like a load failure.
-    definitions.filter(isRejected).map((r) => this.handleComponentLoadError(r));
-
-    // 4. Flush any component that was defined outside of autoloader bounds
-    if (this.options.transition && customElements.flush) customElements.flush();
-
-    return []
-  }
-
-  /** Get the appropriate loader matching name */
-  public getLoader(name: string): Loader {
-    return this.catalog?.[name] || this.getWildcardResolver(name);
-  }
-
-  /** Load the module */
-  private async loadModule(name: string, loader: Loader) {
-    let module = null
-    if (typeof loader === "string") {
-      module = await import(/* @vite-ignore */ loader);
-    } else if (typeof loader === "function") {
-      module = await loader(name, undefined);
-    } else {
-      throw new CEError(`Loader of ${name} is invalid! Should be a url or a function`, { name, module });
-    }
-
-    return module
-  }
-
-  /**
-   * Load a single component
-   */
-  async load(el: HTMLElement): Promise<LoadResult> {
-    const name = el.tagName.toLowerCase();
-
-    let loader = this.getLoader(name);
-    if (!loader) {
-      throw new CEError(`Component ${name} not found in catalog`, { name, el });
-    }
-
-    let module;
-    // let before_imports = { ...customElements.waiting };
-    let load_error = null;
-
-    try {
-      performance.mark(`load:${name}:start`);
-
-      this.loading_locks[el.tagName] = el;
-      el.setAttribute("ce", "loading");
-
-      module = await this.loadModule(name, loader);
-    } catch (error: any) {
-      load_error = error;
-      throw new CEError(`${name} - ${error.message}`, { name, el, module, cause: error });
-    } finally {
-      delete this.loading_locks[el.tagName];
-
-      performance.mark(`load:${name}:end`);
-      performance.measure(`load:${name}`, {
-        detail: { name: name, type: "load", error: load_error },
-        start: `load:${name}:start`,
-        end: `load:${name}:end`,
-      });
-    }
-
-    // Components that defines others components
-    // let diff_imports = Object.keys(customElements.waiting)
-    //   .filter((key) => !Object.keys(before_imports).includes(key))
-    //   .filter((key) => key !== name);
-
-    // for (const element of diff_imports) {
-    //   DEFINE(element, customElements.waiting[element]["ctor"], {});
-    // }
-
-    return { name, module, loader, el };
-  }
-
-  /**
-   * Define a single component
-   */
-  async define({ name, el, module }: LoadResult) {
-    /**
-     * The loader may return a `HTMLCustomElement`,
-     * or it may define the element itself via customElements.define.
-     */
-    if (isModule(module)) {
-      module = module.default;
-    }
-
-    let define_error = null;
-    try {
-      performance.mark(`define:${name}:start`);
-
-      if (customElements.get(name)) {
-        // Already defined: either the module registered the tag itself, or another
-        // script got there first. Nothing to define (and nothing to morph).
-      } else if (customElements.dequeue && customElements.queue) {
-        // Definitions are being deferred, so the batch can land inside the view
-        // transition: queue this one and dequeue it right after.
-        if (!customElements.queue[name]) {
-          if (!module) {
-            throw new CEError(`${name} - the loader neither defined the element nor returned a constructor`, { name, el, module });
-          }
-          customElements.define(name, module, {})
-        }
-        customElements.dequeue(name);
-      } else {
-        if (!module) {
-          throw new CEError(`${name} - the loader neither defined the element nor returned a constructor`, { name, el, module });
-        }
-        customElements.define(name, module, {});
-      }
-
-    } catch (error: any) {
-      define_error = error;
-      // Already a CEError: don't wrap it twice.
-      if (error instanceof CEError) throw error;
-      throw new CEError(`${name} - ${error.message}`, { name, el, module, error });
-    } finally {
-      // Only claim the state that really happened: a failing `define()` must not leave
-      // the element looking upgraded.
-      if (!define_error) el?.setAttribute("ce", "defined");
-
-      performance.mark(`define:${name}:end`);
-      performance.measure(`define:${name}`, {
-        detail: { name: name, type: "define", error: define_error },
-        start: `define:${name}:start`,
-        end: `define:${name}:end`,
-      });
-    }
-
-    return { name, module, el };
-  }
-
-  /**
-   * Matches a component name to a wildcard resolver (if exists)
-   * e.g. "nord-button" -> "nord-*"
-   */
-  private getWildcardResolver(name: string): Loader | null {
-    const [prefix, _comp_name] = name.split("-");
-    return this.catalog[`${prefix}-*`];
-  }
-
-  /**
-   * Polyfills for custom element
-   */
+  /***************************
+   * Polyfills
+   **************************/
 
 
   /**
    * Polyfill `customElements.define` to defer component definition.
    *
-   * Only elements that belong to this `catalog` are deferred: they are defined
-   * later by `customElements.dequeue(name)` or `customElements.flush()`, so a
-   * whole batch can land on the same frame — inside a single view transition.
+   * > Only elements that belong to this `catalog` are deferred: they are defined
+   * > later by `customElements.dequeue(name)` or `customElements.flush()`, so a
+   * > whole batch can land on the same frame — inside a single view transition.
    *
-   * Anything else is forwarded to the original `define` right away. Third-party
-   * scripts (or a catalog module registering extra tags) must keep working while
-   * the queue is installed: queueing them would leave those elements defined
-   * nowhere — never upgraded, `customElements.get()` `undefined` and
-   * `customElements.whenDefined()` never settling.
+   * > Anything else is forwarded to the original `define` right away. Third-party
+   * > scripts (or a catalog module registering extra tags) must keep working while
+   * > the queue is installed: queueing them would leave those elements defined
+   * > nowhere — never upgraded, `customElements.get()` `undefined` and
+   * > `customElements.whenDefined()` never settling.
    *
-   * Call `customElements.flush()` or `customElements.dequeue(name)` to finally define.
+   * Call {@link customElements.flush} or {@link customElements.dequeue} to finally define.
    */
   public polyfill_defer_define() {
     if (!DEFERRED_REGISTRIES.includes(this)) {
@@ -742,9 +648,30 @@ class CEAutoLoader {
     }
 
   }
+
+  public polyfill_safe_define() {
+    const define = ORIGINAL_DEFINE;
+    customElements.define = function (name, ctor, options?) {
+      if (customElements.get(name)) return;
+
+      define(name, ctor, options);
+    }
+  }
 }
 
+/** Required globals for polyfill and transition */
+const SUPPORTS_SCOPED_VT = "startViewTransition" in Element.prototype;
+var ORIGINAL_DEFINE: typeof customElements.define = (ORIGINAL_DEFINE || customElements.define.bind(customElements))
+
+/**
+ * Multiple registries can co-exist on the same page.
+*/
+const DEFERRED_REGISTRIES: CEAutoLoader[] = [];
+
+
+/** CDN IMPORT OPTIONS */
 if (new URL(import.meta.url).searchParams.has('autoload')) {
+  /** @ts-ignore */
   window.registry = new CEAutoLoader({ useImportMapsCatalog: true });
 }
 

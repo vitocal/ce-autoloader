@@ -88,7 +88,7 @@ async function waitFor(check, timeout = 2000) {
   return true;
 }
 
-describe("Transition", () => {
+describe("Transition Enabled (View Transitions)", () => {
   let registry;
   const fixtures = document.getElementById("fixtures");
 
@@ -104,6 +104,10 @@ describe("Transition", () => {
       class Component extends HTMLElement {
         connectedCallback() {
           this.setAttribute("data-upgraded", "true");
+          this.render();
+        }
+        render() {
+          this.innerHTML = `🇧🇷`;
         }
       }
       customElements.define(tag, Component);
@@ -113,16 +117,6 @@ describe("Transition", () => {
   /** A catalog holding exactly `tags`, each one resolved by its own loader. */
   function catalogWith(...tags) {
     return Object.fromEntries(tags.map((tag) => [tag, loaderFor(tag)]));
-  }
-
-  function ctorLoader() {
-    return async () => {
-      return class Component extends HTMLElement {
-        connectedCallback() {
-          this.setAttribute("data-upgraded", "true");
-        }
-      };
-    };
   }
 
   /** Wildcard resolver: every `nord-*` tag is served by a single loader. */
@@ -149,7 +143,7 @@ describe("Transition", () => {
       // upgrades explicitly from each test.
       live: false,
       transition: true,
-      ...(deferDefine === undefined ? {} : { deferDefine }),
+      deferDefine: deferDefine ?? true,
       ...options,
     });
 
@@ -297,16 +291,13 @@ describe("Transition", () => {
       expect(customElements.queue["transition-second"].ctor).to.equal(SecondComponent);
       expect(customElements.get("transition-second")).to.be.undefined;
 
-      // No observers to disconnect (`live: false`); the suite-level reset
-      // between tests drops both registries from the queue.
       first.clean();
     });
   });
 
   /**
-   * BLUE — the guarantee that must survive `deferDefine`: a catalog component
-   * morphs even when its own module registers the tag (`customElements.define`
-   * at import time), which is how most real catalogs are written.
+   * BLUE — a catalog component morphs even when its own module registers the tag
+   * (`customElements.define` at import time), which is how most real components are written.
    */
   describe("self-registering catalog components morph (default)", () => {
     it("morphs a component whose loader defines the tag itself", async () => {
@@ -332,7 +323,7 @@ describe("Transition", () => {
   });
 
   /**
-   * GREEN — the bug this change fixes. While the deferred queue is installed,
+   * GREEN —
    * a component that is *not* in the catalog (a third-party script, or a module
    * that registers extra tags) was pushed into the queue and never drained:
    * the element never upgraded, `customElements.get()` stayed `undefined` and
@@ -370,7 +361,7 @@ describe("Transition", () => {
       expect(el.textContent).to.equal("static fallback");
     });
 
-    it("does not hold third-party definitions behind a pending catalog one", () => {
+    it("does not hold third-party definitions behind a pending catalog", () => {
       registry = transitionsRegistry({ catalog: catalogWith("transition-pending") });
 
       // A catalog component is queued while a third-party script registers itself.
@@ -391,29 +382,30 @@ describe("Transition", () => {
 
   /**
    * GREEN — `deferDefine: false` must never patch `customElements.define`. A
-   * self-registering component then upgrades without a morph (only loaders that
-   * *return* a constructor can morph), and third-party code is never
-   * intercepted by ce-autoloader at all.
    */
-  describe("deferDefine: false — no global patch", () => {
-    it("leaves customElements.define untouched", () => {
-      registry = transitionsRegistry({ deferDefine: false, catalog: catalogWith("transition-unpatched") });
-
-      expect(customElements.define).to.equal(NATIVE_DEFINE);
-      expect(customElements.queue).to.be.undefined;
-      expect(customElements.dequeue).to.be.undefined;
+  describe("deferDefine: false", () => {
+    it("Shoul DENY transition:true and deferDefine:false", async () => {
+      expect(() => {
+        registry = transitionsRegistry({
+          deferDefine: false,
+          transition: true,
+          catalog: catalogWith("transition-self-nopatch"),
+        });
+      }).to.throw(SyntaxError);
     });
-
-    it("upgrades a self-registering catalog component without a transition", async () => {
+    it("upgrades a self-defining component without a transition", async () => {
       const el = document.createElement("transition-self-nopatch");
       el.setAttribute("loading", "eager");
       fixtures.appendChild(el);
 
-      registry = transitionsRegistry({ deferDefine: false, catalog: catalogWith("transition-self-nopatch") });
+      registry = transitionsRegistry({
+        deferDefine: false,
+        transition: false,
+        devErrors: true,
+        catalog: catalogWith("transition-self-nopatch"),
+      });
 
       await customElements.whenDefined("transition-self-nopatch");
-      // Without the defer queue the element upgrades inside the loader, so the
-      // registry only marks `ce="defined"` once its own define step runs.
       await new Promise(requestIdleCallback);
 
       expect(el.hasAttribute("data-upgraded")).to.be.true;
@@ -423,54 +415,13 @@ describe("Transition", () => {
       expect(scoped_transitions).to.have.lengthOf(0);
     });
 
-    it("morphs a component whose loader returns a constructor", async () => {
-      const el = document.createElement("transition-ctor");
-      el.setAttribute("loading", "eager");
-      el.setAttribute("view-transition-name", "ctor-card");
-      fixtures.appendChild(el);
-
-      registry = transitionsRegistry({
-        deferDefine: false,
-        catalog: { "transition-ctor": ctorLoader() },
-      });
-
-      await customElements.whenDefined("transition-ctor");
-
-      expect(el.hasAttribute("data-upgraded")).to.be.true;
-      expect(el.getAttribute("ce")).to.equal("defined");
-
-      // The registry defines it, so the definition can happen inside a transition.
-      const started = scoped_transitions.find((record) => record.parent === fixtures);
-      expect(started, "the definition should happen inside a transition").to.exist;
-      expect(started.types).to.include("ce");
-    });
-
     it("defines non-catalog components right away", () => {
-      registry = transitionsRegistry({ deferDefine: false });
+      registry = transitionsRegistry({ deferDefine: false, transition: false });
 
       class UntouchedThirdParty extends HTMLElement {}
       customElements.define("untouched-third-party", UntouchedThirdParty);
 
       expect(customElements.get("untouched-third-party")).to.equal(UntouchedThirdParty);
-    });
-
-    it("reports a loader that neither defines nor returns a constructor", async () => {
-      const el = document.createElement("transition-empty");
-      el.setAttribute("loading", "eager");
-      fixtures.appendChild(el);
-
-      registry = transitionsRegistry({
-        deferDefine: false,
-        catalog: { "transition-empty": async () => {} },
-      });
-
-      await new Promise(requestIdleCallback);
-
-      // The failure is raised inside the view transition's update callback, so it
-      // can land a frame later than the idle callback.
-      const did_error = await waitFor(() => el.getAttribute("ce") === "error");
-      expect(did_error, `the element should report the failure (ce=${el.getAttribute("ce")})`).to.be.true;
-      expect(el.getAttribute("error"), "the failure should be reported on the element").to.not.be.empty;
     });
   });
 });
