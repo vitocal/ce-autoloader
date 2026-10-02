@@ -190,6 +190,56 @@ describe("CEAutoLoader", () => {
     });
   });
 
+  describe("intersectionOptions", () => {
+    let NativeIntersectionObserver;
+    let created;
+
+    beforeEach(() => {
+      NativeIntersectionObserver = window.IntersectionObserver;
+      created = [];
+
+      // The shared observer is created inside `visible()`; wrap the global so the
+      // test can read the options it received and its normalized rootMargin.
+      class SpyIntersectionObserver extends NativeIntersectionObserver {
+        constructor(callback, options) {
+          super(callback, options);
+          created.push({ options, observer: this });
+        }
+      }
+
+      window.IntersectionObserver = SpyIntersectionObserver;
+    });
+
+    afterEach(() => {
+      created.forEach(({ observer }) => observer.disconnect());
+      window.IntersectionObserver = NativeIntersectionObserver;
+    });
+
+    it("defaults the shared IntersectionObserver to a 20% rootMargin", () => {
+      // `live: false` makes discover() run synchronously, so the default
+      // `visible` directive builds the observer before the constructor returns.
+      registry = new AutoLoader({ catalog, root: fixtures, live: false });
+
+      const observer = created[0]?.observer;
+      expect(observer, "an IntersectionObserver should have been created").to.exist;
+      expect(observer.rootMargin).to.equal("20% 20% 20% 20%");
+    });
+
+    it("forwards a custom intersectionOptions verbatim", () => {
+      registry = new AutoLoader({
+        catalog,
+        root: fixtures,
+        live: false,
+        // A caller-supplied object replaces the default wholesale (shallow merge).
+        intersectionOptions: { rootMargin: "0px 0px 100% 0px", threshold: 0.5 },
+      });
+
+      const observer = created[0]?.observer;
+      expect(observer.rootMargin).to.equal("0px 0px 100% 0px");
+      expect(observer.thresholds).to.deep.equal([0.5]);
+    });
+  });
+
   describe("Errors", () => {
     it("should handle errors in component definition", async () => {
       // `loading="eager"` instead of the default `visible`: the mocha report

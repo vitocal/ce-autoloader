@@ -180,7 +180,7 @@ The ambition should be for ce-autoloader to become *unnecessary*. If the lazy cu
 | **Element-scoped view transitions** | Chromium 147+; Firefox and Safari report no support (≈65% global) | The animated default relies on this. It needs a capability check and a graceful plain-define path. |
 | **`view-transition-class`, transition `types`** | Chrome 125+, Safari 18.2+, Firefox 144+ (≈88%) | Already exposed per element through `view-transition-class` attributes. Wider support than element-scoped transitions. |
 | **User Timing API** | Baseline | Used for telemetry; shows up natively in the Performance panel. |
-| **IntersectionObserver** | Baseline | The `visible` directive, with a 20% scroll margin. |
+| **IntersectionObserver** | Baseline | The `visible` directive, with a 20% root margin. |
 | **Speculation Rules API** | Chromium, widely available | Complementary: prefetch/prerender whole pages, while ce-autoloader handles components within a page. |
 | **Custom Elements Manifest** | Emerging convention | `package.json` already declares `"customElements": "custom-elements.json"`. A manifest-driven catalog would make the registry self-describing. |
 | **WICG/webcomponents #782 — "Lazy Custom Element Definitions"** | **Open since Jan 2019, still labeled "needs a concrete proposal"** | This *is* ce-autoloader, proposed as `customElements.defineLazy(tag, () => import(...))` with an element-definition-loading event. The issue even notes that a polyfill "will have to patch `attachShadow`" — which is exactly what `shadow-observer` does. A working implementation plus numbers is precisely what the issue is waiting for. |

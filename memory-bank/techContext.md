@@ -25,7 +25,7 @@
 | `npm run build`                          | library → `dist/` (also on `prepack`); the dts step is clean today                                                                     |
 | `npx tsc --noEmit -p tsconfig.json`      | **clean** as of the `types.ts` split (issue #12 fixed)                                                                                 |
 | `npm test`                               | `scripts/run-integration-tests.js`: dev server + headless Puppeteer + Mocha, 24 tests, non-zero exit on failure                        |
-| `gzip -c dist/ce-autoloader.js \| wc -c` | budget check: 3,319 B (9.54 kB raw)                                                                                                    |
+| `gzip -c dist/ce-autoloader.js \| wc -c` | budget check: 3,327 B (9.70 kB raw)                                                                                                     |
 | `NODE_ENV=production npm run build:docs` | rebuilds all of `docs/` with new hashes — **restore `docs/.nojekyll`** (Vite empties the output dir), and never run it just to "check" |
 
 **While iterating, use the Chrome DevTools MCP instead of `npm test`**: same Mocha report (`window.__MOCHA_STATS__`,
@@ -62,7 +62,7 @@ the CI entry point; it needs network (Mocha from unpkg, `uhtml` from esm.sh).
   transition path, so the define queue is never installed there either.
 - `@starting-style` / `transition-behavior: allow-discrete` are Baseline everywhere — unlike element-scoped
   transitions. That gap is why the CSS-only animation path matters.
-- `intersectionOptions.scrollMargin` does nothing (#8);
+- `intersectionOptions` defaults to `rootMargin: "20%"` (#8): `scrollMargin` is valid but Baseline-newly-available (Sept 2025, ~88%), so it was the wrong default;
 - `?autoload` in the module URL boots `window.registry` from the import map — a module-scope side effect.
 - Prettier is configured for 2 spaces, double quotes and 120 columns; the source does not follow it consistently, so
   match the file you are editing.

@@ -1,6 +1,6 @@
 # Active context
 
-_2026-10-01 · branch `option-deferDefine` @ `7098efc`, plus **staged (uncommitted)** work across `src/`, the types
+_2026-10-02 · branch `option-deferDefine` @ `7098efc`, plus **staged (uncommitted)** work across `src/`, the types
 split, the tests and the demo wiring._
 
 ## Right now
@@ -32,7 +32,8 @@ reworked — and as of this pass the README and `types.ts` match it.**
   Definitions", "Failure reporting", browser support), the `src/types.ts` option comments, and the stale claims in
   `REVIEW.md`.
 - ✅ **Duplicate fallback fixed (#18)** — a failed `visible` component stays `:not(:defined)`, so the shared IntersectionObserver kept re-delivering it; `load()` then overwrote `ce="error"` with `ce="loading"`, defeating `handleComponentLoadError`'s guard and appending a **new** fallback on every re-intersection. The demo's `<vi-error>` grew one `<error-fallback>` per scroll pass (reproduced live: 1 → 6). `when_visible` now skips `ce="error"` targets, mirroring `dom_watcher`. Regression test added.
-- Verified: **28/28 tests**; bundle **9.66 kB raw / 3,320 B gzip**.
+- ✅ **`intersectionOptions` default corrected (#8)** — the issue claimed `scrollMargin` "is ignored — the real option is `rootMargin`". Refuted: `scrollMargin` is a valid `IntersectionObserverInit` member and *is* honored (Chrome 120+/FF 141+/Safari 26+), but it is Baseline-newly-available (Sept 2025, **87.94%** global) and silently ignored on the rest, so the 20% preload margin was a no-op there. The default is now `rootMargin: "20%"` (Baseline since 2019). `intersectionOptions` is still forwarded verbatim, so callers may pass `scrollMargin` for nested scrollers. Regression tests added (default + custom pass-through, capturing the observer through an `IntersectionObserver` spy).
+- Verified: **30/30 tests**; bundle **9.70 kB raw / 3,327 B gzip**.
 
 ## Next
 

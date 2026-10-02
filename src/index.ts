@@ -119,7 +119,7 @@ class CEAutoLoader {
       useImportMapsCatalog: false,
       devErrors: false,
       intersectionOptions: {
-        scrollMargin: "20%",
+        rootMargin: "20%",
       },
       ...options,
     };

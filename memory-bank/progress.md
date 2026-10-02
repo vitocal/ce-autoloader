@@ -1,7 +1,7 @@
 # Progress
 
-_2026-10-01 · `option-deferDefine` @ `7098efc` + staged work · package 0.1.2 · `dist/ce-autoloader.js` = 9.66 kB
-raw / **3,320 B gzip** · 28 tests · `tsc --noEmit` clean · #14–#18 fixed, docs trued up._
+_2026-10-02 · `option-deferDefine` @ `7098efc` + staged work · package 0.1.2 · `dist/ce-autoloader.js` = 9.70 kB
+raw / **3,327 B gzip** · 30 tests · `tsc --noEmit` clean · #8, #14–#18 fixed, docs trued up._
 
 House rule: **one fact, one home.** `REVIEW.md` is the audit (tiers, long-form critique); the bank is the short
 version. Anything that belongs in both goes in `REVIEW.md` and is summarised here in a line.
@@ -26,7 +26,7 @@ appended with `.error` / `.stack` properties) · `preload`, `clean` · ESM-only 
 - **Tier 0** — completion signals (`ce:load` / `ce:error`, `whenLoaded(tag)`); a first-render throw is invisible
   (issue #13).
 - **Tier 1** — pin + `integrity`; reproducible benchmark; cross-browser matrix; stress fixture (1–2k elements) and
-  scoped rescans; `scrollMargin` → `rootMargin`.
+  scoped rescans.
 - **Tier 2** — the standards write-up (`WICG/webcomponents#782`); license decision.
 - The biggest adoption risk stays the global `customElements.define` patch — and it is installed on **every** path, by
   design: the *deferred queue* behind `transition` + `deferDefine`, and `polyfill_safe_define` always. "Never patch at
@@ -77,7 +77,7 @@ never patch and only guard `define()` (self-registering catalogs lose the morph)
 | 5 | Error message and stack lived in DOM attributes | **fixed** — they now live on the fallback instance's `.error` / `.stack` properties |
 | 6 | `prefers-reduced-motion` is read once, not per element | open |
 | 7 | The invalid-directive branch logs an undefined `ce_elements` | typo |
-| 8 | `intersectionOptions.scrollMargin` is ignored — the real option is `rootMargin` | open |
+| 8 | `intersectionOptions.scrollMargin` is ignored — the real option is `rootMargin` | **fixed** 2026-10-02 — `scrollMargin` is valid and honored (Chrome 120+/FF 141+/Safari 26+, 87.94%) but Baseline-newly-available (Sept 2025) and silently ignored elsewhere; the default is now `rootMargin: "20%"` (Baseline since 2019) |
 | 9 | `custom-elements.json` is advertised but never generated; the Stencil plugin is never registered | open |
 | 10 | `importmap.json` pins `@latest`, no `integrity`; no CI | Tier 1 |
 | 11 | GPL-3.0 blocks some corporate adoption | Tier 2 |

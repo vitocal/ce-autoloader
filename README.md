@@ -97,7 +97,7 @@ const registry = new CERegistry({
   /* Directive used when a tag has no `loading` attribute (default: "visible") */
   defaultDirective: "visible",
   /* Options for the IntersectionObserver backing the `visible` directive */
-  intersectionOptions: { scrollMargin: "20%" },
+  intersectionOptions: { rootMargin: "20%" },
   /* Use the View Transitions API to morph the placeholder into the component.
      Requires `deferDefine: true` and element-scoped view transitions (Chromium).
      (default: false) */

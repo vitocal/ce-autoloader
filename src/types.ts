@@ -68,7 +68,7 @@ export type Options = {
     /** Overwrite the default directive */
     defaultDirective?: Directives;
 
-    /** Intersection Observer customization */
+    /** Intersection Observer customization. Default: { rootMargin: "20%" } */
     intersectionOptions?: IntersectionObserverInit;
 
     /**
