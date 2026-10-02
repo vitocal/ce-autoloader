@@ -47,9 +47,12 @@ the CI entry point; it needs network (Mocha from unpkg, `uhtml` from esm.sh).
   settings; `devErrors: true` only *adds* painting for a tag with no catalog entry; with `devErrors: false` that
   unknown tag keeps matching `:not(:defined)`. Elements must sit inside `#fixtures` (`runScopedViewTransition` uses
   `el.parentElement`).
-- **The live path is currently broken.** `dom_watcher`'s guard `if (el.getAttribute('ce') != 'error') continue;`
-  skips every mutation target that is not already `ce="error"`, so a dynamically added catalog tag never upgrades.
-  The "MutationObserver" test still passes because the initial `discover()` scan races in first — do not trust it.
+- **The live path now works.** `dom_watcher` skips only mutation targets already `ce="error"` (`=== 'error'`). To test
+  it, append the element *after* the observer is installed **and** keep it in the viewport (the default `visible`
+  directive needs a real intersection — an off-screen container never fires, a false negative).
+- **Failure reporting is uniform now.** Both a failed load and a failed `define()` call `hooks.error` exactly once and
+  paint `ce="error"` for a catalog tag. A define-only failure lands a frame later on the transition path — poll with
+  `waitFor`.
 - **The define patches are global.** Restore `customElements.define` and delete `queue` / `dequeue` / `flush` between
   tests, after one idle frame — and note `polyfill_safe_define` installs a patch on the *default* path too.
 

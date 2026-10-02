@@ -55,10 +55,11 @@ export type Options = {
     fallback?: CustomElementConstructor;
 
     /**
-     * Surface errors to the UI (disabled by default, useful in development mode)
-     *  - Missing element in the catalog
-     *  - Invalid imports
-     *  - Exceptions on CustomElement constructor
+     * Also paint failures on tags that are *not* in the catalog — useful while
+     * debugging a typo'd tag name.
+     *
+     * A catalog component that fails is always painted, and `hooks.error` is
+     * always called. Disabled by default.
      */
     devErrors?: boolean;
 
@@ -70,13 +71,20 @@ export type Options = {
     /** Intersection Observer customization */
     intersectionOptions?: IntersectionObserverInit;
 
-    /** Use View Transitions API to animate the component upgrade */
+    /**
+     * Use the View Transitions API to morph the placeholder into the component.
+     *
+     * Requires `deferDefine: true` and element-scoped view transition support
+     * (Chromium). Disabled by default.
+     */
     transition?: boolean;
 
     /**
-     * Polyfill customElements.define to support deferring until later
+     * Queue `customElements.define` for catalog tags during a load, so a
+     * component that registers its own tag still morphs inside the view
+     * transition.
      *
-     * Defaults to `true` whenever transitions are enabled and supported.
+     * Disabled by default; `transition: true` requires it.
      */
     deferDefine?: boolean;
 

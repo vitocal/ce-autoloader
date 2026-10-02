@@ -283,5 +283,50 @@ describe("CEAutoLoader", () => {
       expect(reported.name).to.equal("el-notfound");
       expect(reported.error.message).to.include("not found in catalog");
     });
+
+    it("should report a load failure exactly once", async () => {
+      const el = document.createElement("error-component");
+      el.setAttribute("loading", "eager"); // see the note above
+      fixtures.appendChild(el);
+
+      let calls = 0;
+
+      registry = new AutoLoader({
+        catalog: catalog,
+        root: fixtures,
+        hooks: { error: () => calls++ },
+      });
+      await new Promise(requestIdleCallback);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(el.getAttribute("ce")).to.equal("error");
+      // The load phase and the define phase must not both claim the same failure.
+      expect(calls, "hooks.error should run once per failure").to.equal(1);
+    });
+
+    it("should report a loader that neither defines the element nor returns a constructor", async () => {
+      const el = document.createElement("empty-component");
+      el.setAttribute("loading", "eager"); // see the note above
+      fixtures.appendChild(el);
+
+      let reported = null;
+
+      registry = new AutoLoader({
+        // The loader resolves, so the *load* phase succeeds; it just defines
+        // nothing and returns no constructor, so the failure is raised in the
+        // `define` phase and must still be reported.
+        catalog: { "empty-component": async () => {} },
+        root: fixtures,
+        hooks: { error: (error) => (reported = error) },
+      });
+      await new Promise(requestIdleCallback);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(el.getAttribute("ce")).to.equal("error");
+
+      expect(reported, "hooks.error should be called").to.exist;
+      expect(reported.name).to.equal("empty-component");
+      expect(reported.error.message).to.include("neither defined the element nor returned a constructor");
+    });
   });
 });

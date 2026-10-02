@@ -381,6 +381,34 @@ describe("Transition Enabled (View Transitions)", () => {
   });
 
   /**
+   * A catalog loader that loads fine but defines nothing is a *define-phase*
+   * failure. It must be reported even though the definition runs inside the
+   * transition's update callback — which is also why the failure can surface a
+   * frame later than the idle callback.
+   */
+  describe("define-phase failures", () => {
+    it("reports a loader that neither defines nor returns a constructor", async () => {
+      const el = document.createElement("transition-empty");
+      el.setAttribute("loading", "eager");
+      fixtures.appendChild(el);
+
+      let reported = null;
+
+      registry = transitionsRegistry({
+        catalog: { "transition-empty": async () => {} },
+        hooks: { error: (error) => (reported = error) },
+      });
+
+      await new Promise(requestIdleCallback);
+
+      const did_error = await waitFor(() => el.getAttribute("ce") === "error");
+      expect(did_error, `the element should report the failure (ce=${el.getAttribute("ce")})`).to.be.true;
+      expect(reported, "hooks.error should be called").to.exist;
+      expect(reported.name).to.equal("transition-empty");
+    });
+  });
+
+  /**
    * GREEN — `deferDefine: false` must never patch `customElements.define`. A
    */
   describe("deferDefine: false", () => {

@@ -1,7 +1,7 @@
 # Progress
 
-_2026-10-01 · `option-deferDefine` @ `7098efc` + staged work · package 0.1.2 · `dist/ce-autoloader.js` = 9.54 kB
-raw / **3,319 B gzip** · 24 tests · `tsc --noEmit` clean._
+_2026-10-01 · `option-deferDefine` @ `7098efc` + staged work · package 0.1.2 · `dist/ce-autoloader.js` = 9.66 kB
+raw / **3,320 B gzip** · 27 tests · `tsc --noEmit` clean · #14–#17 fixed, docs trued up._
 
 House rule: **one fact, one home.** `REVIEW.md` is the audit (tiers, long-form critique); the bank is the short
 version. Anything that belongs in both goes in `REVIEW.md` and is summarised here in a line.
@@ -9,7 +9,7 @@ version. Anything that belongs in both goes in `REVIEW.md` and is summarised her
 ## Works
 
 Catalog resolution (URLs, functions, wildcards, import maps, `?autoload`) · initial scan + debounced (100 ms)
-`MutationObserver` discovery (**currently broken** — see #14) · directives (`eager`, `visible`, `click`, `manual`,
+`MutationObserver` discovery (fixed in `src/index.ts` — skip targets already `ce="error"`) · directives (`eager`, `visible`, `click`, `manual`,
 custom values) · `ce` lifecycle states · element-scoped view transitions (`types: ["ce"]`, per-element name/class,
 `ready` / `finished` hooks, plain define when unsupported) · deferred define queue (`deferDefine`) ·
 `polyfill_safe_define` (idempotent `define` on the default path) · `load:` / `define:` measures · failure path
@@ -21,15 +21,16 @@ appended with `.error` / `.stack` properties) · `preload`, `clean` · ESM-only 
 
 `REVIEW.md` is the source of truth for the audit and the full tiered list; this is the short version.
 
-- **Now** — fix `dom_watcher` (#14, a regression); doc truth pass (README + `types.ts` describe the old `devErrors`
-  and the old "`false` patches nothing"); decide the failure model on purpose.
-- **Tier 0** — completion signals (`ce:load` / `ce:error`, `whenLoaded(tag)`); define-patch Stage 2; a first-render
-  throw is invisible (issue #13).
+- **Now** — the failure model is settled and documented ("catalog always paints, `devErrors` adds unknown tags"), and
+  Define-patch Stage 2 is **rejected** (below), so the define-patch shape is settled too.
+- **Tier 0** — completion signals (`ce:load` / `ce:error`, `whenLoaded(tag)`); a first-render throw is invisible
+  (issue #13).
 - **Tier 1** — pin + `integrity`; reproducible benchmark; cross-browser matrix; stress fixture (1–2k elements) and
   scoped rescans; `scrollMargin` → `rootMargin`.
 - **Tier 2** — the standards write-up (`WICG/webcomponents#782`); license decision.
-- The biggest adoption risk stays the global `customElements.define` patch — and it is now installed on **both** paths
-  (deferred queue, or idempotent safe-define), so "never patch at all" is no longer an option.
+- The biggest adoption risk stays the global `customElements.define` patch — and it is installed on **every** path, by
+  design: the *deferred queue* behind `transition` + `deferDefine`, and `polyfill_safe_define` always. "Never patch at
+  all" is not an option. The queue is the sharp edge; safe-define is a deliberate safeguard (below).
 
 ## Define-patch stages
 
@@ -39,17 +40,28 @@ upgrades would land outside the snapshot window.
 | Stage | What | State |
 | --- | --- | --- |
 | 1 | `deferDefine` switch (now **off by default**), idempotent `define()` (moved to `polyfill_safe_define`), swallow polyfill deleted, "only morph what we define", define errors surfaced, `ready` rejection guard | done |
-| 2 | **Transient capture**: patch `define` from "the batch starts loading" until the transition's `update` has run, then hand the platform back. Deletes `queue` / `dequeue` / `flush`, `DEFERRED_REGISTRIES`, the `types.ts` augmentation and README's queue section | open |
+| 2 | **Transient capture** — **rejected**: it does not remove the patch, it makes it *flicker* (enable/disable per batch, reentrancy across registries, no clean un-patch when the original was already someone else's patch). One persistent, opt-in patch is easier to reason about than many short ones | rejected |
 | 3 | Revisit whether `deferDefine` is needed at all once "let the loader return a constructor" is the documented happy path | open |
 
 Since the refactor, `transition: true` **requires** `deferDefine: true` (the constructor throws `SyntaxError`
 otherwise), so the queue's only remaining reason to exist is the morph.
 
-Stage 2 notes: capture into **all** open sessions (the first drain defines, the rest see `customElements.get()` truthy
-and skip) · `preload()` has no transition, so it defines right after the import · close in a `finally` on every abort
-path, or the platform is left patched.
+**Stage 2 is rejected (2026-10-01).** Transient capture trades one persistent opt-in patch for N short-lived ones — more
+enable/disable churn, cross-registry reentrancy, and no clean way to un-patch when another script patched first. Not
+worth the complexity.
+
+**`polyfill_safe_define` is a permanent safeguard, on every load.** It guards re-registration of a *shared* tag: the
+`nord-*` design system ships base elements (`nord-button`, `nord-card`, …) that self-register at import time, and two
+such modules on one page both try to define the shared tag inside their own `await import(...)` — **before** the
+resolver's `if (!customElements.get(x))` guard can run. The platform throws `NotSupportedError` on a same-name (or
+same-ctor) re-define, so the throw happens in code we don't control. First-wins (`get(name) → return`) is the right
+policy for a loader whose job is composing other people's components. The guard is deliberately **broad** (any
+already-defined name, not `=== ctor`), because a shared tag can arrive as two different class objects (an inlined base
+vs a bundled shell). The accepted cost: it also swallows the genuinely-different-constructor case the platform makes
+loud on purpose — deliberate, not an oversight.
 
 Rejected alternatives, in order of how tempting they were: keep the flag on the existing global queue (Stage 1) ·
+a transient capture that un-patches between batches (Stage 2 — rejected: it *flickers* instead of removing the patch) ·
 never patch and only guard `define()` (self-registering catalogs lose the morph) · import inside the `update` callback
 (the transition then spans the network fetch: a frozen before-snapshot while downloading) · infer registrations via
 `customElements.getName()` (impossible for side-effect bundles).
@@ -59,7 +71,7 @@ never patch and only guard `define()` (self-registering catalogs lose the morph)
 | # | Issue | State |
 | --- | --- | --- |
 | 1 | `getMutationObserver()` always returns the native observer — a `return` inside `finally` wins, so `shadow-observer` is awaited and then ignored | open |
-| 2 | The define patch is document-wide: `customElements.get()` is `undefined` for queued classes until `dequeue()` | Stage 2 |
+| 2 | The define patch is document-wide: `customElements.get()` is `undefined` for queued classes until `dequeue()` | documented limit (Stage 2 rejected) |
 | 3 | A `fallback` render cleared `innerHTML`, taking slotted / server-rendered content with it | **fixed** — the fallback is appended now |
 | 4 | The loading locks are keyed by tag name, which conflates instances (`#errors` is gone) | open |
 | 5 | Error message and stack lived in DOM attributes | **fixed** — they now live on the fallback instance's `.error` / `.stack` properties |
@@ -71,7 +83,10 @@ never patch and only guard `define()` (self-registering catalogs lose the morph)
 | 11 | GPL-3.0 blocks some corporate adoption | Tier 2 |
 | 12 | `tsc --noEmit` reported TS2345 at `definitions.push(...)`; the dts step reported nothing | **fixed** by the `src/types.ts` split |
 | 13 | A constructor / `connectedCallback` throw is reported to `window`, so the loader can never see it | open |
-| 14 | `dom_watcher`'s guard is inverted (`!= 'error'`): dynamic tags no longer upgrade via the MutationObserver (verified in a browser) | **open, regression** |
+| 14 | `dom_watcher`'s guard was inverted (`!= 'error'`): dynamic tags did not upgrade via the MutationObserver | **fixed** 2026-10-01 (`=== 'error'`) |
+| 15 | A load failure was reported twice (step 2 + a step-5 re-run of the same list), so `hooks.error` fired twice | **fixed** 2026-10-01 |
+| 16 | A define-phase failure was swallowed on the non-transition path (`Promise.allSettled(success.map(define))` discarded): left `ce="loading"`, no hook | **fixed** 2026-10-01 |
+| 17 | `transition.finished`'s cleanup ran after `await updateCallbackDone`, so a failing update leaked `view-transition-name`/`-class` and left `finished` unhandled | **fixed** 2026-10-01 (handler attached before the await) |
 
 ## Fixed lately
 
@@ -79,6 +94,7 @@ Define-phase failures were swallowed (`ce="error"` was never set) · skipped tra
 the queue swallowed non-catalog definitions · `docs/.nojekyll` died in a docs build · the animation page's `ce` states
 never painted (a `:not(:defined) { visibility: hidden }` guard from Nord's design system, hidden in the `ds` layer) ·
 `retry()` deleted instead of fixed (it wiped light DOM) · an unpainted failure left `ce="loading"` behind, and a failed
-`define()` left a false `ce="defined"`. _(This refactor:)_ TS2345 gone with the `types.ts` split · error text off the
-DOM attributes · the fallback appends instead of clearing `innerHTML` · `transition` without `deferDefine` now fails
-loudly.
+`define()` left a false `ce="defined"` · the `dom_watcher` guard (inverted `!=` skipped every healthy mutation target).
+_(This refactor:)_ TS2345 gone with the `types.ts` split · error text off the DOM attributes · the fallback appends
+instead of clearing `innerHTML` · `transition` without `deferDefine` now fails loudly · load failures reported once and
+define failures no longer swallowed · the transition `finished` cleanup · README / `types.ts` / `REVIEW.md` trued up.

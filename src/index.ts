@@ -142,7 +142,7 @@ class CEAutoLoader {
     } else if (this.options.transition) {
       throw new SyntaxError("CEAutoLoader: Transition option without `deferDefine: true` is not supported")
     } else {
-      this.polyfill_safe_define();
+      this.polyfill_safe_ce_define();
     }
 
     this.discover();
@@ -376,14 +376,14 @@ class CEAutoLoader {
 
     // 3. Then, define the components on a single frame
     const success = results.filter(isFulfilled).map((r) => r.value)
-    const failed = results.filter(isRejected);
 
-    this.options.transition
+    const definitions = this.options.transition
       ? await this.runScopedViewTransition(success, (r) => this.define(r))
       : await Promise.allSettled(success.map((r) => this.define(r)));
 
-    // Defining can fail too
-    failed.map((r) => this.handleComponentLoadError(r));
+    // Defining can fail too (a loader that neither defined the tag nor returned a
+    // constructor): report it on the element like a load failure.
+    definitions.filter(isRejected).map((r) => this.handleComponentLoadError(r));
 
     // Flush any component that was defined outside of autoloader bounds
     // or is already on the queue
@@ -582,15 +582,26 @@ class CEAutoLoader {
           () => { },
         );
 
+        // Cleanup is attached *before* awaiting anything that can reject: a
+        // failing update rejects both `updateCallbackDone` and `finished`, so the
+        // styles must be cleared (and `finished` never left as an unhandled
+        // rejection) even though the await below will throw.
+        transition.finished.then(
+          () => {
+            el.style.viewTransitionName = ""
+            el.style.viewTransitionClass = ""
+
+            this.options.hooks?.viewTransition?.finished(transition)
+            this.activeTransition = null;
+          },
+          () => {
+            el.style.viewTransitionName = ""
+            el.style.viewTransitionClass = ""
+            this.activeTransition = null;
+          },
+        )
+
         await transition.updateCallbackDone;
-
-        transition.finished.then(() => {
-          el.style.viewTransitionName = ""
-          el.style.viewTransitionClass = ""
-
-          this.options.hooks?.viewTransition?.finished(transition)
-          this.activeTransition = null;
-        })
       })
     );
   }
@@ -649,7 +660,8 @@ class CEAutoLoader {
 
   }
 
-  public polyfill_safe_define() {
+  /** make customElements.define() idempotent) */
+  public polyfill_safe_ce_define() {
     const define = ORIGINAL_DEFINE;
     customElements.define = function (name, ctor, options?) {
       if (customElements.get(name)) return;
