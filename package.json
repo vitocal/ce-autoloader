@@ -1,15 +1,15 @@
 {
   "name": "ce-autoloader",
-  "version": "0.1.2",
-  "description": "A webcomponents auto loader and registry",
+  "version": "0.2.0-rc",
+  "description": "A web-component registry that loads async",
   "type": "module",
   "main": "./dist/ce-autoloader.js",
   "module": "./dist/ce-autoloader.js",
-  "types": "./dist/dist.d.ts",
-  "sideEffects": false,
+  "types": "./dist/index.d.ts",
+  "sideEffects": true,
   "exports": {
     ".": {
-      "types": "./dist/dist.d.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/ce-autoloader.js"
     }
   },
@@ -61,16 +61,14 @@
     "@vitejs/plugin-vue": "^6.0.7",
     "buffer": "^6.0.3",
     "canvas-confetti": "^1.9.4",
-    "chai": "^6.2.2",
     "cjs-module-lexer": "^2.2.0",
     "globe.gl": "^2.46.1",
     "importmap-vite-plugin": "^0.1.0",
     "lit": "^3.3.3",
+    "chai": "^6.2.2",
     "mocha": "^11.7.6",
-    "navigo": "^8.11.1",
     "preact-custom-element": "^4.6.0",
     "puppeteer": "^25.3.0",
-    "qrcode-pix": "^5.0.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "remount": "^1.0.0",
@@ -82,7 +80,7 @@
     "vite-import-maps": "^0.2.6",
     "vite-plugin-dts": "^5.0.3",
     "vite-plugin-static-copy": "^4.1.1",
-    "vite-plugin-web-components-hmr": "^0.1.3",
+    "qrcode-pix": "^5.0.0",
     "vue": "^3.5.39"
   },
   "peerDependencies": {

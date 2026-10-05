@@ -1,4 +1,5 @@
 import type { Catalog, Loader, Options, Directives, LoadError, LoadResult } from './types';
+export type { Catalog, Loader, Options, Directives, LoadError, LoadResult }
 import { CEError } from './types'
 
 /** Helpers */

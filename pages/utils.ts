@@ -39,5 +39,4 @@ export function adoptStylesheet(root: Node, stylesheet: CSSStyleSheet) {
   if (stylesheet && !all_stylesheets.includes(stylesheet)) {
     all_stylesheets.push(stylesheet);
   }
-
 }

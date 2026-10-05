@@ -139,8 +139,6 @@ That combination — tiny, standards-only, framework-agnostic — is the heart o
 - [ ] **Make performance claims reproducible.** Replace the Core Web Vitals screenshot with a harness that anyone can run, plus the raw numbers and methodology.
 - [ ] **Cross-browser test matrix**: Chromium + WebKit + Firefox for the four directives, the error path, and shadow-root discovery (Mocha + Puppeteer is already in place; WebKit/Firefox are one config away).
 - [ ] **A stress fixture** (1–2k elements) to measure discovery cost, then scope the rescan to the mutated subtree if needed.
-- [ ] **Trim the observer cost**: drop `characterData`, and stop skipping by the mutation *target's* tag name (one failed `<my-chart>` currently suppresses discovery for that tag across the page).
-- [ ] **Keep error text out of attributes** (or clearly document the trade-off) — stack traces in markup can be cached and echoed.
 
 ### Tier 2 — direction
 
