@@ -21,6 +21,7 @@
     "dev": "vite dev --config vite.docs.js",
     "build:docs": "vite build --config vite.docs.js",
     "build": "vite build",
+    "importmap": "node scripts/build-importmap.js",
     "test": "npm run test:headless",
     "test:headless": "node scripts/run-integration-tests.js",
     "test:all": "node scripts/run-integration-tests.js --browser=all",
@@ -53,6 +54,7 @@
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.11.0",
     "@google/model-viewer": "^4.3.1",
+    "@jspm/generator": "^2.17.0",
     "@loadingio/transition.css": "^3.0.0",
     "@nordhealth/components": "^5.0.1",
     "@preact/preset-vite": "^2.10.6",
@@ -70,7 +72,6 @@
     "chai": "^6.2.2",
     "cjs-module-lexer": "^2.2.0",
     "globe.gl": "^2.46.1",
-    "importmap-vite-plugin": "^0.1.0",
     "lit": "^3.3.3",
     "mocha": "^11.7.6",
     "playwright": "^1.64.0",

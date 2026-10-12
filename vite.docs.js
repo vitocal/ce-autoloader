@@ -4,7 +4,7 @@ import { readdirSync, statSync } from "fs";
 
 import { defineConfig } from "vite";
 
-import { importMapPlugin } from "importmap-vite-plugin";
+import { importMapPlugin } from "./scripts/vite-plugin-importmap.js";
 import vue from "@vitejs/plugin-vue";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import preact from "@preact/preset-vite";
@@ -41,7 +41,7 @@ export default defineConfig({
     }),
     svelte({ compilerOptions: { customElement: true } }),
     preact(),
-    importMapPlugin({ imports: importmap }),
+    importMapPlugin({ map: importmap }),
     viteStaticCopy({
       targets: [{ src: "pages/**/*.md", dest: "." }],
     }),
@@ -66,7 +66,7 @@ export default defineConfig({
   build: {
     modulePreload: false,
     rollupOptions: {
-      external: Object.keys(importmap),
+      external: Object.keys(importmap.imports),
       input: {
         main: resolve(import.meta.dirname, "index.html"),
         ...collectEntries(path.resolve(import.meta.dirname, "pages/"), ".html"),

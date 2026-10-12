@@ -1,7 +1,8 @@
 # Active context
 
 _2026-10-12 · branch `option-deferDefine` @ `cb4d025`, plus working-tree changes across `src/index.ts`, the tests, the
-docs and this bank (the types split and the demo wiring landed earlier)._
+docs, the import map (`importmap.src.json` → `importmap.json`) and this bank (the types split and the demo wiring
+landed earlier)._
 
 ## Right now
 
@@ -49,6 +50,13 @@ reworked — and as of this pass the README and `types.ts` match it.**
   import maps, `IntersectionObserver`, `requestIdleCallback`, element-scoped view transitions) **before** the suites
   run — `transitions.test.js` polyfills `startViewTransition`, so a later probe would report the polyfill, not the
   engine. `test/integration.html` now shims `requestIdleCallback`: Safari has never enabled it (see `techContext.md`).
+- ✅ **`importmap.json` is jspm-generated now (2026-10-12)** — issue #10. `importmap.src.json` holds the pinned CDN
+  URLs; `npm run importmap` (`@jspm/generator`) writes `importmap.json` = `{ imports, integrity }` (16 imports, **41
+  integrity entries**). `scripts/vite-plugin-importmap.js` replaces `importmap-vite-plugin` — the old plugin could only
+  carry `imports`, and the page needs the `integrity` manifest inside the same `<script type="importmap">`. Verified:
+  build + dev both inject the map, and Chromium loads `model-viewer`, `globe.gl`, `nord-*` and `syntax-highlight`
+  through the SRI-checked esm.sh URLs with **no request failures**; 37 tests still pass on all three engines.
+  Not SRI-checked: the three prefix mappings and the two local files (see `techContext.md`).
 - Verified: **37 tests pass, 0 fail on Chromium 156, WebKit 27.2 and Firefox 157** (branded Chrome 155 too);
   `tsc --noEmit` clean. `shadow-observer` is installed now, so the 6 shadow tests run — the old "31 pass / 6 cannot
   load" figure is stale. Bundle figure unchanged: `dist/` was not rebuilt after this change.
@@ -60,8 +68,8 @@ reworked — and as of this pass the README and `types.ts` match it.**
    `src/index.ts:510` (`if (!getLoader(name) && !devErrors) return`) **is** that sentence, so the tests and docs were
    already right — the item was only ever a question in this file. See "Decisions" below.
 2. ~~**Define-patch Stage 2** (transient capture).~~ **Rejected** — the patch stays; see `progress.md`.
-3. Tier 1: pin + `integrity`, runnable benchmark. ~~cross-browser matrix~~ — **done 2026-10-12** (Playwright). Full list
-   in `REVIEW.md`.
+3. Tier 1: ~~pin + `integrity`~~ — **done 2026-10-12** (jspm-generated `importmap.json`); runnable benchmark.
+   ~~cross-browser matrix~~ — **done 2026-10-12** (Playwright). Full list in `REVIEW.md`.
 
 ## Decisions and lessons
 

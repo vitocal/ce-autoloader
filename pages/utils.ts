@@ -25,7 +25,7 @@ export async function loadCSSLayer(
   return styleEl;
 }
 
-/** Setup import-maps from `importmap-vite-plugin` */
+/** Setup the page's import map from `virtual:importmap` (imports + integrity) */
 export function setupImportMap() {
   const mapScript = document.createElement('script')
   mapScript.type = 'importmap'

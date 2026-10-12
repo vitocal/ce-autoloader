@@ -11,7 +11,10 @@
   `dist/dist.d.ts` even when `--outDir` points elsewhere.
 - Docs build: `vite.docs.js` — Vite MPA, `base: /ce-autoloader/` in production, output `docs/`, plugins for Vue,
   Svelte (`customElement: true`), Preact and import maps. The Stencil plugin is imported but never registered (issue
-  #9).
+  #9). The import-map plugin is local now (`scripts/vite-plugin-importmap.js`, replacing `importmap-vite-plugin`, which
+  could only emit an `imports` object) because the page needs the whole `{ imports, integrity }` map inside one
+  `<script type="importmap">`. Its input, `importmap.json`, is **generated** from `importmap.src.json` by
+  `npm run importmap` (`@jspm/generator`).
 - Editor project: `pages/tsconfig.json` (`extends` the root, `include: ["**/*.ts", "**/*.tsx"]`) binds the demo sources to a *configured* project. A file outside every tsconfig lands in an **inferred** project, which ignores `skipLibCheck` — that is why untyped deps (`three`) leaked "missing declaration file" errors from `node_modules/**/*.d.ts`. `pages/env.d.ts` supplies the demo-only ambient types (CSS side-effect imports, `virtual:importmap`, `process`).
 - The big Problems-panel flood is not tsconfig at all: the user profile sets `typescript.tsserver.experimental.enableProjectDiagnostics: true`, so VS Code reports diagnostics for every file in every project, `node_modules` included. `.vscode/settings.json` overrides it to `false` for this workspace; `lit-plugin.rules.no-invalid-tag-name: "off"` stops the (ts-server-plugin) lit analyzer from flagging `preact`/`svelte` `.d.ts` tag-name unions.
 - No runtime dependencies. `peerDependencies: shadow-observer` (optional, via `peerDependenciesMeta`). The library no longer imports it — the host app imports it to enable shadow root discovery, and the library detects it via `globalThis[Symbol.for('shadow-observer')]`. `sideEffects: false`.
@@ -27,6 +30,7 @@
 | `npm test`                               | `scripts/run-integration-tests.js`: dev server + Playwright + in-browser Mocha, **37 tests × Chromium / WebKit / Firefox**, non-zero exit on failure |
 | `npm run test:all`                       | same, plus the branded `chrome` / `msedge` channels — a browser that is not installed is *skipped*, and `--strict` turns a skip into a failure |
 | `gzip -c dist/ce-autoloader.js \| wc -c` | budget check: 3,327 B (9.70 kB raw)                                                                                                     |
+| `npm run importmap`                       | regenerates `importmap.json` (pinned + `integrity`) from `importmap.src.json` via `@jspm/generator`; needs network. Run it when a pinned version changes — `importmap.json` is generated, so hand edits are lost |
 | `NODE_ENV=production npm run build:docs` | rebuilds all of `docs/` with new hashes — **restore `docs/.nojekyll`** (Vite empties the output dir), and never run it just to "check" |
 
 **While iterating, use the Chrome DevTools MCP instead of `npm test`**: same Mocha report (`window.__MOCHA_STATS__`,
@@ -70,6 +74,16 @@ the CI entry point; it needs network (Mocha from unpkg, `uhtml` from esm.sh).
 - `@starting-style` / `transition-behavior: allow-discrete` are Baseline everywhere — unlike element-scoped
   transitions. That gap is why the CSS-only animation path matters.
 - `intersectionOptions` defaults to `rootMargin: "20%"` (#8): `scrollMargin` is valid but Baseline-newly-available (Sept 2025, ~88%), so it was the wrong default;
+- **esm.sh's `&standalone` is a shim, not a single file.** `https://esm.sh/lit@3.3.3&standalone` returns a two-line
+  module that imports the real bundle by *absolute path* on esm.sh, and some shims import `^`-range URLs
+  (`/three@^0.183.0?target=es2022`) — which `@jspm/generator` **cannot analyze**, aborting the integrity pass for
+  `@google/model-viewer` and `lit-element`. `importmap.src.json` pins those transitive deps with esm.sh's own
+  `&deps=three@0.183.2` so the traversal completes. jspm's own `esm.sh` provider is not an option (it throws on lit's
+  exports map: "no './css-tag' exports subpath defined"), and its `jsdelivr` provider drops `&standalone` and traces
+  **~88 kB** of integrity out of `globe.gl` alone — the `&standalone` bundles are why the map stays ~7 kB.
+- **Not every import-map entry can carry `integrity`.** Prefix mappings (`@nordhealth/components/`, `lit/`, `lit-html/`)
+  cannot be enumerated — the demo's `nord-*` resolver picks subpaths at runtime — and the two local files are bundled by
+  Vite, not fetched from a CDN. `npm run importmap` prints what it skipped; those URLs load unchecked.
 - `?autoload` in the module URL boots `window.registry` from the import map — a module-scope side effect.
 - Prettier is configured for 2 spaces, double quotes and 120 columns; the source does not follow it consistently, so
   match the file you are editing.

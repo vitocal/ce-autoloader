@@ -6,7 +6,11 @@
 declare module "*.css";
 
 declare module "virtual:importmap" {
-  const importMap: Record<string, string>;
+  const importMap: {
+    imports: Record<string, string>;
+    integrity?: Record<string, string>;
+    scopes?: Record<string, Record<string, string>>;
+  };
   export default importMap;
 }
 
