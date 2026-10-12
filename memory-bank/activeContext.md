@@ -1,6 +1,6 @@
 # Active context
 
-_2026-10-12 · branch `option-deferDefine` @ `cb4d025`, plus working-tree changes across `src/index.ts`, the tests, the
+_2026-10-12 · branch `option-deferDefine` @ `f3b0c57`, plus working-tree changes across `src/index.ts`, the tests, the
 docs, the import map (`importmap.src.json` → `importmap.json`) and this bank (the types split and the demo wiring
 landed earlier)._
 
@@ -9,6 +9,25 @@ landed earlier)._
 **The defaults went lean: nothing is deferred, nothing animates — but every registry still patches
 `customElements.define`, to make it _idempotent_ (`polyfill_safe_ce_define`), not to queue. The failure model was
 reworked — and as of this pass the README and `types.ts` match it.**
+
+- ✅ **README review pass (2026-10-12)** — the README's garbled `deferDefine` comment is fixed (the "…its own tag still morphs…"
+  fragment had lost its subject; it now matches `src/types.ts`), along with a stray-space slip in the transition paragraph,
+  "Chromium-only" → **Chromium 147+**, and the byte figures in `REVIEW.md` and `techContext.md` (both said ~3,3xx B; the real
+  number was 3,378 B gzip / 9,833 B raw). `REVIEW.md`'s "anything unknown falls through to an immediate load" is wrong — an
+  unhandled directive hits the `console.error` branch and loads nothing (and `ce_elements` *is* in scope there — declared at
+  `index.ts:367`, before the only call at 368 — so the bank's "undefined" reading was wrong). The `Options` block now carries
+  `useImportMapsCatalog` and `shadowObserver`, the import-map paragraph is rewritten, and the "Smart Scheduling" / Use Cases copy
+  is trued up. Still open, logged in `REVIEW.md` Tier 1: the README never discloses the global `customElements.define` patch, has
+  no CDN / `?autoload` quickstart, says "3kb gzipped" (really 3,467 B), and the "Documentation" link points at the demo root.
+- ✅ **`?autoload` fixed — issue #19 (2026-10-12).** The flag was inverted: `useImportMapsCatalog: true` took
+  `this.catalog = options.catalog`, so with no `catalog` the registry held `undefined` and `getWildcardResolver` threw
+  `TypeError: Cannot read properties of undefined (reading '<prefix>-*')` — `?autoload` never loaded a thing (the *default* path
+  was the one that read the import map). **Settled semantics (2026-10-12):** the flag is literal — `true` reads the page's
+  `<script type="importmap">` and merges it *under* `catalog` (`false`, the default, ignores the map entirely), and only the
+  **first** import map in the document is read (`querySelector`). `getWildcardResolver` is null-safe. Covered by
+  `test/importmap.test.js` (7 tests: load from the map, ignore by default, dashed-names-only, merge + catalog wins, first-map-wins,
+  late map ignored, no map at all) and `npm test` **44 × 3 green**; `tsc --noEmit` clean. `dist/` rebuilt →
+  **10,125 B raw / 3,467 B gzip**.
 
 - ✅ **`<web-vitals>` on the docs home page (2026-10-12)** — the FAQ's stale Lighthouse screenshot is now a live
   Core Web Vitals panel (`pages/components/web-vitals.js`, catalog entry `"web-vitals"`, `loading="eager"`). Every

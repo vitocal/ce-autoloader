@@ -29,17 +29,17 @@ The ce-autoloader is a lightweight library to lazy-load Web Components on demand
 - Shared Catalog: Define your components in a single place and re-use it across multiple pages.
 - Custom Loader Strategy: Use loading attribute to customize when a component should be loaded.
 - Polished Animations: Use the lifecycle states and [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API) to animate components as they load/render.
-- Smart Scheduling: Batches custom element upgrades into single animation frames to prevent layout thrashing.
+- Smart Scheduling: A batch of components loads together and defines together, so the DOM upgrades once instead of one element at a time. With `deferDefine`, definitions are queued and flushed on an idle callback.
 - Native Telemetry: Built-in performance markers for every stage of the lifecycle, deep visibility into load times.
 - Error Handling: Define a custom fallback component to show when a module fails to load.
 - Zero Friction: 3kb gzipped without dependencies and no build/bundler required.
 
 ### Use Cases
 
-- Hackers tired of frontend fatigue, react madness and hydration issues.
-- Universal alternative for next/nuxtjs
-- Server rendered sites with interactive islands/progressive enhancements.
-- Markdown powered sites: hey, webcomponents are already supported out-of-the-box!
+- Developers tired of frontend fatigue and hydration bugs: the DOM is the dependency graph, so there is nothing to hydrate.
+- A lighter path than a meta-framework when all you need is islands — no bundler, no router, no hydration step.
+- Server-rendered sites that want interactive islands and progressive enhancement, in any stack.
+- Markdown-powered sites: Web Components already work in plain HTML, out of the box.
 
 ## Installation
 
@@ -83,11 +83,13 @@ The constructor accepts an `Options` object:
 
 ```js
 const registry = new CERegistry({
-  /* The component catalog. Required unless the page has an import map */
+  /* The component catalog. */
   catalog: {
     "my-element": "/path/to/element.js",
     "prefix-*": (name) => import(`/assets/${name}.js`), // Wildcard support!
   },
+  /* Read the page's <script type="importmap"> as an extra catalog source (default: false) */
+  useImportMapsCatalog: false,
   /* Root element to search/observe (default: document.body) */
   root: document.getElementById("app"),
   /* Watch the DOM for new custom elements (default: true) */
@@ -99,10 +101,11 @@ const registry = new CERegistry({
   /* Options for the IntersectionObserver backing the `visible` directive */
   intersectionOptions: { rootMargin: "20%" },
   /* Use the View Transitions API to morph the placeholder into the component.
-     Requires `deferDefine: true` and element-scoped view transitions (Chromium).
+     Requires `deferDefine: true` and element-scoped view transitions (Chromium 147+).
      (default: false) */
   transition: false,
-  /* Queue `customElements.define` calls until later.  its own tag still morphs inside the view transition.
+  /* Queue `customElements.define` for catalog tags during a load, so a component
+     that registers its own tag still morphs inside the view transition.
      (default: false; `transition: true` refuses to start without it) */
   deferDefine: false,
   /* Fallback component class rendered when a catalog component fails to load */
@@ -110,6 +113,9 @@ const registry = new CERegistry({
   /* Paint a failure on any html custom-element tag that is *not* in the catalog — handy while
      debugging a typo'd tag name. (default: false) */
   devErrors: false,
+  /* Shadow-root discovery. "auto" uses `shadow-observer` if the host app imported it;
+     true forces it (and warns when the module is missing); false disables it. (default: "auto") */
+  shadowObserver: "auto",
   /* Lifecycle hooks */
   hooks: {
     viewTransition: {
@@ -121,7 +127,9 @@ const registry = new CERegistry({
 });
 ```
 
-When `catalog` is omitted, the registry builds its catalog from the page's `<script type="importmap">` instead.
+With `useImportMapsCatalog: true` the registry also reads the page's `<script type="importmap">`: any entry whose name contains a `-` (e.g. `"nord-qrcode": "https://…"`) is treated as a component. It is merged _under_ `catalog`, so an explicit entry wins a collision, and only the **first** import map in the document is read. This is what the `?autoload` canary does, so a page with no JavaScript at all can boot from an import map alone.
+
+Two methods round out the registry: `registry.preload(["my-element"])` fetches and defines components before they appear in the DOM, and `registry.clean()` disconnects every observer.
 
 ### CSS Styling & Lifecycle States
 
@@ -191,11 +199,11 @@ The loader needs a minimum of [baseline widely available(30 months)](https://dev
 | Firefox       | **108**  | import maps |
 | Safari        | **16.4** | import maps |
 
-Two features are opt-in(deferDefine and transitions) and feature-detected, so a browser without them still works.
+Two features are opt-in (`deferDefine` and `transition`) and feature-detected, so a browser without them still works.
 
 ### View Transitions
 
-With `transition: true` (plus the `deferDefine: true` ), `ce-autoloader` wraps the component definition in an element-scoped `Element.startViewTransition()` tagged `types: ["ce"]`, so the placeholder can morph into the interactive component. Element-scoped view transitions are Chromium-only;
+With `transition: true` (which requires `deferDefine: true`), `ce-autoloader` wraps the component definition in an element-scoped `Element.startViewTransition()` tagged `types: ["ce"]`, so the placeholder can morph into the interactive component. Element-scoped view transitions are Chromium 147+ only; Firefox and Safari fall back to a plain define — the component still loads, it just doesn't animate.
 
 You can customize the transition per-element using attributes:
 

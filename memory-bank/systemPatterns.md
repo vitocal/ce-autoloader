@@ -2,8 +2,9 @@
 
 ## Flow
 
-`new CEAutoLoader(options)` → merge options → resolve the catalog (the option + the page import map's `-`-named
-imports) → pick the `define` patch → `discover()`. The patch is chosen in one place: `deferDefine` → the defer queue;
+`new CEAutoLoader(options)` → merge options → resolve the catalog (the page import map's `-`-named imports, with `catalog`
+winning on a collision; `useImportMapsCatalog: true` makes the import map *the* catalog) → pick the `define` patch →
+`discover()`. The patch is chosen in one place: `deferDefine` → the defer queue;
 otherwise `transition` → **throw `SyntaxError`**; otherwise `polyfill_safe_ce_define()` (idempotent `define`). Defaults
 are `deferDefine: false` / `devErrors: false`, and `transition` is derived from the **raw** `options.deferDefine`, so
 a bare `{ catalog }` lands on safe-define.
@@ -20,7 +21,7 @@ and closed, `shadow: 3`). The `shadowObserver` option (`'auto' | true | false`) 
 | `visible` (default) | one shared `IntersectionObserver`, one batch per intersecting element |
 | `click` | `addEventListener("click", …, { once: true })` |
 | `eager`, `manual` | `loadAndDefine(elements)` now (`manual` normally comes from `registry.upgrade(root, "manual")`) |
-| anything else | `console.error` — that branch logs an undefined `ce_elements` (issue #7) |
+| anything else | `console.error` and **no load** (issue #7) — `ce_elements` is in scope there (declared before the call), so the "undefined" reading in earlier notes was wrong |
 
 `loadAndDefine` → `Promise.allSettled(elements.map(load))` → report the load failures **once** → define the survivors
 (`runScopedViewTransition` when `transition`, else `Promise.allSettled(map(define))`) → report the **define** failures
@@ -45,6 +46,10 @@ fallback, because the element is live and working. The report lives here rather 
 is the only place holding the constructor to compare — and because the same name-level check sits in both places, so
 fixing the polyfill alone would recover nothing. Only reachable when the loader returned a constructor and an element is
 present (`preload` passes no element, so a mismatch there is not reported).
+
+The check has a **false positive on Svelte**: `@sveltejs/vite-plugin-svelte` with `customElement: { tag }` registers the tag itself
+and `export default`s a `wrapper` function, so `customElements.get(name) !== module` holds by construction and every Svelte
+component reports (issue #20). Diagnostic-only — the element upgrades normally.
 
 ## Failures
 

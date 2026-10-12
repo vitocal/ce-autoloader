@@ -126,18 +126,16 @@ class CEAutoLoader {
       ...options,
     };
 
-    if (!this.options.useImportMapsCatalog) {
-      const importMapScript = document.querySelector('script[type="importmap"]');
-      const map = JSON.parse(importMapScript?.textContent || '{}') as ImportMap;
+    // Use the page's import map
+    const importMapScript = document.querySelector('script[type="importmap"]');
+    const map = JSON.parse(importMapScript?.textContent || '{}') as ImportMap;
+    const importMapCatalog = Object.fromEntries(
+      Object.entries(map?.imports || {}).filter(([name, _target]) => name.includes('-'))
+    ) as Catalog;
 
-      const customelements = Object.entries(map?.imports || {}).filter(([name, _target]) => name.includes('-'))
-      this.catalog = {
-        ...Object.fromEntries(customelements),
-        ...this.options.catalog,
-      };
-    } else {
-      this.catalog = options.catalog;
-    }
+    this.catalog = this.options.useImportMapsCatalog
+      ? { ...importMapCatalog, ...this.options.catalog }
+      : { ...this.options.catalog };
 
     if (this.options.deferDefine) {
       this.polyfill_defer_define();
@@ -228,7 +226,7 @@ class CEAutoLoader {
   /**
    * Preload those specific custom-elements, right now!
    */
-  async preload(components: string[]): Promise<void> {
+  public async preload(components: string[]): Promise<void> {
     for (const comp_name of components) {
       const loader = this.getLoader(comp_name)
       const module = await this.loadModule(comp_name, loader);
@@ -253,7 +251,7 @@ class CEAutoLoader {
   */
   private getWildcardResolver(name: string): Loader | null {
     const [prefix, _comp_name] = name.split("-");
-    return this.catalog[`${prefix}-*`];
+    return this.catalog?.[`${prefix}-*`] ?? null;
   }
 
   /** Get the appropriate loader matching name */

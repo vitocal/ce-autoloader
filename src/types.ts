@@ -48,7 +48,10 @@ export type Options = {
     /** Watch for new custom elements in the page? */
     live?: boolean;
 
-    /** Use the page import-map as a catalog */
+    /**
+     * Treat the page's `<script type="importmap">` as *the* catalog: its `-` named
+     * bare specifiers resolve as components. First-one always wins.
+     */
     useImportMapsCatalog?: boolean;
 
     /** Fallback for components with errors */

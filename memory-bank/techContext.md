@@ -27,9 +27,9 @@
 | `npm run dev`                            | docs/demo dev server, port 5173                                                                                                        |
 | `npm run build`                          | library → `dist/` (also on `prepack`); the dts step is clean today                                                                     |
 | `npx tsc --noEmit -p tsconfig.json`      | **clean** as of the `types.ts` split (issue #12 fixed)                                                                                 |
-| `npm test`                               | `scripts/run-integration-tests.js`: dev server + Playwright + in-browser Mocha, **37 tests × Chromium / WebKit / Firefox**, non-zero exit on failure |
+| `npm test`                               | `scripts/run-integration-tests.js`: dev server + Playwright + in-browser Mocha, **44 tests × Chromium / WebKit / Firefox**, non-zero exit on failure |
 | `npm run test:all`                       | same, plus the branded `chrome` / `msedge` channels — a browser that is not installed is *skipped*, and `--strict` turns a skip into a failure |
-| `gzip -c dist/ce-autoloader.js \| wc -c` | budget check: 3,327 B (9.70 kB raw)                                                                                                     |
+| `gzip -c dist/ce-autoloader.js \| wc -c` | budget check: 3,467 B (10,125 B raw) — measured 2026-10-12, after the #19 fix                                                           |
 | `npm run importmap`                       | regenerates `importmap.json` (pinned + `integrity`) from `importmap.src.json` via `@jspm/generator`; needs network. Run it when a pinned version changes — `importmap.json` is generated, so hand edits are lost |
 | `NODE_ENV=production npm run build:docs` | rebuilds all of `docs/` with new hashes — **restore `docs/.nojekyll`** (Vite empties the output dir), and never run it just to "check" |
 
@@ -60,6 +60,10 @@ the CI entry point; it needs network (Mocha from unpkg, `uhtml` from esm.sh).
   `waitFor`.
 - **The define patches are global.** Restore `customElements.define` and delete `queue` / `dequeue` / `flush` between
   tests, after one idle frame — and note `polyfill_safe_ce_define` installs a patch on the *default* path too.
+- **The import-map suite owns its own `<script type="importmap">`.** `test/importmap.test.js` installs one per test (the loader
+  reads the *first* in the document) and points the entries at per-test `blob:` URLs, revoked in `afterEach`. Values must be
+  absolute URLs: Firefox ignores an import map added after module evaluation *for resolution*, so a bare specifier there would
+  fail on Firefox only. Late injection is otherwise silent — no console noise on Chromium, WebKit or Firefox.
 - **`requestIdleCallback` does not exist in Safari — any version.** caniuse reports it *disabled by default* through
   Safari 27.x (TP only). The suites `await` it directly, so `test/integration.html` shims it for WebKit; the loader
   itself only calls it on the `deferDefine: true` path (`src/index.ts`). Any capability probe must run **before** the
@@ -84,9 +88,13 @@ the CI entry point; it needs network (Mocha from unpkg, `uhtml` from esm.sh).
 - **Not every import-map entry can carry `integrity`.** Prefix mappings (`@nordhealth/components/`, `lit/`, `lit-html/`)
   cannot be enumerated — the demo's `nord-*` resolver picks subpaths at runtime — and the two local files are bundled by
   Vite, not fetched from a CDN. `npm run importmap` prints what it skipped; those URLs load unchecked.
-- `?autoload` in the module URL boots `window.registry` from the import map — a module-scope side effect.
+- `?autoload` in the module URL boots `window.registry` from the import map — a module-scope side effect. It sets `useImportMapsCatalog: true`, which makes the import map *the* catalog; on the default path the import map is harvested too, with `catalog` winning on a collision (#19 fixed 2026-10-12).
 - Prettier is configured for 2 spaces, double quotes and 120 columns; the source does not follow it consistently, so
   match the file you are editing.
+- **`node` / `npm` are not on the default shell `PATH`** in a fresh shell (`zsh: command not found: node`). The Homebrew
+  binaries are at `/opt/homebrew/bin/node` (v25.8.1) — use the absolute path, or `export PATH=/opt/homebrew/bin:$PATH`.
+  Playwright's browsers are installed under `~/Library/Caches/ms-playwright` (chromium 1248 / firefox 1555 / webkit 2370),
+  so a one-off repro script is cheap: `createRequire` from the repo's `package.json` resolves `playwright`.
 
 Refs: [caniuse: `Element.startViewTransition`](https://caniuse.com/mdn-api_element_startviewtransition) ·
 [Chrome: element-scoped view transitions](https://developer.chrome.com/blog/element-scoped-view-transitions) ·
