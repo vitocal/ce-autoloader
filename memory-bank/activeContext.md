@@ -10,6 +10,18 @@ landed earlier)._
 `customElements.define`, to make it _idempotent_ (`polyfill_safe_ce_define`), not to queue. The failure model was
 reworked — and as of this pass the README and `types.ts` match it.**
 
+- ✅ **`<web-vitals>` on the docs home page (2026-10-12)** — the FAQ's stale Lighthouse screenshot is now a live
+  Core Web Vitals panel (`pages/components/web-vitals.js`, catalog entry `"web-vitals"`, `loading="eager"`). Every
+  number comes from `web-vitals@6.2.3` — pinned in `importmap.src.json`, SRI-checked, installed as a devDep (Vite's
+  dev server cannot resolve a bare import that only exists in the import map), and excluded from `optimizeDeps` so the
+  browser resolves it. **`reportAllChanges: true` is load-bearing**: without it the library withholds LCP and CLS until
+  the page is hidden or the user interacts, and a panel nobody has touched sits empty. The headline is CrUX's
+  pass/fail, computed only over the metrics the engine can actually observe — `layout-shift` is Chromium-only, so
+  Firefox and Safari report CLS as `n/a` instead of "measuring…" forever. TBT and Speed Index were built and then
+  **dropped on request**; with them went the Lighthouse score, which is *defined* as a weighted mean over all five
+  metrics and would have been a lie over three. Verified on Chromium/Firefox/WebKit, in dev and against a production
+  build; the 37 library tests still pass.
+
 - Defaults: `deferDefine: false`, `devErrors: false`, and `transition` derived from the **raw** `options.deferDefine`
   — so `new CEAutoLoader({ catalog })` takes the safe-define path. `transition: true` without `deferDefine: true`
   now **throws `SyntaxError`**.

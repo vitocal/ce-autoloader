@@ -20,7 +20,9 @@ appended with `.error` / `.stack` properties) · a catalog tag already owned by 
 `hooks.error` (reported, never painted) · `preload`, `clean` · ESM-only packaging · demo site
 (React/Vue/Svelte/Lit/Preact/vanilla, 3D, plots) · `mfe-store` micro-frontend · CSS-animation reference page ·
 a **pinned, jspm-generated import map** (`importmap.src.json` → `npm run importmap` → `importmap.json` with an
-`integrity` manifest; `scripts/vite-plugin-importmap.js` injects the whole map into every demo page).
+`integrity` manifest; `scripts/vite-plugin-importmap.js` injects the whole map into every demo page) · a live
+**`<web-vitals>`** panel in the FAQ (Core Web Vitals from `web-vitals@6.2.3` through the import map, headline is
+CrUX's pass/fail over only the metrics the engine can observe).
 
 ## Left
 

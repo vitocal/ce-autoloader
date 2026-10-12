@@ -14,6 +14,7 @@
     "lit-element": "https://esm.sh/lit-element@4.2.2&standalone&deps=lit-html@3.3.3",
     "@lit/reactive-element": "https://esm.sh/@lit/reactive-element@2.1.2&standalone",
     "htm": "https://esm.sh/htm@3.1.1",
+    "web-vitals": "https://esm.sh/web-vitals@6.2.3",
     "my-component": "./pages/components/my-component.js",
     "svelte-counter": "./pages/components/vi/frameworks/svelte-counter.svelte"
   },
@@ -58,6 +59,8 @@
     "https://esm.sh/three@0.183.2/es2022/examples/jsm/webxr/XREstimatedLight.mjs": "sha384-ArUhq7NHgUskoiQ0chWPqTD9sP5cOnHNsmP9nPjM8UiC9eSe85s8dXLNnQtlYbb+",
     "https://esm.sh/three@0.183.2/es2022/src/math/MathUtils.mjs": "sha384-rmfADqy3Dy8MlM5Se45WdNzK++J3uUKRFmt9leKAMvPuz0ZJ4j7iCOVlaEs2jYTB",
     "https://esm.sh/three@0.183.2/es2022/three.bundle.mjs": "sha384-oKxcTZuEj06KWb0UlP/kInFuRK9ZmzBaUfsiSRe15KXLhfS83OJClp0APbcxEM+W",
-    "https://esm.sh/three@0.183.2/es2022/three.mjs": "sha384-XD23N4Ki55GBsYhg006lMAP5IWbmNBPosCdj6lcA0FJ9EmuGdfEHp7kmW+4YDJRe"
+    "https://esm.sh/three@0.183.2/es2022/three.mjs": "sha384-XD23N4Ki55GBsYhg006lMAP5IWbmNBPosCdj6lcA0FJ9EmuGdfEHp7kmW+4YDJRe",
+    "https://esm.sh/web-vitals@6.2.3": "sha384-7Fp3o3NfJ6sb0TZwQpiNfiIfB2UD7GPTqx+qyw1FLgLIlS0bBl5LF0kElimzj/Eu",
+    "https://esm.sh/web-vitals@6.2.3/es2022/web-vitals.mjs": "sha384-QzuRIJbZeXLIaVL7+Doo60DCiDRk99+ryY2JulbS0iLZefTkm4RPg8JOePflhJUH"
   }
 }

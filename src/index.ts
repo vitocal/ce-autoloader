@@ -279,7 +279,7 @@ class CEAutoLoader {
   /**
    * Discover custom-elements in the `root` and upgrade them lazily
    */
-  async discover(root = this.options.root) {
+  public async discover(root = this.options.root) {
     if (!this.#initialized && this.options.live) {
       this.watchDOMMutations();
     }
@@ -303,7 +303,7 @@ class CEAutoLoader {
    *
    * @see {@link loadAndDefine}
    */
-  upgrade(root: HTMLElement = this.options.root, directive?: Directives) {
+  public upgrade(root: HTMLElement = this.options.root, directive?: Directives) {
 
     const when_visible: IntersectionObserverCallback = (entries, _observer) => {
       let html_elements = entries

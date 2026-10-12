@@ -61,6 +61,7 @@ export default defineConfig({
       "@lit/reactive-element",
       "lit/static-html.js",
       "shadow-observer",
+      "web-vitals",
     ],
   },
   build: {

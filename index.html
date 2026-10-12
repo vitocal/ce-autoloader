@@ -117,6 +117,12 @@
       display: block;
     }
 
+    web-vitals {
+      display: block;
+      width: 100%;
+      margin-top: 1rem;
+    }
+
     /**
        * View transitions
        */
@@ -782,14 +788,13 @@ export default r2wc(Greeter, {
 
         <div>
           <h3 style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem">
-            <span style="font-size: 1.5rem">🚀</span> What's the performance like?
+            <span style="font-size: 1.5rem">🚀</span> What's the lighthouse performance like?
           </h3>
           <p>
-            Glad you asked! Core Web Vitals with ce-autoloader matches or exceeds SSR frameworks like Next.js. Don't
-            believe me? This is the score of the page you're reading now:
+            These are the metrics of the page you're reading now, measured live in your browser:
           </p>
 
-          <img src="assets/core-web-vitals.jpg" alt="Core Web Vitals" width="735" height="629" loading="lazy" />
+          <web-vitals loading="eager"></web-vitals>
         </div>
       </div>
     </div>

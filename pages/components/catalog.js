@@ -23,6 +23,7 @@ let catalog = {
     });
   },
   "performance-metrics-plot": () => import("./performance-metrics-plot.js"),
+  "web-vitals": () => import("./web-vitals.js"),
   "pix-qrcode": () => import("./pix/qrcode.ts"),
 
   "react-example": () => import("./vi/react-example.tsx"),
