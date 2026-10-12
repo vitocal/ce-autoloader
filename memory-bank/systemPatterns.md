@@ -4,7 +4,7 @@
 
 `new CEAutoLoader(options)` → merge options → resolve the catalog (the option + the page import map's `-`-named
 imports) → pick the `define` patch → `discover()`. The patch is chosen in one place: `deferDefine` → the defer queue;
-otherwise `transition` → **throw `SyntaxError`**; otherwise `polyfill_safe_define()` (idempotent `define`). Defaults
+otherwise `transition` → **throw `SyntaxError`**; otherwise `polyfill_safe_ce_define()` (idempotent `define`). Defaults
 are `deferDefine: false` / `devErrors: false`, and `transition` is derived from the **raw** `options.deferDefine`, so
 a bare `{ catalog }` lands on safe-define.
 
@@ -37,6 +37,15 @@ promises, so the styles must be cleared (and `finished` never left unhandled) ev
 returned constructor if the tag isn't queued, else `dequeue(name)`; otherwise → `customElements.define()`. Claims
 `ce="defined"` **only when it really defined**, and always records a `define:<tag>` measure.
 
+The "already defined" branch is not a silent no-op any more. `polyfill_safe_ce_define` makes the tag *name* the identity,
+so a foreign constructor that got there first wins without a sound and the tag is painted `ce="defined"` — the platform's
+`NotSupportedError` never fires. When `customElements.get(name) !== module` (the loader returned a constructor that was
+*not* the one that won), `define()` calls `hooks.error` with a `LoadError` and **nothing else**: no `ce="error"`, no
+fallback, because the element is live and working. The report lives here rather than in the polyfill because `define()`
+is the only place holding the constructor to compare — and because the same name-level check sits in both places, so
+fixing the polyfill alone would recover nothing. Only reachable when the loader returned a constructor and an element is
+present (`preload` passes no element, so a mismatch there is not reported).
+
 ## Failures
 
 `handleComponentLoadError`: `origin = rejection.reason.details.el`; `hooks.error` runs (when set); already painted
@@ -58,16 +67,19 @@ Catalogs self-register and the module is imported *before* the transition starts
 the snapshot window and the placeholder-to-component morph would be lost. The queue retimes those definitions into
 the transition's `update` callback.
 
-- `deferDefine` (default **off**) controls the queue; `false` falls back to `polyfill_safe_define` (an idempotent,
+- `deferDefine` (default **off**) controls the queue; `false` falls back to `polyfill_safe_ce_define` (an idempotent,
   first-wins `define`: any already-defined name is a no-op), which does still patch the global. `transition: true`
   without `deferDefine: true` throws.
+- The guard is **name-level, not constructor-level**. Native `define` throws `NotSupportedError` on a same-name *or* a
+  same-constructor re-define; the polyfill tests only the name. So "same name, different ctor" is swallowed, while
+  "same ctor, different name" still throws through untouched. The swallowed case is reported by `define()` → above.
 - Only names that resolve through a catalog are queued; anything else is forwarded to the original `define`, so a
   third-party registration is never swallowed.
 - `DEFERRED_REGISTRIES` exists because the patched `define` is one global function while catalogs are per registry;
   `clean()` opts one out.
 - Known limits: the patch is document-wide, and `customElements.get()` is `undefined` for queued classes until
   `dequeue()` runs (issue #2) — a documented limit, not a TODO: Stage 2 (transient capture) was **rejected**, and
-  `polyfill_safe_define` is a deliberate, permanent safeguard → `progress.md`.
+  `polyfill_safe_ce_define` is a deliberate, permanent safeguard → `progress.md`.
 
 ## Conventions to keep
 

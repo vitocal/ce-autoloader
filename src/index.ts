@@ -459,8 +459,18 @@ class CEAutoLoader {
 
     try {
       if (customElements.get(name)) {
-        // Already defined: either the module registered the tag itself, or another
-        // script got there first. Nothing to define .
+        // Already defined: either the module registered the tag itself, or another defined() first.
+        const already_defined = customElements.get(name);
+
+        // Someone else registered it previously, warn-it since it's also on the catalog.
+        if (el && module && already_defined !== module) {
+          this.options.hooks?.error?.({
+            name, el,
+            error: new CEError(`${name} - already defined by another constructor.`,
+              { name, el, module, defined: already_defined },),
+          });
+        }
+
       } else if (this.options.deferDefine) {
         if (!customElements.queue[name]) {
           if (!module) throw new CEError(`${name} - the loader neither defined the element nor returned a constructor`, { name, el, module });

@@ -189,7 +189,7 @@ You can customize the transition per-element using attributes:
 For the hackers and performance nerds:
 
 - **Wildcard Resolvers:** Map an entire library prefix (e.g., `carbon-*`) to a dynamic import function.
-- **Deferred Definitions:** Most catalogs are modules that register their own tag (`customElements.define` at import time). With `transition: true` you must also set `deferDefine: true`, which queues those definitions so they land _inside_ the view transition — that is what lets such a component morph instead of popping up. Only tags that resolve to a catalog entry are deferred: each is defined with `customElements.dequeue(tag)` and the rest are flushed. Anything else (a third-party script, a module registering extra tags) is passed straight to the original `define`, so it upgrades normally. The queue is off by default, and `transition: true` throws rather than run without it. Even when the queue is off, the registry still installs an **idempotent** `customElements.define` (`polyfill_safe_define`): a module that registers a tag the loader also defines would otherwise throw `NotSupportedError`.
+- **Deferred Definitions:** Most catalogs are modules that register their own tag (`customElements.define` at import time). With `transition: true` you must also set `deferDefine: true`, which queues those definitions so they land _inside_ the view transition — that is what lets such a component morph instead of popping up. Only tags that resolve to a catalog entry are deferred: each is defined with `customElements.dequeue(tag)` and the rest are flushed. Anything else (a third-party script, a module registering extra tags) is passed straight to the original `define`, so it upgrades normally. The queue is off by default, and `transition: true` throws rather than run without it. Even when the queue is off, the registry still installs an **idempotent** `customElements.define` (`polyfill_safe_ce_define`): a module that registers a tag the loader also defines would otherwise throw `NotSupportedError`.
 - **Telemetry:** Every load and definition is timed using the User Timing API. Check your "Performance" tab in DevTools for `load:tag-name` and `define:tag-name` markers.
 - **Failure reporting:** A failed load or definition of a catalog component calls `hooks.error` with `{ name, el, error }` and paints the element — `ce="error"` and, when a `fallback` is configured, a fallback instance appended with the message and stack on its `.error` / `.stack`. `devErrors: true` extends the paint to tags that are _not_ in the catalog; they stay `:not(:defined)` otherwise, so a third-party component that registers itself later is never styled as broken.
 - **Manual Cleanup:** Use `registry.clean()` to disconnect all observers and stop watching the DOM.
@@ -217,7 +217,7 @@ To explicitly disable shadow root observation (even if `shadow-observer` is load
 const registry = new CERegistry({ catalog: { ... }, shadowObserver: false });
 ```
 
-**Limitation:** Only shadow roots created *after* the registry starts are observed. Pre-existing shadow roots are not scanned.
+**Limitation:** Only shadow roots created _after_ the registry starts are observed. Pre-existing shadow roots are not scanned.
 
 ## Development
 

@@ -379,6 +379,46 @@ describe("CEAutoLoader", () => {
       expect(reported.error.message).to.include("neither defined the element nor returned a constructor");
     });
 
+    it("should report a catalog tag that another constructor already owns", async () => {
+      // `polyfill_safe_ce_define` makes the tag *name* the identity, so a foreign
+      // constructor that wins the race during the load is swallowed: the
+      // platform's `NotSupportedError` never fires and the tag is painted
+      // `ce="defined"`. The mismatch must still reach the hook — the implementation
+      // live on the page is not the one this catalog returned.
+      const el = document.createElement("owned-component");
+      el.setAttribute("loading", "eager"); // see the note above
+      fixtures.appendChild(el);
+
+      class OursComp extends HTMLElement {}
+
+      let reported = null;
+
+      registry = new AutoLoader({
+        catalog: {
+          "owned-component": async () => {
+            // Another script gets there first, while our module is loading.
+            class ForeignComp extends HTMLElement {}
+            customElements.define("owned-component", ForeignComp);
+            return OursComp;
+          },
+        },
+        root: fixtures,
+        hooks: { error: (error) => (reported = error) },
+      });
+      await new Promise(requestIdleCallback);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // The element works — someone's implementation is live — so it is marked
+      // defined and never painted as broken.
+      expect(el.getAttribute("ce")).to.equal("defined");
+      expect(el.querySelector("error-fallback")).to.not.exist;
+
+      expect(reported, "hooks.error should be called").to.exist;
+      expect(reported.name).to.equal("owned-component");
+      expect(reported.el).to.equal(el);
+      expect(reported.error.message).to.include("already defined by another constructor");
+    });
+
     it("should not append a second fallback when a failed component re-intersects", async () => {
       // No `loading` attribute means the default `visible` directive. A failed
       // component stays `:not(:defined)`, so the IntersectionObserver keeps

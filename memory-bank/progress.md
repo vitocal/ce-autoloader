@@ -1,7 +1,9 @@
 # Progress
 
-_2026-10-02 · `option-deferDefine` @ `7098efc` + staged work · package 0.1.2 · `dist/ce-autoloader.js` = 9.70 kB
-raw / **3,327 B gzip** · 36 tests · `tsc --noEmit` clean · #1, #8, #14–#18 fixed, docs trued up._
+_2026-10-12 · `option-deferDefine` @ `cb4d025` + working tree · package 0.2.0-rc · `dist/ce-autoloader.js` = 9,833 B
+raw / **3,378 B gzip** (built 2026-10-05, **not rebuilt** since the change below) · **31 tests pass, 0 fail**
+(`tsc --noEmit` clean; the 6 in `test/shadow.test.js` cannot load — `shadow-observer` is an optional peer dep and is
+not installed) · #1, #8, #14–#18 fixed, docs trued up._
 
 House rule: **one fact, one home.** `REVIEW.md` is the audit (tiers, long-form critique); the bank is the short
 version. Anything that belongs in both goes in `REVIEW.md` and is summarised here in a line.
@@ -12,9 +14,10 @@ Catalog resolution (URLs, functions, wildcards, import maps, `?autoload`) · ini
 `MutationObserver` discovery (fixed in `src/index.ts` — skip targets already `ce="error"`) · directives (`eager`, `visible`, `click`, `manual`,
 custom values) · `ce` lifecycle states · element-scoped view transitions (`types: ["ce"]`, per-element name/class,
 `ready` / `finished` hooks, plain define when unsupported) · deferred define queue (`deferDefine`) ·
-`polyfill_safe_define` (idempotent `define` on the default path) · `load:` / `define:` measures · failure path
+`polyfill_safe_ce_define` (idempotent `define` on the default path) · `load:` / `define:` measures · failure path
 (`hooks.error` always, catalog failures always painted, `devErrors` extends painting to non-catalog tags, fallback
-appended with `.error` / `.stack` properties) · `preload`, `clean` · ESM-only packaging · demo site
+appended with `.error` / `.stack` properties) · a catalog tag already owned by a foreign constructor is reported to
+`hooks.error` (reported, never painted) · `preload`, `clean` · ESM-only packaging · demo site
 (React/Vue/Svelte/Lit/Preact/vanilla, 3D, plots) · `mfe-store` micro-frontend · CSS-animation reference page.
 
 ## Left
@@ -29,7 +32,7 @@ appended with `.error` / `.stack` properties) · `preload`, `clean` · ESM-only 
   scoped rescans.
 - **Tier 2** — the standards write-up (`WICG/webcomponents#782`); license decision.
 - The biggest adoption risk stays the global `customElements.define` patch — and it is installed on **every** path, by
-  design: the *deferred queue* behind `transition` + `deferDefine`, and `polyfill_safe_define` always. "Never patch at
+  design: the *deferred queue* behind `transition` + `deferDefine`, and `polyfill_safe_ce_define` always. "Never patch at
   all" is not an option. The queue is the sharp edge; safe-define is a deliberate safeguard (below).
 
 ## Define-patch stages
@@ -39,7 +42,7 @@ upgrades would land outside the snapshot window.
 
 | Stage | What | State |
 | --- | --- | --- |
-| 1 | `deferDefine` switch (now **off by default**), idempotent `define()` (moved to `polyfill_safe_define`), swallow polyfill deleted, "only morph what we define", define errors surfaced, `ready` rejection guard | done |
+| 1 | `deferDefine` switch (now **off by default**), idempotent `define()` (moved to `polyfill_safe_ce_define`), swallow polyfill deleted, "only morph what we define", define errors surfaced, `ready` rejection guard | done |
 | 2 | **Transient capture** — **rejected**: it does not remove the patch, it makes it *flicker* (enable/disable per batch, reentrancy across registries, no clean un-patch when the original was already someone else's patch). One persistent, opt-in patch is easier to reason about than many short ones | rejected |
 | 3 | Revisit whether `deferDefine` is needed at all once "let the loader return a constructor" is the documented happy path | open |
 
@@ -50,7 +53,7 @@ otherwise), so the queue's only remaining reason to exist is the morph.
 enable/disable churn, cross-registry reentrancy, and no clean way to un-patch when another script patched first. Not
 worth the complexity.
 
-**`polyfill_safe_define` is a permanent safeguard, on every load.** It guards re-registration of a *shared* tag: the
+**`polyfill_safe_ce_define` is a permanent safeguard, on every load.** It guards re-registration of a *shared* tag: the
 `nord-*` design system ships base elements (`nord-button`, `nord-card`, …) that self-register at import time, and two
 such modules on one page both try to define the shared tag inside their own `await import(...)` — **before** the
 resolver's `if (!customElements.get(x))` guard can run. The platform throws `NotSupportedError` on a same-name (or
@@ -59,6 +62,18 @@ policy for a loader whose job is composing other people's components. The guard 
 already-defined name, not `=== ctor`), because a shared tag can arrive as two different class objects (an inlined base
 vs a bundled shell). The accepted cost: it also swallows the genuinely-different-constructor case the platform makes
 loud on purpose — deliberate, not an oversight.
+
+The guard is **name-level only**, which makes the swallow asymmetric: native `define` throws on a same-name *or* a
+same-constructor re-define, while the polyfill tests only the name. So "same ctor, different name" still throws through
+untouched; the single case hidden is same-name/different-ctor.
+
+**That case is no longer invisible (2026-10-12).** `define()`'s "already defined" branch reports it through
+`hooks.error` when `customElements.get(name) !== module` — i.e. when the loader *did* return a constructor and it was
+not the one that won. Hook only: no `ce="error"`, no fallback, because the element is live and working, so painting it
+as broken would be a lie. The report sits in `define()` (`src/index.ts`), **not** in the polyfill, because `define()` is
+the only place holding the constructor to compare — and because the same name-level check sits in *both* places, so
+patching the polyfill alone would have recovered nothing. Covered by `test/integration.test.js` ("another constructor
+already owns").
 
 Rejected alternatives, in order of how tempting they were: keep the flag on the existing global queue (Stage 1) ·
 a transient capture that un-patches between batches (Stage 2 — rejected: it *flickers* instead of removing the patch) ·

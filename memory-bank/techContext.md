@@ -54,7 +54,7 @@ the CI entry point; it needs network (Mocha from unpkg, `uhtml` from esm.sh).
   paint `ce="error"` for a catalog tag. A define-only failure lands a frame later on the transition path — poll with
   `waitFor`.
 - **The define patches are global.** Restore `customElements.define` and delete `queue` / `dequeue` / `flush` between
-  tests, after one idle frame — and note `polyfill_safe_define` installs a patch on the *default* path too.
+  tests, after one idle frame — and note `polyfill_safe_ce_define` installs a patch on the *default* path too.
 
 ## Gotchas
 

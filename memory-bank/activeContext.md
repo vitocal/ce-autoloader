@@ -1,12 +1,12 @@
 # Active context
 
-_2026-10-02 · branch `option-deferDefine` @ `7098efc`, plus **staged (uncommitted)** work across `src/`, the types
-split, the tests and the demo wiring._
+_2026-10-12 · branch `option-deferDefine` @ `cb4d025`, plus working-tree changes across `src/index.ts`, the tests, the
+docs and this bank (the types split and the demo wiring landed earlier)._
 
 ## Right now
 
 **The defaults went lean: nothing is deferred, nothing animates — but every registry still patches
-`customElements.define`, to make it _idempotent_ (`polyfill_safe_define`), not to queue. The failure model was
+`customElements.define`, to make it _idempotent_ (`polyfill_safe_ce_define`), not to queue. The failure model was
 reworked — and as of this pass the README and `types.ts` match it.**
 
 - Defaults: `deferDefine: false`, `devErrors: false`, and `transition` derived from the **raw** `options.deferDefine`
@@ -34,12 +34,24 @@ reworked — and as of this pass the README and `types.ts` match it.**
 - ✅ **Duplicate fallback fixed (#18)** — a failed `visible` component stays `:not(:defined)`, so the shared IntersectionObserver kept re-delivering it; `load()` then overwrote `ce="error"` with `ce="loading"`, defeating `handleComponentLoadError`'s guard and appending a **new** fallback on every re-intersection. The demo's `<vi-error>` grew one `<error-fallback>` per scroll pass (reproduced live: 1 → 6). `when_visible` now skips `ce="error"` targets, mirroring `dom_watcher`. Regression test added.
 - ✅ **`intersectionOptions` default corrected (#8)** — the issue claimed `scrollMargin` "is ignored — the real option is `rootMargin`". Refuted: `scrollMargin` is a valid `IntersectionObserverInit` member and *is* honored (Chrome 120+/FF 141+/Safari 26+), but it is Baseline-newly-available (Sept 2025, **87.94%** global) and silently ignored on the rest, so the 20% preload margin was a no-op there. The default is now `rootMargin: "20%"` (Baseline since 2019). `intersectionOptions` is still forwarded verbatim, so callers may pass `scrollMargin` for nested scrollers. Regression tests added (default + custom pass-through, capturing the observer through an `IntersectionObserver` spy).
 - ✅ **Shadow-observer integration fixed (#1)** — `getMutationObserver()` had a `return` inside `finally` that always won, so `shadow-observer` was awaited and discarded. Replaced with synchronous `globalThis[Symbol.for('shadow-observer')]` detection: the host app imports the module (optional peer dep), the library detects it. `shadow: 1` (OPEN only) → `shadow: 3` (OPEN | CLOSED). `dom_watcher` ShadowRoot guard fixed to not throw on ShadowRoot targets. New `shadowObserver` option (`'auto' | true | false`) for explicit control. BLUE/GREEN tests confirm: without shadow-observer, components inside shadow roots are ignored; with it, both open and closed shadow roots are reached.
-- Verified: **36/36 tests**; bundle **9.70 kB raw / 3,327 B gzip**.
+- ✅ **A swallowed constructor collision is reported now (2026-10-12)** — `polyfill_safe_ce_define` guards on the tag
+  *name*, so a foreign constructor that wins the race is silent: the platform's `NotSupportedError` never fires and the
+  tag is painted `ce="defined"`. `define()`'s "already defined" branch calls `hooks.error` when
+  `customElements.get(name) !== module`. Hook only — no `ce="error"`, no fallback: the element is live, so painting it
+  broken would be a lie. The check lives in `define()`, not the polyfill, because `define()` is the only place holding
+  the constructor to compare. Regression test in `test/integration.test.js`.
+- ✅ **Docs/code name drift fixed** — the polyfill is `polyfill_safe_ce_define`; `README.md`, `REVIEW.md` and this bank
+  called it `polyfill_safe_define`. The method is public API (`dist/index.d.ts`), so the docs moved, not the code.
+- Verified: **31 tests pass, 0 fail**, `tsc --noEmit` clean. The 6 in `test/shadow.test.js` cannot load — they
+  `import "shadow-observer"`, an optional peer dep that is not installed, so Vite fails to resolve it (pre-existing).
+  Bundle figure unchanged: `dist/` was not rebuilt after this change.
 
 ## Next
 
-1. **Decide the failure model on purpose** — "catalog always paints, `devErrors` adds unknown tags" (what the tests and
-   docs encode now) vs the older "catalog is the boundary, `devErrors` suppresses".
+1. ~~**Decide the failure model on purpose.**~~ **Settled 2026-10-12** — the model is *"components in the catalog get the
+   error treatment / fallback; `devErrors: true` expands that to every component on the page"*.
+   `src/index.ts:510` (`if (!getLoader(name) && !devErrors) return`) **is** that sentence, so the tests and docs were
+   already right — the item was only ever a question in this file. See "Decisions" below.
 2. ~~**Define-patch Stage 2** (transient capture).~~ **Rejected** — the patch stays; see `progress.md`.
 3. Tier 1: pin + `integrity`, runnable benchmark, cross-browser matrix. Full list in `REVIEW.md`.
 
@@ -48,7 +60,7 @@ reworked — and as of this pass the README and `types.ts` match it.**
 - **Lean defaults, explicit opt-in.** Deferring and animating are choices now; the vanilla behaviour is
   "import → idempotent define → mark `.ce`". `transition: true` _requires_ `deferDefine: true`, because a transition
   the queue cannot deliver is a broken promise (self-registering catalogs would pop, not morph).
-- **`deferDefine: false` is no longer "touch nothing".** The default path installs `polyfill_safe_define` — an
+- **`deferDefine: false` is no longer "touch nothing".** The default path installs `polyfill_safe_ce_define` — an
   idempotent, **first-wins** `define` (`get(name) → return`) — so a self-registering module and the loader cannot
   collide over the same tag. This is what makes the `nord-*` design system composable: shared base elements
   (`nord-button`, `nord-card`, …) self-register inside their own `await import(...)`, for two modules at once, _before_
@@ -59,7 +71,7 @@ reworked — and as of this pass the README and `types.ts` match it.**
 - **Define-patch Stage 2 (transient capture) is rejected.** Enabling/disabling the patch per batch makes the global
   patch _flicker_ instead of removing it: N enable/disable cycles, reentrancy across registries, and no clean "restore
   the original" when another script patched first. The settled shape is one persistent, opt-in patch (`deferDefine`)
-  plus an always-on `polyfill_safe_define`.
+  plus an always-on `polyfill_safe_ce_define`.
 - **Failures belong to the element, not to attributes.** `.error` / `.stack` live on the fallback instance (its
   `observedAttributes` are gone); the origin keeps only `ce="error"`. Appending (instead of clearing) means
   server-rendered or slotted light DOM survives a failure — issue #3 falls out for free.
@@ -71,3 +83,12 @@ reworked — and as of this pass the README and `types.ts` match it.**
   `await transition.updateCallbackDone`; when the update threw, the handler was never attached — styles leaked and
   `finished` rejected unhandled. Attach cleanup handlers **before** any await that can reject.
 - **Demo pages rot silently.** The animation page was dead for months. Run them.
+- **A swallowed collision must still be audible.** `polyfill_safe_ce_define` guards on the tag *name*, so a foreign
+  constructor that got there first wins silently and the tag is then painted `ce="defined"` — the platform's
+  `NotSupportedError` never fires. `define()` reports that case through `hooks.error` when
+  `customElements.get(name) !== module`. Hook only, never `ce="error"`: the element works, so painting it broken would be
+  a lie. The name-level check exists in *both* `define()` and the polyfill, so patching only the polyfill would have
+  recovered nothing → `progress.md`.
+- **The failure model is the one the code already had.** "Catalog always paints, `devErrors` adds unknown tags" was
+  decided by writing `if (!getLoader(name) && !devErrors) return`, and the tests and README followed it. Recording a
+  *settled* thing as an open question in this file is how a later session re-litigates it.
