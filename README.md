@@ -174,29 +174,34 @@ registry.upgrade(root, "manual");
 registry.upgrade(undefined, "manual");
 ```
 
-### View Transitions
-
-With `transition: true` (plus the `deferDefine: true` it requires), `ce-autoloader` wraps the component definition in an element-scoped `Element.startViewTransition()` tagged `types: ["ce"]`, so the placeholder can morph into the interactive component. Element-scoped view transitions are Chromium-only; on other browsers leave `transition` off.
-
-You can customize the transition per-element using attributes:
-
-```html
-<my-chart loading="visible" view-transition-name="main-chart" view-transition-class="slide-up"> </my-chart>
-```
-
 ### Expert Mode: Under the hood
 
-For the hackers and performance nerds:
-
 - **Wildcard Resolvers:** Map an entire library prefix (e.g., `carbon-*`) to a dynamic import function.
-- **Deferred Definitions:** Most catalogs are modules that register their own tag (`customElements.define` at import time). With `transition: true` you must also set `deferDefine: true`, which queues those definitions so they land _inside_ the view transition — that is what lets such a component morph instead of popping up. Only tags that resolve to a catalog entry are deferred: each is defined with `customElements.dequeue(tag)` and the rest are flushed. Anything else (a third-party script, a module registering extra tags) is passed straight to the original `define`, so it upgrades normally. The queue is off by default, and `transition: true` throws rather than run without it. Even when the queue is off, the registry still installs an **idempotent** `customElements.define` (`polyfill_safe_ce_define`): a module that registers a tag the loader also defines would otherwise throw `NotSupportedError`.
 - **Telemetry:** Every load and definition is timed using the User Timing API. Check your "Performance" tab in DevTools for `load:tag-name` and `define:tag-name` markers.
 - **Failure reporting:** A failed load or definition of a catalog component calls `hooks.error` with `{ name, el, error }` and paints the element — `ce="error"` and, when a `fallback` is configured, a fallback instance appended with the message and stack on its `.error` / `.stack`. `devErrors: true` extends the paint to tags that are _not_ in the catalog; they stay `:not(:defined)` otherwise, so a third-party component that registers itself later is never styled as broken.
 - **Manual Cleanup:** Use `registry.clean()` to disconnect all observers and stop watching the DOM.
 
 ## Browser support
 
-Latest Chrome, Firefox, Safari and Edge for the loader itself. The optional `transition` morph depends on element-scoped view transitions, which are Chromium-only today.
+The loader needs a minimum of [baseline widely available(30 months)](https://developer.mozilla.org/en-US/docs/Glossary/Baseline/Compatibility#baseline_badges): `<script type="module">`, dynamic `import()`, custom elements v1, `IntersectionObserver` and — **import maps**.
+
+| Browser       | Minimum  | Why         |
+| ------------- | -------- | ----------- |
+| Chrome / Edge | **89**   | import maps |
+| Firefox       | **108**  | import maps |
+| Safari        | **16.4** | import maps |
+
+Two features are opt-in(deferDefine and transitions) and feature-detected, so a browser without them still works.
+
+### View Transitions
+
+With `transition: true` (plus the `deferDefine: true` ), `ce-autoloader` wraps the component definition in an element-scoped `Element.startViewTransition()` tagged `types: ["ce"]`, so the placeholder can morph into the interactive component. Element-scoped view transitions are Chromium-only;
+
+You can customize the transition per-element using attributes:
+
+```html
+<my-chart loading="visible" view-transition-name="main-chart" view-transition-class="slide-up"> </my-chart>
+```
 
 ## Shadow DOM
 
@@ -222,10 +227,21 @@ const registry = new CERegistry({ catalog: { ... }, shadowObserver: false });
 ## Development
 
 To build the library, run `npm run build`
-To run the dev server, run `npm run serve`
+To run the dev server, run `npm run dev`
 
 To publish the library, run `npm publish`
-To test it, run `npm run test`
+
+Tests run the suites in `test/integration.html` in real browsers through Playwright:
+
+```bash
+npm test              # Chromium + WebKit (Safari engine) + Firefox
+npm run test:chrome   # Google Chrome (branded channel)
+npm run test:safari   # WebKit — the Safari engine
+npm run test:edge     # Microsoft Edge (branded channel)
+npm run test:all      # every browser above
+```
+
+`npx playwright install chromium webkit firefox` fetches the bundled engines. A browser that is not installed is reported as _skipped_, not failed; add `--strict` (or `TEST_STRICT=1`) to make a skip fail the run. Playwright only ships the _current_ build of each engine, so it cannot target a pinned older version — testing an older browser means pinning an older Playwright release.
 
 To publish the demos/docs, run `NODE_ENV=production npm run build:docs`,
 add the "docs/" changes and push to github.

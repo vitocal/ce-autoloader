@@ -24,7 +24,8 @@
 | `npm run dev`                            | docs/demo dev server, port 5173                                                                                                        |
 | `npm run build`                          | library → `dist/` (also on `prepack`); the dts step is clean today                                                                     |
 | `npx tsc --noEmit -p tsconfig.json`      | **clean** as of the `types.ts` split (issue #12 fixed)                                                                                 |
-| `npm test`                               | `scripts/run-integration-tests.js`: dev server + headless Puppeteer + Mocha, 36 tests, non-zero exit on failure                        |
+| `npm test`                               | `scripts/run-integration-tests.js`: dev server + Playwright + in-browser Mocha, **37 tests × Chromium / WebKit / Firefox**, non-zero exit on failure |
+| `npm run test:all`                       | same, plus the branded `chrome` / `msedge` channels — a browser that is not installed is *skipped*, and `--strict` turns a skip into a failure |
 | `gzip -c dist/ce-autoloader.js \| wc -c` | budget check: 3,327 B (9.70 kB raw)                                                                                                     |
 | `NODE_ENV=production npm run build:docs` | rebuilds all of `docs/` with new hashes — **restore `docs/.nojekyll`** (Vite empties the output dir), and never run it just to "check" |
 
@@ -55,6 +56,12 @@ the CI entry point; it needs network (Mocha from unpkg, `uhtml` from esm.sh).
   `waitFor`.
 - **The define patches are global.** Restore `customElements.define` and delete `queue` / `dequeue` / `flush` between
   tests, after one idle frame — and note `polyfill_safe_ce_define` installs a patch on the *default* path too.
+- **`requestIdleCallback` does not exist in Safari — any version.** caniuse reports it *disabled by default* through
+  Safari 27.x (TP only). The suites `await` it directly, so `test/integration.html` shims it for WebKit; the loader
+  itself only calls it on the `deferDefine: true` path (`src/index.ts`). Any capability probe must run **before** the
+  suites — `transitions.test.js` installs a `startViewTransition` stand-in, so probing afterwards reports the polyfill,
+  not the engine.
+
 
 ## Gotchas
 

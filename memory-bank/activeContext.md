@@ -42,9 +42,16 @@ reworked — and as of this pass the README and `types.ts` match it.**
   the constructor to compare. Regression test in `test/integration.test.js`.
 - ✅ **Docs/code name drift fixed** — the polyfill is `polyfill_safe_ce_define`; `README.md`, `REVIEW.md` and this bank
   called it `polyfill_safe_define`. The method is public API (`dist/index.d.ts`), so the docs moved, not the code.
-- Verified: **31 tests pass, 0 fail**, `tsc --noEmit` clean. The 6 in `test/shadow.test.js` cannot load — they
-  `import "shadow-observer"`, an optional peer dep that is not installed, so Vite fails to resolve it (pre-existing).
-  Bundle figure unchanged: `dist/` was not rebuilt after this change.
+- ✅ **Puppeteer → Playwright (2026-10-12)** — `scripts/run-integration-tests.js` now drives the same in-browser Mocha
+  harness through Playwright, one pass per browser: `chromium`, `webkit` (Safari engine) and `firefox` by default, plus
+  the branded `chrome` / `msedge` channels via `--browser=all`. A browser that is not installed is *skipped* with an
+  install hint; `--strict` turns a skip into a failure. Every run probes the API floor (custom elements, ES modules,
+  import maps, `IntersectionObserver`, `requestIdleCallback`, element-scoped view transitions) **before** the suites
+  run — `transitions.test.js` polyfills `startViewTransition`, so a later probe would report the polyfill, not the
+  engine. `test/integration.html` now shims `requestIdleCallback`: Safari has never enabled it (see `techContext.md`).
+- Verified: **37 tests pass, 0 fail on Chromium 156, WebKit 27.2 and Firefox 157** (branded Chrome 155 too);
+  `tsc --noEmit` clean. `shadow-observer` is installed now, so the 6 shadow tests run — the old "31 pass / 6 cannot
+  load" figure is stale. Bundle figure unchanged: `dist/` was not rebuilt after this change.
 
 ## Next
 
@@ -53,7 +60,8 @@ reworked — and as of this pass the README and `types.ts` match it.**
    `src/index.ts:510` (`if (!getLoader(name) && !devErrors) return`) **is** that sentence, so the tests and docs were
    already right — the item was only ever a question in this file. See "Decisions" below.
 2. ~~**Define-patch Stage 2** (transient capture).~~ **Rejected** — the patch stays; see `progress.md`.
-3. Tier 1: pin + `integrity`, runnable benchmark, cross-browser matrix. Full list in `REVIEW.md`.
+3. Tier 1: pin + `integrity`, runnable benchmark. ~~cross-browser matrix~~ — **done 2026-10-12** (Playwright). Full list
+   in `REVIEW.md`.
 
 ## Decisions and lessons
 
@@ -92,3 +100,18 @@ reworked — and as of this pass the README and `types.ts` match it.**
 - **The failure model is the one the code already had.** "Catalog always paints, `devErrors` adds unknown tags" was
   decided by writing `if (!getLoader(name) && !devErrors) return`, and the tests and README followed it. Recording a
   *settled* thing as an open question in this file is how a later session re-litigates it.
+- **Internet Explorer is out of scope, on two independent grounds.** Playwright has no IE support and never will
+  (`microsoft/playwright#594`, closed 2020: *"no plans to support IE10/IE11"*), and the loader needs ES modules, dynamic
+  `import()`, custom elements v1 and import maps — none of which IE has. The requested "IE" was **Edge**, which is a
+  Chromium channel and therefore fully supported.
+- **"Safari" in the matrix means WebKit, not the Safari app.** Playwright ships the Safari *engine*; it cannot drive
+  system Safari. It also ships only the *current* build of each engine, so a pinned old browser means pinning an old
+  Playwright release (`microsoft/playwright#14435`) — there is no version-pinning flag. That is why the "older browser"
+  story is a CI matrix of Playwright versions, not a config option.
+- **The browser floor is import maps: Chrome/Edge 89, Firefox 108, Safari 16.4.** Every other required API ships
+  earlier, and the two expensive features (`deferDefine` → `requestIdleCallback`, `transition` → element-scoped view
+  transitions) are opt-in and feature-detected. `requestIdleCallback` is the odd one out: Safari has never enabled it,
+  so it is *not* part of the floor but *is* a gap on the `deferDefine` path.
+- **A capability probe must run before the suites.** `transitions.test.js` installs a `startViewTransition` stand-in
+  when the engine lacks it, so probing after Mocha finishes reports the polyfill as native support — a false green on
+  exactly the capability most likely to be missing.

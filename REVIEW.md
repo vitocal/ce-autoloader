@@ -81,7 +81,7 @@ That combination — tiny, standards-only, framework-agnostic — is the heart o
 - GPL-3.0 fits academia's values well: citation over enclosure.
 
 **Cons**
-- **The headline performance claim isn't reproducible yet.** "Core Web Vitals match or exceed Next.js" is backed by a screenshot, not a harness. There's one spec file (`test/observability.test.js`) and a Puppeteer script; no CI, no browser matrix, no committed raw data.
+- **The headline performance claim isn't reproducible yet.** "Core Web Vitals match or exceed Next.js" is backed by a screenshot, not a harness. There's one spec file (`test/observability.test.js`) and a Playwright runner that drives the suites on Chromium + WebKit + Firefox (+ branded Chrome/Edge channels); still no CI and no committed raw data.
 - **The artifact itself isn't deterministic:** `importmap.json` pins everything to `@latest`.
 - **The animated path is Chromium-only**, so "smooth upgrade" results can't be reproduced on Firefox or Safari.
 - **Claim inflation weakens the strong parts.** "Universal alternative for next/nuxtjs" invites a fight you don't need to have; the incremental-adoption story is more defensible and more interesting.
@@ -137,7 +137,7 @@ That combination — tiny, standards-only, framework-agnostic — is the heart o
 - [ ] **Docs truth pass**: directive list (including what `hover` really does today), queue semantics, real view-transition browser support, and a working "Documentation" link.
 - [ ] **Pin versions and add integrity.** Replace `@latest` in `importmap.json`, add `integrity` for CDN entries, and document "import map + integrity" as the recommended production setup.
 - [ ] **Make performance claims reproducible.** Replace the Core Web Vitals screenshot with a harness that anyone can run, plus the raw numbers and methodology.
-- [ ] **Cross-browser test matrix**: Chromium + WebKit + Firefox for the four directives, the error path, and shadow-root discovery (Mocha + Puppeteer is already in place; WebKit/Firefox are one config away).
+- [x] **Cross-browser test matrix**: Chromium + WebKit + Firefox for the four directives, the error path, and shadow-root discovery. **Done 2026-10-12** — `scripts/run-integration-tests.js` drives `test/integration.html` through Playwright, one pass per browser, and probes the API floor per engine. Branded `chrome` / `msedge` channels are opt-in (`--browser=all`); IE is out of scope (Playwright has no IE support, and the loader needs ES modules, custom elements v1 and import maps).
 - [ ] **A stress fixture** (1–2k elements) to measure discovery cost, then scope the rescan to the mutated subtree if needed.
 
 ### Tier 2 — direction
@@ -161,6 +161,7 @@ The strongest position is *incremental adoption*: add islands to Rails, Django, 
 - **Integrity + pinning as a first-class feature**, so "no bundler" doesn't mean "no supply chain".
 
 **Long term — hand it back to the platform.**
+
 The ambition should be for ce-autoloader to become *unnecessary*. If the lazy custom element proposal lands, adopt it natively and keep this library as the compatibility layer for older browsers — progressive enhancement applied to your own tool. A library that plans for its own obsolescence is the most trustworthy kind.
 
 ---
@@ -184,41 +185,4 @@ The ambition should be for ce-autoloader to become *unnecessary*. If the lazy cu
 | **WICG/webcomponents #782 — "Lazy Custom Element Definitions"** | **Open since Jan 2019, still labeled "needs a concrete proposal"** | This *is* ce-autoloader, proposed as `customElements.defineLazy(tag, () => import(...))` with an element-definition-loading event. The issue even notes that a polyfill "will have to patch `attachShadow`" — which is exactly what `shadow-observer` does. A working implementation plus numbers is precisely what the issue is waiting for. |
 | **MountObserver** (WICG/webcomponents discussion) | Active proposal + polyfill | A more ambitious neighbour: CSS-selector matching, `whereElementIntersectsWith`, `whereConnectionHas` (network-aware), `whenDefined`, mount/dismount events, code-split handlers, WeakRef memory management, even `<script type="cede">` declarative definitions. Read it as both validation and competition — and design so you can delegate to it later. |
 
-**The gap in one line:** the platform standardised *defining* custom elements but never standardised *deferring* them. That gap is the entire reason this project exists — and it's also the reason it should keep talking to standards folks.
-
 ---
-
-## 6. A philosophy: the web, twenty years from now
-
-Let's be honest about the itch. Twenty years ago you could right-click any page, choose *View Source*, and learn how it was made. A single `<script>` tag did something visible. The web was legible, and that legibility is what made it democratic — anyone could learn by reading, and anyone could publish by writing a file.
-
-We traded that away for capability. Frameworks gave us ergonomics, bundlers gave us tooling, and the cost was that "make a small interactive thing" now requires a package manager, a build pipeline, a CI job and a licence audit. The knowledge became guarded by toolchains instead of by the platform.
-
-The interesting thing is that the *platform caught up*. Custom elements, shadow DOM, ES modules, dynamic import, import maps, declarative shadow DOM, view transitions, container queries, `:has()`, CSS nesting and cascade layers — most of what frameworks gave us is now just... the web. What hasn't caught up is our **habits**, and our **distribution**.
-
-So here's a plausible, desirable 20-year picture:
-
-**1. Code gets smaller because the platform absorbs the layers.**
-The framework's job in 2045 is the small, opinionated part — ergonomics for authors — and the platform handles rendering, composition, packaging and scheduling. A "page bundle" becomes the exception that needs justification, not the default. Build steps shrink to transforms (types, minification), never to graph management.
-
-**2. A component becomes an addressable thing — like a page.**
-Today, reusing someone's component means installing a package inside someone else's build system, inside a framework version, inside a bundler config. Tomorrow it should mean one line: `<price-tag currency="EUR">`, backed by a URL. The **catalog is the contract**, and publishing a component is as ordinary as publishing a page. That is the quiet radicalism of this project: it treats distribution as an HTML problem instead of a package-manager problem.
-
-**3. Small pieces, many owners, composed by anyone.**
-When composition doesn't require a build, a design system, a chart, a map, a 3D viewer and a payment form can come from five different people in five different languages and still sit side by side. Ownership maps to namespaces (`team-*`). No runtime needs to negotiate versions because nothing shares a runtime. This is what federated frontends always promised and rarely delivered — delivered by making the boundary boring.
-
-**4. Integrity and trust become the interesting problems.**
-Once distribution is decoupled from bundling, the real questions are: *is this code the code I approved?* and *what does this component cost my users?* Import-map `integrity`, version pinning and byte budgets become the vocabulary of a healthy page — and they're far healthier questions than "which bundler version do you have?".
-
-**5. Simplicity becomes a shared, re-earned virtue rather than nostalgia.**
-The point is not to go back. It's to notice that the browser now ships everything we needed, and to stop paying rent on the past. A person with a text editor and a free afternoon should be able to publish something interactive, accessible and fast — and should be able to *read* how other people did it. That's not a technical goal so much as a democratic one: **low floors, high ceilings, and open doors.**
-
-**6. And the honest risks.**
-Decentralised distribution can re-centralise on whichever CDN is fastest and cheapest. "No build" can become "no type safety, no tests" if we're lazy about it. Standards proposals can move slowly enough that people reinvent them badly nine times. And a loader is not a substitute for designing for accessibility, privacy or energy use — those are values, not features. The healthy version of this future is not "no tooling"; it's **tooling that is optional, legible, and owned by the people who use it.**
-
-**Where ce-autoloader fits.**
-It's a small, concrete bet on that future: that the DOM is a good enough dependency graph, that the platform is allowed to win, that a component can be a URL, and that a page should only pay for what it uses. Three kilobytes of that bet is a bargain — especially if it eventually gets deleted because the browser learned to do it natively.
-
----
-
-*Written after reading the source at commit `daf6857` (v0.1.2). Keep this document honest: if something here stops being true, fix the document or fix the code — never leave the reader guessing.*

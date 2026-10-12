@@ -78,6 +78,21 @@
         mocha.setup('bdd');
     </script>
 
+    <script>
+        // Safari has never enabled `requestIdleCallback` by default — caniuse
+        // reports it "disabled by default" through Safari 27.x (TP only) — and
+        // the suites await it directly. The loader itself only needs it on the
+        // `deferDefine: true` path (`src/index.ts`), so a shim is enough to run
+        // the same suites on WebKit. Chromium and Firefox keep the native one.
+        if (!window.requestIdleCallback) {
+            window.requestIdleCallback = (callback, options) => setTimeout(
+                () => callback({ didTimeout: false, timeRemaining: () => 0 }),
+                Math.min(options?.timeout ?? 0, 50) || 1,
+            );
+            window.cancelIdleCallback = (handle) => clearTimeout(handle);
+        }
+    </script>
+
     <!-- Test suites -->
     <script type="module">import "shadow-observer";</script>
     <script type="module" src="./integration.test.js"></script>

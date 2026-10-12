@@ -402,7 +402,8 @@ class CEAutoLoader {
     // Flush any component that was defined outside of autoloader bounds
     // or is already on the queue
     if (this.options.deferDefine) {
-      requestIdleCallback(() => customElements.flush());
+      requestIdleCallback ? requestIdleCallback(() => customElements.flush())
+        : requestAnimationFrame(() => customElements.flush())
     }
 
     return []

@@ -1,9 +1,9 @@
 # Progress
 
 _2026-10-12 · `option-deferDefine` @ `cb4d025` + working tree · package 0.2.0-rc · `dist/ce-autoloader.js` = 9,833 B
-raw / **3,378 B gzip** (built 2026-10-05, **not rebuilt** since the change below) · **31 tests pass, 0 fail**
-(`tsc --noEmit` clean; the 6 in `test/shadow.test.js` cannot load — `shadow-observer` is an optional peer dep and is
-not installed) · #1, #8, #14–#18 fixed, docs trued up._
+raw / **3,378 B gzip** (built 2026-10-05, **not rebuilt** since the change below) · **37 tests pass, 0 fail on
+Chromium + WebKit + Firefox** (`tsc --noEmit` clean; `shadow-observer` is installed, so the 6 shadow tests run — the
+old "31 pass / 6 cannot load" figure is stale) · #1, #8, #14–#18 fixed, docs trued up._
 
 House rule: **one fact, one home.** `REVIEW.md` is the audit (tiers, long-form critique); the bank is the short
 version. Anything that belongs in both goes in `REVIEW.md` and is summarised here in a line.
@@ -28,8 +28,9 @@ appended with `.error` / `.stack` properties) · a catalog tag already owned by 
   Define-patch Stage 2 is **rejected** (below), so the define-patch shape is settled too.
 - **Tier 0** — completion signals (`ce:load` / `ce:error`, `whenLoaded(tag)`); a first-render throw is invisible
   (issue #13).
-- **Tier 1** — pin + `integrity`; reproducible benchmark; cross-browser matrix; stress fixture (1–2k elements) and
-  scoped rescans.
+- **Tier 1** — pin + `integrity`; reproducible benchmark; ~~cross-browser matrix~~ (**done 2026-10-12**: Playwright
+  drives the in-browser Mocha suites on Chromium + WebKit + Firefox, plus the branded `chrome` / `msedge` channels,
+  and probes the API floor per browser); stress fixture (1–2k elements) and scoped rescans.
 - **Tier 2** — the standards write-up (`WICG/webcomponents#782`); license decision.
 - The biggest adoption risk stays the global `customElements.define` patch — and it is installed on **every** path, by
   design: the *deferred queue* behind `transition` + `deferDefine`, and `polyfill_safe_ce_define` always. "Never patch at
