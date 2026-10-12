@@ -2,10 +2,11 @@
 
 ## Stack
 
-- TypeScript (`src/index.ts` + `src/types.ts`) → ESM-only. `tsconfig`: `target es2025`, `module esnext`,
-  `isolatedModules`, `strict: false`, `noUnusedLocals`; **`react` / `react-dom` are aliased to `preact/compat`**
-  (Preact is the React in this repo). Types and the `CEError` class live in `src/types.ts` now (the old ambient
-  `src/types.d.ts` is gone) — that split is what finally made `tsc --noEmit` clean.
+- TypeScript (`src/index.ts` + `src/types.ts` + `src/lifecycle.ts`) → ESM-only. `tsconfig`: `target es2025`,
+  `module esnext`, `isolatedModules`, `strict: false`, `noUnusedLocals`; **`react` / `react-dom` are aliased to
+  `preact/compat`** (Preact is the React in this repo). Types and the `CEError` class live in `src/types.ts` (the old
+  ambient `src/types.d.ts` is gone) — that split is what finally made `tsc --noEmit` clean. The `ce` lifecycle lives in
+  `src/lifecycle.ts`, an **internal seam**: it is not re-exported, so it stays out of `dist/index.d.ts`.
 - Library build: `vite.config.js` — lib mode + `vite-plugin-dts`, `formats: ["es"]`, `external: ["shadow-observer"]`.
   Only `tsconfig.json` (`include: ["src/*"]`) is used by `tsc` and the dts step. Note: the dts step writes
   `dist/dist.d.ts` even when `--outDir` points elsewhere.
@@ -27,7 +28,7 @@
 | `npm run dev`                            | docs/demo dev server, port 5173                                                                                                        |
 | `npm run build`                          | library → `dist/` (also on `prepack`); the dts step is clean today                                                                     |
 | `npx tsc --noEmit -p tsconfig.json`      | **clean** as of the `types.ts` split (issue #12 fixed)                                                                                 |
-| `npm test`                               | `scripts/run-integration-tests.js`: dev server + Playwright + in-browser Mocha, **44 tests × Chromium / WebKit / Firefox**, non-zero exit on failure |
+| `npm test`                               | `scripts/run-integration-tests.js`: dev server + Playwright + in-browser Mocha, **51 tests × Chromium / WebKit / Firefox**, non-zero exit on failure |
 | `npm run test:all`                       | same, plus the branded `chrome` / `msedge` channels — a browser that is not installed is *skipped*, and `--strict` turns a skip into a failure |
 | `gzip -c dist/ce-autoloader.js \| wc -c` | budget check: 3,467 B (10,125 B raw) — measured 2026-10-12, after the #19 fix                                                           |
 | `npm run importmap`                       | regenerates `importmap.json` (pinned + `integrity`) from `importmap.src.json` via `@jspm/generator`; needs network. Run it when a pinned version changes — `importmap.json` is generated, so hand edits are lost |

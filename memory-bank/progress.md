@@ -1,7 +1,7 @@
 # Progress
 
 _2026-10-12 · `option-deferDefine` @ `f3b0c57` + working tree · package 0.2.0-rc · `dist/ce-autoloader.js` = 10,125 B
-raw / **3,467 B gzip** (rebuilt 2026-10-12 with the #19 fix) · **44 tests pass, 0 fail on
+raw / **3,467 B gzip** (rebuilt 2026-10-12 with the #19 fix) · **51 tests pass, 0 fail on
 Chromium + WebKit + Firefox** (`tsc --noEmit` clean; `shadow-observer` is installed, so the 6 shadow tests run — the
 old "31 pass / 6 cannot load" figure is stale) · #1, #8, #10, #14–#19 fixed, docs trued up._
 
@@ -24,7 +24,8 @@ a **pinned, jspm-generated import map** (`importmap.src.json` → `npm run impor
 **`<web-vitals>`** panel in the FAQ (Core Web Vitals from `web-vitals@6.2.3` through the import map, headline is
 CrUX's pass/fail over only the metrics the engine can observe) · `test/importmap.test.js` (7 tests: the registry reads the
 page's `<script type="importmap">` when `useImportMapsCatalog` is set, merges it under `catalog`, reads only the first map and
-ignores a map added after construction).
+ignores a map added after construction) · a **`Lifecycle`** module (`src/lifecycle.ts`) owning the `ce` vocabulary and
+the "a failed element is terminal" invariant, with its own suite (`test/lifecycle.test.js`, 7 tests).
 
 ## Left
 
@@ -131,3 +132,7 @@ never painted (a `:not(:defined) { visibility: hidden }` guard from Nord's desig
 _(This refactor:)_ TS2345 gone with the `types.ts` split · error text off the DOM attributes · the fallback appends
 instead of clearing `innerHTML` · `transition` without `deferDefine` now fails loudly · load failures reported once and
 define failures no longer swallowed · the transition `finished` cleanup · README / `types.ts` / `REVIEW.md` trued up.
+
+_(Architecture review, 2026-10-12:)_ the `ce` lifecycle moved into `src/lifecycle.ts` — one module owns the vocabulary and the
+"failure is terminal" invariant, `loadAndDefine` filters failed elements once, and the three read sites ask the module instead of
+comparing strings · `_resolvers`, an unused destructure and 40 lines of commented-out `runViewTransition` deleted.

@@ -1,6 +1,7 @@
 import type { Catalog, Loader, Options, Directives, LoadError, LoadResult } from './types';
 export type { Catalog, Loader, Options, Directives, LoadError, LoadResult }
 import { CEError } from './types'
+import { beginLoading, hasFailed, markDefined, markFailed } from './lifecycle';
 
 /** Helpers */
 function isCustomElement(element: Element) {
@@ -94,9 +95,6 @@ function matchCustomElement(root: Element) {
 class CEAutoLoader {
   options: Options;
   catalog: Catalog;
-
-  // Resolvers matched against tags at runtime.
-  _resolvers: Record<string, Loader> = {};
 
   // Mutation and Interaction Observers
   #observers: Record<string, MutationObserver | IntersectionObserver> = {};
@@ -192,7 +190,7 @@ class CEAutoLoader {
       // Skip mutations on elements that failed to load.
       // ShadowRoot is not an Element, so the instanceof check fails gracefully
       // and mutations from inside shadow roots are still processed.
-      if (target instanceof Element && (target as Element).getAttribute('ce') === 'error') {
+      if (target instanceof Element && hasFailed(target)) {
         continue;
       }
 
@@ -250,7 +248,7 @@ class CEAutoLoader {
   * e.g. "nord-button" -> "nord-*"
   */
   private getWildcardResolver(name: string): Loader | null {
-    const [prefix, _comp_name] = name.split("-");
+    const [prefix] = name.split("-");
     return this.catalog?.[`${prefix}-*`] ?? null;
   }
 
@@ -311,7 +309,7 @@ class CEAutoLoader {
         // Don't retry a component that already failed: `ce="error"` is the
         // "already reported" marker. Without this, re-entering the viewport
         // would load it again and append a second fallback.
-        .filter((el) => el.getAttribute("ce") !== "error")
+        .filter((el) => !hasFailed(el))
         .filter((el) => !this.loading_locks[el.tagName])
 
       if (html_elements.length > 0) {
@@ -376,6 +374,9 @@ class CEAutoLoader {
    *
    */
   private async loadAndDefine(elements: HTMLElement[]) {
+    // A failed element is terminal: never fetch it again, never report it twice.
+    elements = elements.filter((el) => !hasFailed(el));
+
     if (elements.length === 0) {
       return [];
     }
@@ -426,7 +427,8 @@ class CEAutoLoader {
 
     try {
       this.loading_locks[el.tagName] = el;
-      el.setAttribute("ce", "loading");
+      // A failed element is terminal; `loadAndDefine` filters those out first.
+      beginLoading(el);
 
       module = await this.loadModule(name, loader);
     } catch (error: any) {
@@ -484,7 +486,7 @@ class CEAutoLoader {
         customElements.define(name, module, {});
       }
 
-      el?.setAttribute("ce", "defined");
+      markDefined(el);
 
     } catch (error: any) {
       define_error = error;
@@ -517,9 +519,9 @@ class CEAutoLoader {
 
     // A tag not in catalog was never ours to load, so it's not a failure:
     if (!this.getLoader(name) && !this.options.devErrors) return;
-    if (origin.getAttribute('ce') === 'error') return;
+    if (hasFailed(origin)) return;
 
-    origin.setAttribute("ce", "error");
+    markFailed(origin);
     if (this.options.fallback) {
       const fallback_instance = new this.options.fallback!();
 
@@ -531,45 +533,6 @@ class CEAutoLoader {
       origin.appendChild(fallback_instance);
     }
   }
-
-  /**
- * Perform a view transition of `components`
- */
-  // private async runViewTransition(components: LoadResult[], defineFunction: () => Promise<void>) {
-  //   const elements = components.map(({ el }) => {
-  //     const transitionName = el.getAttribute("view-transition-name") || el.tagName;
-  //     const transitionClass = el.getAttribute("view-transition-class") || 'ce';
-
-  //     if (transitionName) {
-  //       el.style.viewTransitionName = transitionName;
-  //     }
-  //     if (transitionClass) {
-  //       el.style.viewTransitionClass = transitionClass;
-  //     }
-
-  //     return el;
-  //   });
-
-  //   if (this.activeTransition) {
-  //     await this.activeTransition.finished;
-  //   }
-
-  //   this.activeTransition = document.startViewTransition({ types: ['ce'], update: async () => await defineFunction() });
-  //   if (this.options.hooks?.viewTransition?.ready) {
-  //     this.activeTransition.ready.then(() => this.options.hooks.viewTransition.ready(this.activeTransition));
-  //   }
-
-  //   await this.activeTransition.updateCallbackDone;
-
-  //   this.activeTransition.finished.then(() => {
-  //     elements.map((el) => {
-  //       el.style.viewTransitionName = "";
-  //       el.style.viewTransitionClass = "";
-  //     });
-  //     this.options.hooks?.viewTransition?.finished(this.activeTransition)
-  //   })
-
-  // }
 
   /**
    * Perform a scoped element transition

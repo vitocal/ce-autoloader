@@ -33,7 +33,7 @@ One sentence: **`<script type="module">` plus a catalog map, and the DOM becomes
 ### Numbers we verified
 
 - **3,467 bytes gzipped** for the main bundle (`gzip -c dist/ce-autoloader.js`, measured 2026-10-12) — the "3kb, no dependencies" claim holds. (10,125 bytes raw.)
-- **Two source files** (`src/index.ts` + `src/types.ts`), 821 lines of readable TypeScript, zero runtime dependencies in the shipped entry.
+- **Three source files** (`src/index.ts`, `src/types.ts`, `src/lifecycle.ts`), 866 lines of readable TypeScript, zero runtime dependencies in the shipped entry.
 - The React / Vue / Svelte / Lit / Stencil / vanilla claim is **real**: it's verified by the demo catalogs, not marketing.
 
 That combination — tiny, standards-only, framework-agnostic — is the heart of the project's appeal.

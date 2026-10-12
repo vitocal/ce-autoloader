@@ -28,6 +28,17 @@ reworked — and as of this pass the README and `types.ts` match it.**
   `test/importmap.test.js` (7 tests: load from the map, ignore by default, dashed-names-only, merge + catalog wins, first-map-wins,
   late map ignored, no map at all) and `npm test` **44 × 3 green**; `tsc --noEmit` clean. `dist/` rebuilt →
   **10,125 B raw / 3,467 B gzip**.
+- ✅ **`ce` lifecycle extracted into `src/lifecycle.ts` (2026-10-12).** An architecture review — hot spot: `src/index.ts`, changed
+  in 35 of the last 60 commits — picked the one concept the class never had a module for: the `ce` state machine, which is both
+  the public styling contract *and* the "already reported" flag. **Settled design:** the module owns the vocabulary and
+  *enforces* the invariant — `beginLoading(el)` refuses to move a failed element back to `loading`, so the flag cannot be erased
+  (that overwrite is exactly what caused #18). Mechanism only: the registry still decides *whether* a failure is ours to paint and
+  still appends the fallback. An **internal seam** — not re-exported, so `dist/index.d.ts` is unchanged. `loadAndDefine` filters
+  failed elements once at the top; the three read sites (`dom_watcher`, `when_visible`, `handleComponentLoadError`) call
+  `hasFailed` instead of comparing strings. New suite `test/lifecycle.test.js` (7 tests, the invariant included); the 15 existing
+  `getAttribute("ce")` assertions were **not touched** and still pass. Suite count 44 → **51 × 3 green**, `tsc --noEmit` clean.
+  Also removed while in there: `_resolvers` (dead), an unused destructure, and 40 lines of commented-out `runViewTransition`
+  (713 → 676 lines). `GLOSSARY.md` created.
 
 - ✅ **`<web-vitals>` on the docs home page (2026-10-12)** — the FAQ's stale Lighthouse screenshot is now a live
   Core Web Vitals panel (`pages/components/web-vitals.js`, catalog entry `"web-vitals"`, `loading="eager"`). Every

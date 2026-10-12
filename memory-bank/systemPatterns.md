@@ -53,9 +53,14 @@ component reports (issue #20). Diagnostic-only — the element upgrades normally
 
 ## Failures
 
-`handleComponentLoadError`: `origin = rejection.reason.details.el`; `hooks.error` runs (when set); already painted
-(`ce="error"`) → return. Then `if (!getLoader(name) && !devErrors) return` — a tag the catalog does not own is left
-`:not(:defined)`. Otherwise paint: `ce="error"`, then `new fallback()` with `.error` / `.stack` set as properties and
+Every `ce` transition goes through `src/lifecycle.ts` (`beginLoading` / `markDefined` / `markFailed` / `hasFailed`), which owns
+the vocabulary and enforces the invariant that **failure is terminal**: `beginLoading` refuses to move a failed element back to
+`loading`, so the "already reported" flag cannot be erased and the failure cannot be reported twice. `loadAndDefine` also filters
+failed elements once, at the top, so a re-intersection costs no fetch.
+
+`handleComponentLoadError`: `origin = rejection.reason.details.el`; `hooks.error` runs (when set); already failed
+(`hasFailed(origin)`) → return. Then `if (!getLoader(name) && !devErrors) return` — a tag the catalog does not own is left
+`:not(:defined)`. Otherwise paint: `markFailed(origin)`, then `new fallback()` with `.error` / `.stack` set as properties and
 `appendChild` (light DOM is preserved; nothing clears `innerHTML`). There is no `#errors` map any more — the paint
 itself is the "already reported" flag.
 
@@ -88,7 +93,8 @@ the transition's `update` callback.
 
 ## Conventions to keep
 
-`ce` values and measure names are public contract · option defaults live in one object in the constructor · one shared
+`ce` values and measure names are public contract · **every `ce` transition goes through `src/lifecycle.ts` — never compare the
+attribute to a string literal** · option defaults live in one object in the constructor · one shared
 IntersectionObserver · no runtime dependencies · capability checks instead of polyfills, with a plain-define fallback ·
 `devErrors` never gates the hook · `transition` implies `deferDefine` · match the file you edit instead of reformatting
 it.
