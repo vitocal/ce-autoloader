@@ -1,6 +1,5 @@
 import path from "path";
 import { dirname, resolve, basename } from "node:path";
-import { fileURLToPath } from "node:url";
 import { readdirSync, statSync } from "fs";
 
 import { defineConfig } from "vite";
@@ -13,7 +12,7 @@ import stencil from "@stencil-community/unplugin-stencil/vite";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 
 const BASE = process.env.NODE_ENV === "production" ? "/ce-autoloader/" : "/";
-import importmap from "./importmap.json";
+import importmap from "./importmap.json" with { type: "json" };
 
 function collectEntries(dir, fileExt = `.ts`) {
   const entries = {};
@@ -51,7 +50,7 @@ export default defineConfig({
   appType: "mpa",
   resolve: {
     alias: {
-      "@": resolve(__dirname, "pages"),
+      "@": resolve(import.meta.dirname, "pages"),
     },
   },
   optimizeDeps: {
@@ -69,9 +68,9 @@ export default defineConfig({
     rollupOptions: {
       external: Object.keys(importmap),
       input: {
-        main: resolve(__dirname, "index.html"),
-        ...collectEntries(path.resolve(__dirname, "pages/"), ".html"),
-        ...collectEntries(path.resolve(__dirname, "test/"), ".html"),
+        main: resolve(import.meta.dirname, "index.html"),
+        ...collectEntries(path.resolve(import.meta.dirname, "pages/"), ".html"),
+        ...collectEntries(path.resolve(import.meta.dirname, "test/"), ".html"),
       },
       output: {
         chunkFileNames: "chunks/[name].js",
