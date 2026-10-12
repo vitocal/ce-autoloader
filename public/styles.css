@@ -540,6 +540,9 @@ footer {
     vertical-align: middle;
     position: relative;
 
+    outline: none;
+    color: var(--color-fg);
+
     --bg-color: color-mix(in srgb, var(--color-fg) 5%, transparent);
     --bg: repeating-linear-gradient(
       45deg,
@@ -548,9 +551,6 @@ footer {
       transparent 10px,
       transparent 20px
     );
-
-    outline: none;
-    color: var(--color-fg);
     background-image: var(--bg);
     background-position: 0 0;
 
@@ -565,24 +565,32 @@ footer {
     & :not(:defined) {
       visibility: hidden;
     }*/
+  }
+
+  [ce] {
+    overflow: clip;
+
+    &::after {
+      content: " ";
+      opacity: 0;
+      position: absolute;
+      inset: 0;
+
+      transform: translateX(-100%);
+      width: 100%;
+
+      background: linear-gradient(to right, transparent 10%, var(--color-bg-dark) 50%, transparent 90%);
+      will-change: transform;
+      animation: shimmer 1.5s ease-in-out infinite;
+      transition: opacity 1s ease-in-out;
+    }
 
     &[ce="loading"] {
       cursor: wait;
       overflow: hidden !important;
       opacity: 0.85;
-
       &::after {
-        pointer-events: none;
-        content: " ";
-        position: absolute;
-        inset: 0;
-
-        transform: translateX(-100%);
-        width: 100%;
-
-        background: linear-gradient(to right, transparent 10%, var(--color-bg-dark) 50%, transparent 90%);
-        will-change: transform;
-        animation: shimmer 1.5s ease-in-out infinite;
+        opacity: 1;
       }
     }
 
@@ -593,10 +601,19 @@ footer {
       & > :not(:defined) {
         display: none;
       }
+      &::after {
+        display: none;
+        opacity: 0;
+      }
     }
 
     &[ce="defined"] {
       opacity: 1;
+      &::after {
+        opacity: 0;
+        animation: none;
+        display: none;
+      }
     }
   }
 
