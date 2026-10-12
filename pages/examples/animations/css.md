@@ -17,9 +17,14 @@ documents the CSS side of ce-autoloader. The
 
 <div class="demo">
   <el-notloaded>:not(:defined)</el-notloaded>
+  <span class="text-slate-500">→</span>
   <div class="ce" ce="loading">Loading...</div>
-  <div class="ce" ce="defined">Defined!</div>
-  <div class="ce" ce="error">Error!</div>
+  <span class="text-slate-500">→</span>
+  <div>
+    <div class="ce" ce="defined">Defined!</div>
+    <span class="text-slate-500"or</span>
+    <div class="ce" ce="error">Error!</div>
+  </div>
 </div>
 
 ```css
