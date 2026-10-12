@@ -123,32 +123,6 @@
       margin-top: 1rem;
     }
 
-    /**
-       * View transitions
-       */
-
-    ::view-transition-group(*) {
-      animation-duration: 1s;
-    }
-
-    /** Grow with content */
-    ::view-transition-old(*) {
-      width: auto;
-      height: 100%;
-      object-fit: none;
-      object-position: top left;
-    }
-
-    ::view-transition-new(*) {
-      width: auto;
-      height: 100%;
-      object-fit: none;
-      object-position: top left;
-    }
-
-    ::view-transition-group(*) {
-      overflow: clip;
-    }
   </style>
   <link rel="stylesheet" href="styles.css" />
 
@@ -186,7 +160,7 @@
         </p>
       </div>
 
-      <hero-example view-transition-name="hero-example" loading="eager"></hero-example>
+      <hero-example loading="eager"></hero-example>
     </div>
 
     <div class="" id="about">
@@ -215,8 +189,8 @@
           compiler/bundler.
         </li>
         <li>
-          <strong>Polished Animations</strong>: Use the lifecycle states and View Transitions API to animate
-          components as they load/render, providing a smooth and polished user experience.
+          <strong>Polished Animations</strong>: Animate components as they load with the <code>ce</code> lifecycle
+          states and plain CSS, providing a smooth and polished user experience.
         </li>
         <li>
           <strong>Smart Scheduling</strong>: Automatically batches into a single animation frame to prevent
@@ -286,10 +260,6 @@ const registry = new CERegistry({
         <li>
           <a href="pages/examples/mfe-store/"> Micro-Frontends + Vite</a>
           Framework agnostic Tractor Store with Vite + Preact store
-        </li>
-        <li>
-          <a href="pages/demos/view-transition.html"> View Transition Example </a>
-          Animations using View Transition
         </li>
         <li>
           <a href="pages/examples/animations/a-b_testing.html"> A/B Testing </a>
@@ -397,7 +367,7 @@ const registry = new CERegistry({
               <vi-example class="card w-full">
                 <!-- prettier-ignore -->
                 <div slot="example" class="flex-y">
-                  <three-cube loading="click" view-transition-name="three-cube">
+                  <three-cube loading="click">
                     Click to load
                   </three-cube>
                 </div>
@@ -473,7 +443,7 @@ const registry = new CERegistry({
 
         <div class="flex-x" style="align-items: end">
           <figure>
-            <nord-qrcode value="https://vitocal.github.io/ce-autoloader/" view-transition-name="qr-code"></nord-qrcode>
+            <nord-qrcode value="https://vitocal.github.io/ce-autoloader/"></nord-qrcode>
             <figcaption>
               <code>&lt;nord-qrcode&gt;</code>
             </figcaption>
@@ -580,7 +550,7 @@ const registry = new CERegistry({
                 final "fade-in" or entrance animation.
               </p>
 
-              <vi-defined view-transition-name="vi-defined"></vi-defined>
+              <vi-defined></vi-defined>
             </div>
           </div>
         </div>
@@ -589,36 +559,13 @@ const registry = new CERegistry({
         <hr />
         <br />
 
-        <p>
-          The CSS <strong>View Transitions API</strong> are supported out of the box, and allow to create a seamless
-          transition when the component is defined. Check out the
-          <a href="pages/demos/view-transition.html">demo below</a>.
+        <p class="n-color-text-weaker">
+          <strong>Experimental (alpha):</strong> the opt-in <code>transition</code> option wraps the definition in an
+          element-scoped <code>Element.startViewTransition()</code>. Element-scoped view transitions are
+          <strong>Chromium 147+ only</strong> — Firefox and Safari fall back to a plain define, so the component still
+          loads, it just doesn't animate — and the option may change without notice. Prefer the <code>ce</code> lifecycle
+          states above, which work everywhere.
         </p>
-
-        <!--
-        <div style="height: min(100dvh, 640px)">
-          <iframe src="pages/demos/view-transition.html" frameborder="0" style="width: 100%; height: 100%"
-            loading="lazy"></iframe>
-        </div>
-        -->
-
-        <!--
-        <div class="callout info">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-            class="lucide lucide-info" aria-hidden="true">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M12 16v-4"></path>
-            <path d="M12 8h.01"></path>
-          </svg>
-          <div>
-            The CSS <strong>view transitions</strong> are supported, allowing a seamless transition between loading
-            and defined states.
-
-
-          </div>
-        </div>
-      -->
 
         <!-- prettier-ignore
           <vi-example class="equal-size">
@@ -693,7 +640,7 @@ const registry = new CERegistry({
           -->
 
         <div class="card">
-          <performance-metrics-plot view-transition-name="performance-metrics-plot"></performance-metrics-plot>
+          <performance-metrics-plot></performance-metrics-plot>
         </div>
       </div>
 

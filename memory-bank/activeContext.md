@@ -39,6 +39,12 @@ reworked — and as of this pass the README and `types.ts` match it.**
   `getAttribute("ce")` assertions were **not touched** and still pass. Suite count 44 → **51 × 3 green**, `tsc --noEmit` clean.
   Also removed while in there: `_resolvers` (dead), an unused destructure, and 40 lines of commented-out `runViewTransition`
   (713 → 676 lines). `GLOSSARY.md` created.
+- ✅ **View transitions demoted to alpha in the docs (2026-10-12).** `Element.startViewTransition` (element-scoped, which
+  `transition: true` requires) is Chromium 147+ with no Firefox or Safari, so the docs stop promoting it: `index.html` lost the
+  `::view-transition-*` CSS, five `view-transition-name` attributes, the demo link, the promo paragraph and the commented-out
+  iframe/callout; the README's `### View Transitions` section is now a **"alpha — not recommended for production"** caveat, and
+  the `transition` option comment says EXPERIMENTAL. The CSS-animation path (`ce` states + plain CSS) is the supported one. The
+  `pages/demos/view-transition.html` page still exists, now reached from the CSS reference with the same caveat.
 
 - ✅ **`<web-vitals>` on the docs home page (2026-10-12)** — the FAQ's stale Lighthouse screenshot is now a live
   Core Web Vitals panel (`pages/components/web-vitals.js`, catalog entry `"web-vitals"`, `loading="eager"`). Every

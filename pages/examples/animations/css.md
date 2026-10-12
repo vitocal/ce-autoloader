@@ -2,8 +2,9 @@
 
 Every step of a lazily loaded component's life is exposed as an attribute (or a platform pseudo-class),
 so most of the polish — skeletons, spinners, fades, error states — needs no JavaScript at all. This page
-documents the CSS side of ce-autoloader; the
-[view transition demo](/pages/demos/view-transition.html) covers the advanced morphing animation.
+documents the CSS side of ce-autoloader. The
+[view transition demo](/pages/demos/view-transition.html) covers the experimental morphing animation — an opt-in
+`transition: true` path that is Chromium 147+ only and likely to change.
 
 ## Default CSS selectors
 

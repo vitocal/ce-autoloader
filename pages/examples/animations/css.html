@@ -63,9 +63,11 @@
     }
 
     .demo {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
+      display: grid;
+      justify-content: space-evenly;
+      align-content: center;
+      grid-auto-flow: column;
+
       gap: 1em;
       min-height: 3em;
 
@@ -84,27 +86,51 @@
       transition: opacity var(--duration) ease;
     }
 
-    /* 2. Loading state (module is fetching) */
-    [ce="loading"] {
-      position: relative;
-      overflow: hidden;
-      filter: none;
-      opacity: 0.75;
-    }
+    [ce] {
 
-    /* Skeleton Shimmer */
-    [ce="loading"]::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      transform: translateX(-100%);
-      background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.2), transparent);
-      animation: shimmer 1.5s infinite;
-    }
+      /* Skeleton Shimmer */
+      &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transform: translateX(-100%);
+        background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.2), transparent);
+        animation: shimmer 1.5s infinite;
 
-    [ce="error"] {
-      outline: 1px solid red;
-      color: red;
+        transition: opacity var(--duration) ease;
+      }
+
+      /* 2. Loading state (module is fetching) */
+      &[ce="loading"] {
+        position: relative;
+        overflow: hidden;
+        filter: none;
+        opacity: 0.75;
+
+        &::after {
+          opacity: 1;
+        }
+      }
+
+      &[ce="defined"] {
+        &::after {
+          opacity: 0;
+          pointer-events: none;
+        }
+      }
+
+
+      &[ce="error"] {
+        outline: 1px solid red;
+        color: red;
+
+        &::after {
+          opacity: 0;
+          pointer-events: none;
+          display: none;
+        }
+      }
     }
 
     @keyframes shimmer {
@@ -133,7 +159,6 @@
   <!-- 3. Use CSS animations for the last defined state -->
   <style>
     .ce[ce="defined"] {
-      animation: pop-in 1.5s ease-out;
       height: calc-size(auto, size);
     }
 

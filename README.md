@@ -28,7 +28,7 @@ The ce-autoloader is a lightweight library to lazy-load Web Components on demand
 - Universal: Anything that exports a Web Component works (React, Vue, Lit, Svelte, etc.).
 - Shared Catalog: Define your components in a single place and re-use it across multiple pages.
 - Custom Loader Strategy: Use loading attribute to customize when a component should be loaded.
-- Polished Animations: Use the lifecycle states and [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API) to animate components as they load/render.
+- Polished Animations: Animate components as they load with the `ce` lifecycle states and plain CSS — no JavaScript required.
 - Smart Scheduling: A batch of components loads together and defines together, so the DOM upgrades once instead of one element at a time. With `deferDefine`, definitions are queued and flushed on an idle callback.
 - Native Telemetry: Built-in performance markers for every stage of the lifecycle, deep visibility into load times.
 - Error Handling: Define a custom fallback component to show when a module fails to load.
@@ -100,8 +100,9 @@ const registry = new CERegistry({
   defaultDirective: "visible",
   /* Options for the IntersectionObserver backing the `visible` directive */
   intersectionOptions: { rootMargin: "20%" },
-  /* Use the View Transitions API to morph the placeholder into the component.
-     Requires `deferDefine: true` and element-scoped view transitions (Chromium 147+).
+  /* EXPERIMENTAL (alpha) — wrap the definition in an element-scoped view transition so
+     the placeholder morphs into the component. Requires `deferDefine: true` and
+     element-scoped view transitions (Chromium 147+ only). May change without notice.
      (default: false) */
   transition: false,
   /* Queue `customElements.define` for catalog tags during a load, so a component
@@ -201,15 +202,14 @@ The loader needs a minimum of [baseline widely available(30 months)](https://dev
 
 Two features are opt-in (`deferDefine` and `transition`) and feature-detected, so a browser without them still works.
 
-### View Transitions
+### View Transitions (experimental)
 
-With `transition: true` (which requires `deferDefine: true`), `ce-autoloader` wraps the component definition in an element-scoped `Element.startViewTransition()` tagged `types: ["ce"]`, so the placeholder can morph into the interactive component. Element-scoped view transitions are Chromium 147+ only; Firefox and Safari fall back to a plain define — the component still loads, it just doesn't animate.
-
-You can customize the transition per-element using attributes:
-
-```html
-<my-chart loading="visible" view-transition-name="main-chart" view-transition-class="slide-up"> </my-chart>
-```
+> **Alpha — not recommended for production.** The opt-in `transition` option wraps the component definition in an
+> element-scoped `Element.startViewTransition()` tagged `types: ["ce"]`, so a placeholder can morph into the interactive
+> component. Element-scoped view transitions are **Chromium 147+ only**; Firefox and Safari fall back to a plain define, so
+> the component still loads — it just doesn't animate. The option and the attribute contract may change without a major
+> version bump. Prefer the [lifecycle states](#css-styling--lifecycle-states) above: they work in every browser and need no
+> JavaScript.
 
 ## Shadow DOM
 
