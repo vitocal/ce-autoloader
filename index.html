@@ -122,7 +122,6 @@
       width: 100%;
       margin-top: 1rem;
     }
-
   </style>
   <link rel="stylesheet" href="styles.css" />
 
@@ -490,6 +489,52 @@ const registry = new CERegistry({
         </div>
       </div>
 
+      <div id="hairline-ui">
+        <h2>
+          Real Components
+          <span class="n-color-text-weaker">& Lazy Loading</span>
+        </h2>
+        <h3 class="n-color-text-weaker">Third-party React components, on demand, as custom elements.</h3>
+        <hr />
+
+        <p>
+          <a href="https://hairlineui.com/ui/command-output">Hairline UI</a>'s components are React, and
+          this page runs them as tags. Each is wrapped with
+          <a href="https://github.com/bitovi/react-to-web-component">react-to-web-component</a>, which
+          turns a component's props into attributes, and registered in the catalog like any other
+          element — so nothing is fetched until the tag appears:
+          <code>command-output</code> pulls <code>text-morph</code> and <code>number-roll</code> in as
+          its dependencies, and no tag on this page costs anything before it is used.
+        </p>
+
+        <div class="ce-demo__grid" style="margin-top: 2rem">
+          <figure>
+            <text-morph id="hairline-morph" text="Save"></text-morph>
+            <figcaption><code>&lt;text-morph text="Saving"&gt;</code></figcaption>
+          </figure>
+          <figure>
+            <number-roll id="hairline-roll" value="1299.5" format='{"style":"currency","currency":"USD"}'></number-roll>
+            <figcaption><code>&lt;number-roll value="1299.5" format="…"&gt;</code></figcaption>
+          </figure>
+        </div>
+
+        <div class="ce-demo__grid" style="margin-top: 2rem">
+          <command-output id="hairline-pass" command="pnpm test" status="running" lines="[]"
+            on-stop="ceCommandStop"></command-output>
+          <command-output id="hairline-fail" command="pnpm build" status="running" lines="[]"
+            on-stop="ceCommandStop"></command-output>
+        </div>
+
+        <div class="ce-demo__actions" style="margin-top: 1.5rem">
+          <button type="button" class="ce-demo__replay" id="hairline-replay">Run them again</button>
+          <span class="ce-demo__note">
+            The log streams in through the <code>lines</code> attribute, as JSON. Stop cancels a run; the
+            passing log folds away, the failing one stays open with its error line marked — and the
+            status word, the exit code and the timer morph as it goes.
+          </span>
+        </div>
+      </div>
+
       <div id="lifecycle">
         <h2>
           Animations
@@ -613,7 +658,8 @@ const registry = new CERegistry({
           <strong>Experimental (alpha):</strong> the opt-in <code>transition</code> option wraps the definition in an
           element-scoped <code>Element.startViewTransition()</code>. Element-scoped view transitions are
           <strong>Chromium 147+ only</strong> — Firefox and Safari fall back to a plain define, so the component still
-          loads, it just doesn't animate — and the option may change without notice. Prefer the <code>ce</code> lifecycle
+          loads, it just doesn't animate — and the option may change without notice. Prefer the <code>ce</code>
+          lifecycle
           states above, which work everywhere.
         </p>
 

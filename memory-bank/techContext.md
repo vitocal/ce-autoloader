@@ -12,7 +12,9 @@
   `dist/dist.d.ts` even when `--outDir` points elsewhere.
 - Docs build: `vite.docs.js` — Vite MPA, `base: /ce-autoloader/` in production, output `docs/`, plugins for Vue,
   Svelte (`customElement: true`), Preact and import maps. The Stencil plugin is imported but never registered (issue
-  #9). The import-map plugin is local now (`scripts/vite-plugin-importmap.js`, replacing `importmap-vite-plugin`, which
+  #9). Tailwind v4 (`@tailwindcss/vite`) is in the build as well, but only for
+  `pages/components/hairline/hairline.css` — the Hairline UI demo components; the layer order it needs is the
+  gotcha below. The import-map plugin is local now (`scripts/vite-plugin-importmap.js`, replacing `importmap-vite-plugin`, which
   could only emit an `imports` object) because the page needs the whole `{ imports, integrity }` map inside one
   `<script type="importmap">`. Its input, `importmap.json`, is **generated** from `importmap.src.json` by
   `npm run importmap` (`@jspm/generator`).
@@ -92,6 +94,13 @@ the CI entry point; it needs network (Mocha from unpkg, `uhtml` from esm.sh).
 - `?autoload` in the module URL boots `window.registry` from the import map — a module-scope side effect. It sets `useImportMapsCatalog: true`, which makes the import map *the* catalog; on the default path the import map is harvested too, with `catalog` winning on a collision (#19 fixed 2026-10-12).
 - Prettier is configured for 2 spaces, double quotes and 120 columns; the source does not follow it consistently, so
   match the file you are editing.
+- **Tailwind's layers are positioned by `public/styles.css`, not by the component that imports Tailwind.** The
+  Hairline UI components (`pages/components/hairline/`) bring Tailwind v4 into the docs build, and the page's
+  layer statement puts `theme` early (or Tailwind's `--radius-*`/`--shadow-*`/`--font-mono` would beat the page's
+  own values) and `utilities` late (or the page's `code` rule — a dark pill — and Nord's typeset would beat the
+  components'). The leftover collision is `.grid`: shared.css's is a *column* grid the "Get started" steps rely
+  on, Tailwind's is `display: grid`, so `hotfix` re-states the page's version and `hairline.css` puts the
+  components' back to the row default — which the log's `0fr → 1fr` fold needs.
 - **`node` / `npm` are not on the default shell `PATH`** in a fresh shell (`zsh: command not found: node`). The Homebrew
   binaries are at `/opt/homebrew/bin/node` (v25.8.1) — use the absolute path, or `export PATH=/opt/homebrew/bin:$PATH`.
   Playwright's browsers are installed under `~/Library/Caches/ms-playwright` (chromium 1248 / firefox 1555 / webkit 2370),

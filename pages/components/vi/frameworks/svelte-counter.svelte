@@ -19,7 +19,9 @@
   </h3>
   <div class="controls">
     <button type="button" on:click={decrement}>-</button>
-    <span class="count">{$counter}</span>
+    <span class="count">
+      <number-roll value={$counter}></number-roll>
+    </span>
     <button type="button" on:click={increment}>+</button>
   </div>
 </div>

@@ -16,3 +16,12 @@ declare module "virtual:importmap" {
 
 /** The demos guard on `process` for bundler-agnostic builds; no @types/node here. */
 declare const process: { env: Record<string, string | undefined> };
+
+/**
+ * The Hairline UI demo's Stop handler. r2wc resolves a function prop from an
+ * attribute by looking the attribute's value up on `window`
+ * (`on-stop="ceCommandStop"` → `window.ceCommandStop`, bound to the element).
+ */
+interface Window {
+  ceCommandStop?: (this: HTMLElement) => void;
+}

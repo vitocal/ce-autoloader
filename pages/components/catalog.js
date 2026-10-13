@@ -39,6 +39,17 @@ let catalog = {
 
   "react-example": () => import("./vi/react-example.tsx"),
 
+  /**
+   * Hairline UI (index.html → `#hairline-ui`): React sources, kept as they ship
+   * and wrapped with r2wc, so the browser only ever sees three tags.
+   *
+   * `command-output` imports the other two, so one fetch covers all three
+   * whenever it is the tag on the page.
+   */
+  "text-morph": () => import("./hairline/text-morph.tsx"),
+  "number-roll": () => import("./hairline/number-roll.tsx"),
+  "command-output": () => import("./hairline/command-output.tsx"),
+
   "react-counter": () => import("./vi/frameworks/react-counter.tsx"),
   "svelte-counter": () => import("./vi/frameworks/svelte-counter.svelte"),
   "vue-counter": async (name) => {

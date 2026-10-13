@@ -1,4 +1,19 @@
-@layer normalize, ds, shared, page, components, scoped, hotfix;
+/**
+ * Layer order. `properties`, `theme` and `utilities` are Tailwind's (the Hairline
+ * UI components in pages/components/hairline/); they have to sit *below* the
+ * page's own layers except for two exceptions, both deliberate:
+ *
+ *   - `theme` comes early: Tailwind's default theme re-declares `--radius-*`,
+ *     `--shadow-*` and `--font-mono`, which this page defines itself.
+ *   - `utilities` comes just before `hotfix`, so the components' classes outrank
+ *     the page's `code` rule and Nord's typeset, while `hotfix` stays the top
+ *     layer for page-level fixes.
+ *
+ * `properties` is Tailwind's `@property` fallback for engines without `@property`
+ * support, and it has to be first, or those initial values would clobber the
+ * custom properties the utilities set.
+ */
+@layer properties, theme, normalize, ds, shared, page, components, scoped, utilities, hotfix;
 @import "https://nordcdn.net/ds/css/5.0.1/nord.min.css" layer(ds);
 @import "./shared.css" layer(shared);
 
@@ -955,6 +970,18 @@ footer {
 }
 
 @layer hotfix {
+  /**
+   * Tailwind ships a `.grid` of its own (display only), and the Hairline UI
+   * components pull it in. This page's `.grid` (shared.css) is a *column* grid —
+   * the "Get started" steps sit side by side because of it — so it is re-stated
+   * here, above `utilities`. The components' own grids are put back to the row
+   * default inside pages/components/hairline/hairline.css.
+   */
+  .grid {
+    grid-auto-flow: column;
+    align-items: center;
+  }
+
   nord-table {
     all: revert-layer !important;
   }

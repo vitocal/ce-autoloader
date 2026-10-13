@@ -22,7 +22,9 @@ const ReactCounter = () => {
         <button type="button" onClick={decrement}>
           -
         </button>
-        <span className="count">{counter.value}</span>
+        <span className="count">
+          <number-roll value={counter.value} ></number-roll>
+        </span>
         <button type="button" onClick={increment}>
           +
         </button>

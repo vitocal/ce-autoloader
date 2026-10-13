@@ -1,8 +1,7 @@
 # Active context
 
-_2026-10-12 · branch `defined-ready` @ `616cc8b`, plus working-tree changes across `src/index.ts`, the landing page's
-lifecycle demo (`index.html`, `public/styles.css`, `pages/components/ce-reveal.js`), the hero, the tests, the docs,
-the import map (`importmap.src.json` → `importmap.json`) and this bank._
+_2026-10-13 · branch `defined-ready` @ `b1c7127`, plus working-tree changes across `index.html`, `public/styles.css`,
+`vite.docs.js`, `package.json` (Tailwind) and `pages/components/` (the Hairline UI demo), and this bank._
 
 ## Right now
 
@@ -11,6 +10,29 @@ the import map (`importmap.src.json` → `importmap.json`) and this bank._
 reworked — and as of this pass the README and `types.ts` match it. The `ce` walk is now three states plus `error`:
 `ready` is gone (below), so `defined` is written in the upgrade frame and is terminal.**
 
+- ✅ **Three Hairline UI components on the landing page (2026-10-13).** `text-morph`, `number-roll` and
+  `command-output` are the upstream React sources, kept as they ship, wrapped with `r2wc`
+  (`pages/components/hairline/`) and registered in the catalog — so the demo *is* the feature it demonstrates:
+  `command-output` pulls the other two in as dependencies, and nothing is fetched until the tag scrolls into
+  view. Two deviations from upstream, both in the generator that wrote the files: `lucide-react` is replaced by
+  an inlined `icons.tsx` (no React icon package in this repo), and `useSyncExternalStore` loses React's third
+  argument (preact/compat takes two — in its types *and* at runtime). The Stop button is the interesting bit:
+  r2wc resolves a *function* prop by looking the attribute's **value** up on `window`, so
+  `on-stop="ceCommandStop"` in the HTML plus a named global in `pages/components/hairline/demo.ts` are the whole
+  wiring. Everything else is attributes — `status`, `lines` as JSON, `started-at`, `exit-code`, `ended-at` —
+  which is what a server-rendered page would write.
+- ✅ **Tailwind v4 in the docs build (2026-10-13).** `@tailwindcss/vite` plus a `hairline.css` that imports
+  `theme.css`/`utilities.css` **without preflight** (this page has its own reset and typeset) and maps the
+  shadcn-style tokens the components read (`--background`, `--muted`, `--border`, `--ring`, …) onto the page
+  palette via `@theme`. **The layer order is the page's job**: `styles.css` now declares
+  `properties, theme, normalize, ds, shared, page, components, scoped, utilities, hotfix` — `theme` early, or
+  Tailwind's `--radius-*`/`--shadow-*` would beat the page's own; `utilities` late, or the page's `code` rule (a
+  dark pill) would beat the components'. One collision is left over: `.grid` — shared.css's is a *column* grid
+  the "Get started" steps depend on, Tailwind's is `display: grid` — so `hotfix` re-states the page's version
+  and `hairline.css` puts the components' back to the row default, which the fold animation needs. Verified in a
+  browser on dev *and* on a build: both logs stream, success folds, Stop cancels, the morph cycles, the timer
+  gains its tenths; `npm test` 57 × 3 green, `tsc --noEmit` clean (the pre-existing `pages/index.ts` catalog
+  error aside).
 - ✅ **`ce="ready"` removed — `defined` is written in the upgrade frame and is terminal (2026-10-12).** The two-state
   handoff was a footgun, not a feature: `defined` was written synchronously and then *superseded* about two frames
   later, so every rule matching `[ce="defined"]` stopped matching mid-flight. A keyframe animation was torn down; a

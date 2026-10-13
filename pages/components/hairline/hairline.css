@@ -1,0 +1,138 @@
+/**
+ * Hairline UI — Tailwind for the three components, and the tokens they read.
+ *
+ * The upstream sources (text-morph, number-roll, command-output) are styled with
+ * Tailwind class names, and this demo site has no Tailwind, so this is their
+ * entry: the default theme, the utilities they use, and the shadcn-style tokens
+ * they read (`--background`, `--muted`, `--border`, `--ring`, …) mapped onto this
+ * page's palette.
+ *
+ * Two things are deliberately left out:
+ *
+ *   - **preflight.** It would reset margins, headings and lists across a page
+ *     that has its own reset and typeset. The few resets the components need are
+ *     at the bottom of this file, scoped to their own tags.
+ *   - **the page's own CSS.** Layer order belongs to `public/styles.css`, which
+ *     positions Tailwind's `theme` and `utilities` between the page's layers.
+ *
+ * The components import this file, so it loads with them — and only with them.
+ */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* The sources to scan for class names. Automatic detection would find them; this
+   makes the dependency explicit. */
+@source "./";
+
+/**
+ * This page has no dark theme, so Tailwind's `dark:` variant is re-pointed at a
+ * `.dark` ancestor. The components' `dark:` classes stay correct, and inert here.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/**
+ * The tokens the components read, from this page's palette. A `--color-*` name
+ * is a Tailwind colour: `bg-background`, `text-muted-foreground`, `border-border`,
+ * `ring-ring` and their opacity modifiers (`bg-muted/70`) all come from these.
+ */
+@theme {
+  --color-background: var(--color-bg-light);
+  --color-foreground: var(--color-fg);
+  --color-muted: var(--color-bg-dark);
+  --color-muted-foreground: var(--color-fg-muted);
+  --color-accent: color-mix(in oklab, var(--color-fg) 8%, var(--color-bg-light));
+  --color-border: color-mix(in oklab, var(--color-fg) 16%, transparent);
+  --color-ring: color-mix(in oklab, var(--color-primary) 60%, transparent);
+}
+
+/**
+ * What preflight would have done, for the components only.
+ *
+ * The page's `code` rule is a dark pill (styles.css) and a bare `button` keeps
+ * the browser's chrome; both are written for prose, not for a terminal. These
+ * rules are unlayered on purpose — the page's styles all live in layers, so
+ * unlayered declarations outrank them without needing specificity.
+ */
+:where(text-morph, number-roll, command-output) :where(code) {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+:where(command-output) :where(button) {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+/**
+ * shared.css's `.grid` is a column grid for the page's layout; the components
+ * use `grid` for a 0fr→1fr fold, which needs the row default back.
+ */
+:where(text-morph, number-roll, command-output) .grid {
+  grid-auto-flow: row;
+  align-items: stretch;
+}
+
+/* r2wc renders into the host element, so the host *is* the box. */
+:where(text-morph, number-roll) {
+  display: inline-block;
+}
+
+:where(command-output) {
+  display: block;
+  width: 100%;
+}
+
+/**
+ * The keyframes the components name in `animate-[…]`. Tailwind only knows the
+ * ones from its own theme (`spin`, behind `animate-spin`).
+ */
+@keyframes ui-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ui-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes ui-col-in {
+  from {
+    max-width: 0;
+    opacity: 0;
+  }
+
+  to {
+    max-width: 1em;
+    opacity: 1;
+  }
+}
+
+@keyframes ui-col-out {
+  from {
+    max-width: 1em;
+    opacity: 1;
+  }
+
+  to {
+    max-width: 0;
+    opacity: 0;
+  }
+}

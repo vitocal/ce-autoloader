@@ -5,6 +5,7 @@ import { readdirSync, statSync } from "fs";
 import { defineConfig } from "vite";
 
 import { importMapPlugin } from "./scripts/vite-plugin-importmap.js";
+import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import preact from "@preact/preset-vite";
@@ -31,6 +32,8 @@ function collectEntries(dir, fileExt = `.ts`) {
 
 export default defineConfig({
   plugins: [
+    // Compiles pages/components/hairline/hairline.css (the Hairline UI components).
+    tailwindcss(),
     vue({
       template: {
         compilerOptions: {
