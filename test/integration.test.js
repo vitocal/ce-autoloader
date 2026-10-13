@@ -509,4 +509,37 @@ describe("CEAutoLoader", () => {
       expect(el.getAttribute("ce"), "defined must not be superseded").to.equal("defined");
     });
   });
+
+  /**
+   * `upgrade()` picks its candidates with `matchCustomElement`, which used to be a
+   * `:not(:defined)` selector — a per-*tag* condition. The moment any element with
+   * that tag name was defined, every element sharing the tag stopped matching,
+   * including one the registry had never handled, and it was skipped for good. The
+   * IntersectionObserver path was fixed first; this is the other entry point, and
+   * both now ask `owesState()`.
+   */
+  describe("upgrade() re-entry", () => {
+    it("should pick up an unhandled sibling of an already-defined tag", async () => {
+      const first = document.createElement("walk-component");
+      fixtures.appendChild(first);
+
+      // `live: false` keeps the MutationObserver out of this, so the explicit
+      // `upgrade()` below is the only thing that can reach the second element.
+      registry = new AutoLoader({ catalog, root: fixtures, live: false, devErrors: true });
+      await waitFor(() => first.getAttribute("ce") === "defined");
+      expect(customElements.get("walk-component"), "the tag is defined now").to.exist;
+
+      // A sibling of the same tag the registry has never painted. It *is*
+      // `:defined` — the tag is — so the old selector skipped it.
+      const second = document.createElement("walk-component");
+      fixtures.appendChild(second);
+      expect(second.getAttribute("ce"), "the registry has not touched it").to.be.null;
+
+      registry.upgrade(fixtures);
+
+      const painted = await waitFor(() => second.getAttribute("ce") === "defined");
+      expect(painted, "the unhandled sibling must not be skipped").to.be.true;
+    });
+  });
+
 });

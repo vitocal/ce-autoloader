@@ -867,106 +867,23 @@ footer {
     gap: 1rem;
   }
 
-  /* ── the timeline ─────────────────────────────────────────────────────────
-     A Gantt chart of what the registry actually wrote. The point is the pair
-     that is invisible on screen: `defined` and `ready` are two frames apart, so
-     the `defined` segment is a sliver next to 1200ms of `loading`.
+  /* ── the hero ───────────────────────────────────────────────────────────────
+     The same mask sweep the demo uses, on a real component instead of a demo box.
+     `hero-example` is a catalog component like any other, and this rule is the
+     entire contract: the registry writes `ce="defined"`, the page animates from
+     it. The base state is the revealed one — `--ce-wipe` sits past the box, so the
+     mask is opaque at rest — and the keyframes supply the hidden from-state, so a
+     cancelled animation degrades to "already revealed".
      ────────────────────────────────────────────────────────────────────────── */
 
-  .ce-timeline [data-state="undefined"] {
-    --ce-state: oklch(60% 0.02 145);
-  }
-
-  .ce-timeline [data-state="loading"] {
-    --ce-state: oklch(72% 0.15 85);
-  }
-
-  .ce-timeline [data-state="loaded"] {
-    --ce-state: oklch(65% 0.2 250);
-  }
-
-  .ce-timeline [data-state="defined"] {
-    --ce-state: oklch(70% 0.15 145);
-  }
-
-  .ce-timeline [data-state="error"] {
-    --ce-state: oklch(55% 0.22 25);
-  }
-
-  .ce-timeline__rows {
-    display: grid;
-    gap: 0.35rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .ce-timeline__row {
-    display: grid;
-    grid-template-columns: minmax(8rem, 13rem) 1fr auto;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 0.75rem;
-  }
-
-  .ce-timeline__name {
-    display: grid;
-    line-height: 1.2;
-  }
-
-  .ce-timeline__name small {
-    color: var(--color-fg-muted);
-    font-size: 0.68rem;
-  }
-
-  .ce-timeline__track {
-    display: flex;
-    height: 1.15rem;
-    overflow: hidden;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--color-fg) 6%, transparent);
-  }
-
-  .ce-timeline__seg {
-    /* A 2px sliver still reads as a tick — which is the whole point. */
-    flex-basis: 0;
-    min-width: 2px;
-    overflow: hidden;
-    padding: 0 0.35rem;
-    color: #fff;
-    font-size: 0.62rem;
-    line-height: 1.15rem;
-    white-space: nowrap;
-    background: var(--ce-state);
-  }
-
-  .ce-timeline__total {
-    color: var(--color-fg-muted);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .ce-timeline__legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem 1rem;
-    margin: 0.75rem 0 0;
-    padding: 0;
-    list-style: none;
-    font-size: 0.7rem;
-    color: var(--color-fg-muted);
-  }
-
-  .ce-timeline__legend li {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-  }
-
-  .ce-timeline__legend i {
-    width: 0.7rem;
-    height: 0.7rem;
-    border-radius: 3px;
-    background: var(--ce-state);
+  hero-example[ce="defined"] {
+    /* Slower than a UI default on purpose: this one is meant to be watched. */
+    --ce-hero-dur: 1.2s;
+    --ce-wipe: 120%;
+    mask-image: linear-gradient(100deg, #000 var(--ce-wipe), transparent calc(var(--ce-wipe) + 20%));
+    mask-repeat: no-repeat;
+    mask-size: 100% 100%;
+    animation: ce-demo-sweep var(--ce-hero-dur) cubic-bezier(0, 0.55, 0.45, 1);
   }
 
   .counter-card {

@@ -563,16 +563,15 @@ const registry = new CERegistry({
           <p class="ce-demo__note">
             Real catalog components (<code>&lt;ce-reveal&gt;</code>), loaded by the registry this page already runs —
             nothing here fakes a <code>ce</code> attribute. The fetch is stretched to <code>1.2s</code> and the reveal
-            to <code>2.4s</code> so the walk is watchable, and the timeline below is drawn from the attribute changes
-            themselves.
+            to <code>2.4s</code> so the walk is watchable.
           </p>
 
           <div class="ce-demo__grid">
-            <ce-reveal data-ce-watch variant="wipe" label="clip-path wipe" note="inset(0 100% 0 0) → inset(0)"></ce-reveal>
-            <ce-reveal data-ce-watch variant="sweep" label="mask sweep" note="--ce-wipe: 100% → -20%"></ce-reveal>
-            <ce-reveal data-ce-watch variant="blinds" label="blinds" note="band height 0 → 22px"></ce-reveal>
-            <ce-reveal data-ce-watch variant="iris" label="iris" note="radius 0% → 150%"></ce-reveal>
-            <ce-reveal data-ce-watch variant="dissolve" label="grid dissolve" note="mask-composite: intersect"></ce-reveal>
+            <ce-reveal variant="wipe" label="clip-path wipe" note="inset(0 100% 0 0) → inset(0)"></ce-reveal>
+            <ce-reveal variant="sweep" label="mask sweep" note="--ce-wipe: 100% → -20%"></ce-reveal>
+            <ce-reveal variant="blinds" label="blinds" note="band height 0 → 22px"></ce-reveal>
+            <ce-reveal variant="iris" label="iris" note="radius 0% → 150%"></ce-reveal>
+            <ce-reveal variant="dissolve" label="grid dissolve" note="mask-composite: intersect"></ce-reveal>
           </div>
 
           <p class="ce-demo__note">
@@ -584,7 +583,7 @@ const registry = new CERegistry({
           <h3>When the height changes</h3>
 
           <div class="ce-demo__grid ce-demo__grid--split">
-            <ce-reveal data-ce-watch variant="grow" label="height: 4rem → auto" note="transition: height 2.4s"
+            <ce-reveal variant="grow" label="height: 4rem → auto" note="transition: height 2.4s"
               body="Reserving space is only ever a guess. Let the box grow to the height the component actually needs, and the guess becomes a floor instead of a promise — the page below it stays exactly where it was, and nothing shifts under the reader's eye."></ce-reveal>
             <p class="ce-demo__note">
               You cannot know a component's height before it loads, so the box reserves a short slot and the height
@@ -594,8 +593,6 @@ const registry = new CERegistry({
               exists to avoid.
             </p>
           </div>
-
-          <div id="ce-timeline" class="ce-timeline"></div>
 
           <div class="ce-demo__actions">
             <button type="button" class="ce-demo__replay" onclick="location.hash = '#lifecycle'; location.reload()">

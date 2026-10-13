@@ -1,8 +1,8 @@
 # Active context
 
-_2026-10-12 · branch `defined-ready` @ `4f34819`, plus working-tree changes across `src/index.ts`, the landing page's
-lifecycle demo (`index.html`, `public/styles.css`, `pages/components/ce-reveal.js` + `ce-timeline.js`), the tests, the
-docs, the import map (`importmap.src.json` → `importmap.json`) and this bank._
+_2026-10-12 · branch `defined-ready` @ `616cc8b`, plus working-tree changes across `src/index.ts`, the landing page's
+lifecycle demo (`index.html`, `public/styles.css`, `pages/components/ce-reveal.js`), the hero, the tests, the docs,
+the import map (`importmap.src.json` → `importmap.json`) and this bank._
 
 ## Right now
 
@@ -40,21 +40,33 @@ reworked — and as of this pass the README and `types.ts` match it. The `ce` wa
   `getLifecycle(el) === null` — `ce` is the per-element "the registry has handled this" flag and the only correct one;
   a tag already defined but *absent from the catalog* is someone else's and is left alone (it also covers `ce="error"`,
   so #18's guard is intact). `loading_locks` became a `Set<HTMLElement>`, because a tag-name key is a per-*tag* lock,
-  which is not what it was ever meant to be. Both live in `when_visible`; `matchCustomElement`/`upgrade` still key on
-  `:not(:defined)`, so that path is unchanged — a known remaining sharp edge. `npm test` **57 × 3 green**,
-  `tsc --noEmit` clean, `dist/` → **10,945 B raw / 3,769 B gzip**. A/B on the docs page: `hooks.error` count identical
-  before and after (1), so the fix adds no console noise — the flaky `nord-*` diagnostics are #20, untouched.
+  which is not what it was ever meant to be. `npm test` **57 × 3 green**, `tsc --noEmit` clean, `dist/` →
+  **10,725 B raw / 3,683 B gzip**. A/B on the docs page: `hooks.error` count identical before and after (1), so the fix
+  adds no console noise — the flaky `nord-*` diagnostics are #20, untouched.
+  **The other entry point was fixed the same way (2026-10-12).** `matchCustomElement` — the module-level helper behind
+  both `upgrade()` and the dom-watcher — was still `:not(:defined)`: the same per-*tag* mistake, so a sibling of an
+  already-defined tag was skipped there too. Both now share one predicate, `owesState(el)` (no `ce`, then "the tag is
+  undefined, or we have a loader for it"), and the selector became `:not([ce])`, which matches
+  `getLifecycle(el) === null` exactly. Pinned by `test/integration.test.js` → "upgrade() re-entry"; A/B with the old
+  selector **fails on all three engines**, so the test really does catch it.
 - ✅ **The landing page grew a real lifecycle demo (2026-10-12).** `#lifecycle` used to *describe* the state machine and
   fake it (`pages/examples/animations/css.html` still does: `runLifecycleSimulation()` writes `ce="loading"`/`"defined"`
   by hand). The new block is a catalog component — `<ce-reveal>` (`pages/components/ce-reveal.js`, loader in
   `catalog.js` with a `CE_DEMO_DELAY` fetch of 1200 ms) — so the walk is the registry's own. Five reveals (clip-path
   wipe, mask sweep, blinds, iris, grid dissolve), each declared once on `[ce="defined"]`. Verified live 400 ms into a
   2.4 s reveal: `inset(0px 98.4% 0 0 round 12px)` with `ce-demo-wipe:running` — still animating, because nothing
-  supersedes `defined` any more. The **timeline**
-  (`pages/components/ce-timeline.js`, mounted from `pages/index.ts`) is a Gantt chart drawn *only* from `ce` attribute
-  mutations — it is what makes `defined` visible, as a ~1 ms sliver against 1200 ms of `loading`. Reveal + timeline CSS
-  live in `public/styles.css` (`@layer components`), with the three `@property` registrations at the top level because a
-  registration is global. Replay is a reload: a defined tag cannot un-define itself.
+  supersedes `defined` any more. The reveal CSS lives in `public/styles.css` (`@layer components`), with the three
+  `@property` registrations at the top level because a registration is global. Replay is a reload: a defined tag cannot
+  un-define itself.
+  **The timeline came out again (2026-10-12).** `pages/components/ce-timeline.js` and its ~100 lines of CSS are deleted,
+  along with the `data-ce-watch` markers, the `#ce-timeline` container and the `mountLifecycleTimeline` call — it
+  answered a question nobody was asking and read as clutter.
+  **The hero got the mask sweep (2026-10-12).** `hero-example[ce="defined"]` in `public/styles.css` reuses the demo's
+  `ce-demo-sweep` keyframes and `--ce-wipe` at a `--ce-hero-dur` of 1.2 s — a real catalog component revealing on the
+  contract, not a demo box. Verified live: `--ce-wipe` interpolates `-20% → … → 120%` across ~30 distinct frames with
+  `ce-demo-sweep:running`, and the mask is opaque at rest (`linear-gradient(100deg, #000 120%, …)`), so a cancelled
+  sweep degrades to "already revealed". Screenshots at start and settle show the code panel diagonally clipped, then
+  fully revealed.
   **The two prototypes use the library now too** — `01-defaults.html` and `02-clip-masks.html` dropped their
   `setState()` stand-in (the first documented itself as *"a stand-in for CEAutoLoader"*) for a real `catalog` +
   `new CERegistry(...)`, so all 11 demo elements walk through `src/lifecycle.ts`. Both are same-tag-heavy

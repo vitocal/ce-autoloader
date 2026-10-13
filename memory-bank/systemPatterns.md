@@ -14,7 +14,7 @@ a bare `{ catalog }` lands on safe-define.
 dep), the observer is upgraded to `ShadowObserver`, which forwards `observe` into new programmatic shadow roots (open
 and closed, `shadow: 3`). The `shadowObserver` option (`'auto' | true | false`) controls this explicitly.
 
-`upgrade` → `matchCustomElement(root)` (`:not(:defined)` and the name contains `-`) → filter by `loading` → dispatch:
+`upgrade` → `matchCustomElement(root)` (`:not([ce])` and the name contains `-`, then `owesState()`) → filter by `loading` → dispatch:
 
 | directive | action |
 | --- | --- |
@@ -102,7 +102,7 @@ the transition's `update` callback.
 `ce` values and measure names are public contract · **every `ce` transition goes through `src/lifecycle.ts` — never compare the
 attribute to a string literal** · **`defined` is the last state of the success walk, written in the upgrade frame — an entry
 animation declared on `[ce="defined"]` plays out in full, so no rule needs a union with a later state** · **"has the registry handled this element?" is `getLifecycle(el)`, never
-`customElements.get(tagName)`** — a tag is shared, an element is not · option defaults live in one object in the constructor · one shared
+`customElements.get(tagName)` or `:not(:defined)`** — a tag is shared, an element is not · option defaults live in one object in the constructor · one shared
 IntersectionObserver · no runtime dependencies · capability checks instead of polyfills, with a plain-define fallback ·
 `devErrors` never gates the hook · `transition` implies `deferDefine` · match the file you edit instead of reformatting
 it.

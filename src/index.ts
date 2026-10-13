@@ -46,13 +46,16 @@ const measure = (type: string, name: string) => {
 
 
 /**
- * CSS selector to match custom elements
+ * "An element the registry has never painted."
+ *
+ * The per-*element* form of the question, and the only correct one. It used to be
+ * `:not(:defined)`, which is a per-*tag* condition — see
+ * `CERegistry.matchCustomElement` for what that cost.
+ *
+ * `getLifecycle(el) === null` and `:not([ce])` are the same question; the selector
+ * form just lets the browser do the filtering.
  */
-function matchCustomElement(root: Element) {
-  const selector = ":not(:defined)";
-  return [...new Set([root, ...root.querySelectorAll(selector)])]
-    .filter((el) => isCustomElement(el)) as HTMLElement[];
-}
+const UNHANDLED = ":not([ce])";
 
 /**
  * CEAutoLoader manages loading web components in the page asynchronously.
@@ -214,7 +217,7 @@ class CEAutoLoader {
 
         // Check the node itself
         // or any children that are custom elements
-        if (node instanceof HTMLElement && (isCustomElement(node) || matchCustomElement(node as Element).length > 0)) {
+        if (node instanceof HTMLElement && (isCustomElement(node) || this.matchCustomElement(node).length > 0)) {
           await this.discover(node);
         }
       }
@@ -306,6 +309,48 @@ class CEAutoLoader {
   }
 
   /**
+   * Does the registry still owe this element a `ce` state?
+   *
+   * `ce` is the per-element "already handled" flag, and the only correct one
+   * here. `customElements.get(tagName)` flips to true the moment *any* element
+   * with that tag name is defined — so a sibling sharing the tag is dropped and
+   * never painted at all, while the tag it shares sits defined and interactive.
+   * (An IntersectionObserver hands over the batch in as many callbacks as it
+   * likes, and `upgrade()` can be called again over a subtree, so a slow first
+   * batch is all it takes.)
+   *
+   * This also covers `ce="error"`, which is terminal: a failed element is never
+   * re-loaded, so a re-entry into the viewport cannot append a second fallback.
+   *
+   * A tag that is already defined but absent from the catalog is someone else's
+   * registration, and is left alone.
+   */
+  private owesState(el: HTMLElement): boolean {
+    if (getLifecycle(el) !== null) return false;
+    if (!customElements.get(el.tagName.toLowerCase())) return true;
+
+    return !!this.getLoader(el.tagName.toLowerCase());
+  }
+
+  /**
+   * Every custom element under `root` — `root` included — that the registry still
+   * owes a `ce` state to.
+   *
+   * This asks the same question as {@link owesState}, one element at a time. It
+   * used to be a `:not(:defined)` selector, which is a per-*tag* condition: the
+   * moment any element with that tag name was defined — by a sibling's load, by a
+   * `deferDefine` batch, or by a third party — every other element sharing the tag
+   * stopped matching, and a sibling the registry had never handled was skipped for
+   * good. `:not([ce])` is the per-element form, and matches
+   * `getLifecycle(el) === null` exactly.
+   */
+  private matchCustomElement(root: Element): HTMLElement[] {
+    return [...new Set([root, ...root.querySelectorAll(UNHANDLED)])]
+      .filter((el): el is HTMLElement => isCustomElement(el))
+      .filter((el) => this.owesState(el));
+  }
+
+  /**
    * Upgrade all custom-elements that has the `loading=directive` attribute.
    *
    * @param directive - If no directive is passed, will upgrade elements that DOESNT have a loading attribute
@@ -315,34 +360,10 @@ class CEAutoLoader {
   public upgrade(root: HTMLElement = this.options.root, directive?: Directives) {
 
     const when_visible: IntersectionObserverCallback = (entries, _observer) => {
-      /**
-       * Does the registry still owe this element a `ce` state?
-       *
-       * `ce` is the per-element "already handled" flag, and the only correct one
-       * here. `customElements.get(tagName)` flips to true the moment *any*
-       * element with that tag name is defined — so a sibling sharing the tag is
-       * dropped and never painted at all, while the tag it shares sits defined
-       * and interactive. (The IntersectionObserver hands over the batch in as
-       * many callbacks as it likes, so a slow first batch is all it takes.)
-       *
-       * This also covers `ce="error"`, which is terminal: a failed element is
-       * never re-loaded, so a re-entry into the viewport cannot append a second
-       * fallback.
-       *
-       * A tag that is already defined but absent from the catalog is someone
-       * else's registration, and is left alone.
-       */
-      const owesState = (el: HTMLElement) => {
-        if (getLifecycle(el) !== null) return false;
-        if (!customElements.get(el.tagName.toLowerCase())) return true;
-
-        return !!this.getLoader(el.tagName.toLowerCase());
-      };
-
       let html_elements = entries
         .filter((entry) => entry.isIntersecting)
         .map((entry) => entry.target as HTMLElement)
-        .filter(owesState)
+        .filter((el) => this.owesState(el))
         .filter((el) => !this.loading_locks.has(el))
 
       if (html_elements.length > 0) {
@@ -393,7 +414,7 @@ class CEAutoLoader {
       }
     }
 
-    const ce_elements = matchCustomElement(root);
+    const ce_elements = this.matchCustomElement(root);
     applyLoadingDirective(
       ce_elements.filter(this.filterByLoadingAttribute(directive)),
       directive || this.options.defaultDirective
