@@ -1,7 +1,7 @@
 import type { Catalog, Loader, Options, Directives, LoadError, LoadResult } from './types';
 export type { Catalog, Loader, Options, Directives, LoadError, LoadResult }
 import { CEError } from './types'
-import { beginLoading, getLifecycle, hasFailed, markDefined, markFailed, markLoaded, markReadyAfterPaint } from './lifecycle';
+import { beginLoading, getLifecycle, hasFailed, markDefined, markFailed, markLoaded } from './lifecycle';
 
 /** Helpers */
 function isCustomElement(element: Element) {
@@ -68,12 +68,11 @@ function matchCustomElement(root: Element) {
  * | `loading`   | the module is being fetched                                    |
  * | `loaded`    | the module is in memory, the element has not upgraded yet      |
  * | `defined`   | `customElements.define()` ran — the element is upgraded        |
- * | `ready`     | the upgrade has painted                                        |
  * | `error`     | loading or defining failed (terminal)                          |
  *
- * `defined` and `ready` are two frames apart, so a rule that reveals something
- * has to match both: `[ce="defined"], [ce="ready"]`. Matching only `defined`
- * means the animation is torn down the instant `ready` lands.
+ * `defined` is written synchronously from the upgrade, in the frame the element
+ * upgraded, and nothing supersedes it — so a rule matching `[ce="defined"]` keeps
+ * matching, and an entry animation declared on it plays out in full.
  *
  * Once registered, the CustomElement generally style it's own DOM node.
  *
@@ -526,11 +525,9 @@ class CEAutoLoader {
       }
 
       // `define()` is synchronous, so the element is upgraded before this line.
-      // `defined` is therefore painted on *this* frame: hand over to `ready` on
-      // the next one, which is the first moment an entry animation has
-      // something to animate from.
+      // `defined` therefore lands on the frame the element upgraded, and stays:
+      // nothing supersedes it, so a rule matching it keeps matching.
       markDefined(el);
-      markReadyAfterPaint(el);
 
     } catch (error: any) {
       define_error = error;

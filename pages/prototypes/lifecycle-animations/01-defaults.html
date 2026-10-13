@@ -106,7 +106,6 @@
     .host[ce="loading"] { opacity: .5; }
     .host[ce="loaded"]  { opacity: .5; }
     .host[ce="defined"] { opacity: 1; }
-    .host[ce="ready"]   { opacity: 1; }
     .host[ce="error"]   { opacity: 1; }
 
     /* Skeleton: shimmer lives on the host while the module is in flight. It is a
@@ -127,7 +126,6 @@
     .host[ce="loaded"]::after { animation-duration: 900ms; }
 
     .host[ce="defined"]::after,
-    .host[ce="ready"]::after,
     .host[ce="error"]::after { content: none; }
 
     @keyframes ce-shimmer {
@@ -157,8 +155,7 @@
       display: none;
     }
 
-    .enter[ce="defined"],
-    .enter[ce="ready"] {
+    .enter[ce="defined"] {
       display: block;
 
       @starting-style {
@@ -187,8 +184,7 @@
 
     /* The stagger is the delay, and the delay is a function of position — no JS
        index bookkeeping. */
-    .list > [ce="defined"],
-    .list > [ce="ready"] {
+    .list > [ce="defined"] {
       opacity: 1;
       translate: 0 0;
     }
@@ -214,8 +210,7 @@
       transition: height var(--ce-dur) var(--ce-ease);
     }
 
-    .grow[ce="defined"],
-    .grow[ce="ready"] { height: auto; }
+    .grow[ce="defined"] { height: auto; }
 
     /* ── accessibility ─────────────────────────────────────────────────────────
        Reduced motion kills the movement and the shimmer, but keeps the opacity
@@ -324,7 +319,7 @@
     <pre><code>:root { interpolate-size: allow-keywords; }
 
 .grow { height: 2.5rem; transition: height var(--ce-dur) var(--ce-ease); }
-.grow[ce="defined"], .grow[ce="ready"] { height: auto; }</code></pre>
+.grow[ce="defined"] { height: auto; }</code></pre>
   </section>
 
   <script type="module">
@@ -335,11 +330,12 @@
      * here. `catalog` maps each tag to a loader and `src/lifecycle.ts` paints the
      * walk itself, so what the CSS is hooked to is the shipped state machine:
      *
-     *   :not(:defined) → [ce=loading] → [ce=loaded] → [ce=defined] → [ce=ready]
+     *   :not(:defined) → [ce=loading] → [ce=loaded] → [ce=defined]
      *                                    └─ defer barrier ─┘
      *
      * `loaded` is the window `deferDefine` opens: the module is in memory, the
-     * batch has not upgraded yet. `ready` is the first paint after the upgrade.
+     * batch has not upgraded yet. `defined` is written in the frame the element
+     * upgrades, and is the last state of the success walk.
      */
 
     /* ── components ───────────────────────────────────────────────────────────── */
@@ -352,13 +348,11 @@
       p  { margin: 0; font-size: .82rem; color: #64748b; }
 
       /* The component animates its own guts, keyed on the same attribute the page
-         uses for the host box. Fill-mode "both" holds the end state if cut. */
-      :host([ce="defined"]) .inner > *,
-      :host([ce="ready"])   .inner > * {
+         uses for the host box. */
+      :host([ce="defined"]) .inner > * {
         animation: ce-rise var(--ce-dur, 380ms) cubic-bezier(.16, 1, .3, 1) both;
       }
-      :host([ce="defined"]) .inner > *:nth-child(2),
-      :host([ce="ready"])   .inner > *:nth-child(2) { animation-delay: 70ms; }
+      :host([ce="defined"]) .inner > *:nth-child(2) { animation-delay: 70ms; }
 
       @keyframes ce-rise { from { opacity: 0; translate: 0 6px; } }
     `;

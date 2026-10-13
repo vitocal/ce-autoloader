@@ -506,7 +506,7 @@ const registry = new CERegistry({
         <p>
           Every component moves through a predictable state machine that you can style with CSS
 
-          <code>:not(:defined) → [ce="loading"] → [ce="loaded"] → [ce="defined"] → [ce="ready"]</code>
+          <code>:not(:defined) → [ce="loading"] → [ce="loaded"] → [ce="defined"]</code>
         </p>
 
         <br />
@@ -542,14 +542,13 @@ const registry = new CERegistry({
 
           <div>
             <div class="title">
-              <h3>Interactive state <code>[ce="defined"]</code> / <code>[ce="ready"]</code></h3>
+              <h3>Interactive state <code>[ce="defined"]</code></h3>
             </div>
             <div class="description">
               <p>
                 The component is defined and upgraded to a fully interactive web component. <code>defined</code> is
-                written synchronously with the upgrade; <code>ready</code> lands on the next paint. Trigger an
-                entrance animation on <b>both</b> — a rule matching only <code>defined</code> is cancelled the
-                moment <code>ready</code> supersedes it.
+                written synchronously in the frame the element upgrades, and it is the last state of the success walk
+                — so an entrance animation declared on it plays out in full.
               </p>
 
               <vi-defined></vi-defined>
@@ -577,16 +576,10 @@ const registry = new CERegistry({
           </div>
 
           <p class="ce-demo__note">
-            Same reveal, two selectors — this is the difference <code>ready</code> exists to fix. The left one declares
-            its animation on <code>[ce="defined"]</code> alone, so it is cancelled the moment <code>ready</code> lands
-            and the panel simply appears. The right one declares it on <code>[ce="defined"], [ce="ready"]</code> and
-            plays all the way through.
+            Each reveal is declared once, on <code>[ce="defined"]</code>. That is enough: <code>defined</code> is
+            written in the frame the element upgrades and nothing supersedes it, so the rule keeps matching for the
+            whole animation.
           </p>
-
-          <div class="ce-demo__grid">
-            <ce-reveal data-ce-watch variant="wipe" naive label="[ce=&quot;defined&quot;] only" note="cancelled when ready lands"></ce-reveal>
-            <ce-reveal data-ce-watch variant="wipe" label="[ce=&quot;defined&quot;], [ce=&quot;ready&quot;]" note="survives ready"></ce-reveal>
-          </div>
 
           <h3>When the height changes</h3>
 

@@ -8,7 +8,26 @@ docs, the import map (`importmap.src.json` → `importmap.json`) and this bank._
 
 **The defaults went lean: nothing is deferred, nothing animates — but every registry still patches
 `customElements.define`, to make it _idempotent_ (`polyfill_safe_ce_define`), not to queue. The failure model was
-reworked — and as of this pass the README and `types.ts` match it.**
+reworked — and as of this pass the README and `types.ts` match it. The `ce` walk is now three states plus `error`:
+`ready` is gone (below), so `defined` is written in the upgrade frame and is terminal.**
+
+- ✅ **`ce="ready"` removed — `defined` is written in the upgrade frame and is terminal (2026-10-12).** The two-state
+  handoff was a footgun, not a feature: `defined` was written synchronously and then *superseded* about two frames
+  later, so every rule matching `[ce="defined"]` stopped matching mid-flight. A keyframe animation was torn down; a
+  transition was **reverted** (the height example below measured `64 → 67 → 64 → 64px`, the box ending up clipped).
+  **Settled shape:** `markDefined` is the last write of the success walk — `src/index.ts` `define()` no longer calls
+  `markReadyAfterPaint`, and `src/lifecycle.ts` lost `markReady`, `markReadyAfterPaint`, `afterPaint`,
+  `PAINT_FALLBACK_MS` and the shared paint queue (188 → 123 lines). `LifecycleState` is
+  `loading | loaded | defined | error`. One rule per reveal now, on `[ce="defined"]` alone — **the union selector is
+  gone from every stylesheet, both prototypes and the README.** `dist/` **10,591 B raw / 3,650 B gzip** (−354 B /
+  −119 B). Breaking for the public styling contract: an external sheet written as `[ce="defined"], [ce="ready"]` still
+  works (the `ready` arm simply never matches), but one that matched `[ce="ready"]` *alone* now matches nothing.
+  **`pages/examples/animations/css.html` is unaffected** — and that is the point. It does not use the registry:
+  `runLifecycleSimulation()` writes `ce="loading"` and `ce="defined"` by hand and never wrote `ready`, so its
+  `demo-*[ce="defined"]` rules never stopped matching. A page that fakes the walk cannot be broken by a change to the
+  walk — and equally cannot catch one. The two prototypes *were* converted onto the real registry this session, which
+  is why they surfaced both the `visible` bug and this one. `npm test` **56 × 3 green** (one net test fewer:
+  two `ready` tests out, "should leave defined as the last state of the success walk" in), `tsc --noEmit` clean.
 
 - ✅ **`visible` dropped same-tag siblings — fixed (2026-10-12).** Found while wiring the landing page's lifecycle demo.
   With **two or more elements of one tag**, only those in the *first* IntersectionObserver callback were painted.
@@ -29,10 +48,9 @@ reworked — and as of this pass the README and `types.ts` match it.**
   fake it (`pages/examples/animations/css.html` still does: `runLifecycleSimulation()` writes `ce="loading"`/`"defined"`
   by hand). The new block is a catalog component — `<ce-reveal>` (`pages/components/ce-reveal.js`, loader in
   `catalog.js` with a `CE_DEMO_DELAY` fetch of 1200 ms) — so the walk is the registry's own. Five reveals (clip-path
-  wipe, mask sweep, blinds, iris, grid dissolve) plus a **naive-vs-union pair**: the same wipe declared on
-  `[ce="defined"]` alone and on `[ce="defined"], [ce="ready"]`. Verified live 400 ms into a 2.4 s reveal —
-  naive → `clip-path: inset(0px round 12px)`, `getAnimations()` **empty** (cancelled the instant `ready` landed);
-  union → `inset(0px 97.8% 0 0 round 12px)`, `ce-demo-wipe:running`. The **timeline**
+  wipe, mask sweep, blinds, iris, grid dissolve), each declared once on `[ce="defined"]`. Verified live 400 ms into a
+  2.4 s reveal: `inset(0px 98.4% 0 0 round 12px)` with `ce-demo-wipe:running` — still animating, because nothing
+  supersedes `defined` any more. The **timeline**
   (`pages/components/ce-timeline.js`, mounted from `pages/index.ts`) is a Gantt chart drawn *only* from `ce` attribute
   mutations — it is what makes `defined` visible, as a ~1 ms sliver against 1200 ms of `loading`. Reveal + timeline CSS
   live in `public/styles.css` (`@layer components`), with the three `@property` registrations at the top level because a
@@ -42,8 +60,8 @@ reworked — and as of this pass the README and `types.ts` match it.**
   `new CERegistry(...)`, so all 11 demo elements walk through `src/lifecycle.ts`. Both are same-tag-heavy
   (`demo-card` ×3, `demo-item` ×3, `demo-panel` ×5), which makes them a live regression test for the `visible` fix.
   `01-defaults.html`'s `@starting-style` host is `display: none` until defined, so it reserves no space and can never
-  intersect — it needs `loading="eager"`, or `visible` deadlocks it. Verified: both walk `loading → loaded → defined →
-  ready`, 02's five reveals are still `running` 400 ms in, and neither page logs a console error.
+  intersect — it needs `loading="eager"`, or `visible` deadlocks it. Verified: both walk `loading → loaded →
+  defined`, 02's five reveals are still `running` 400 ms in, and neither page logs a console error.
   **A sixth example: the height change (2026-10-12).** `ce-reveal[variant="grow"]` reserves `height: 4rem` and
   animates to `height: auto` when the component lands — the layout-shift case the lifecycle exists for. It works only
   because `public/styles.css` sets `interpolate-size: allow-keywords` on `:root`; a `numeric-only` control in the same
@@ -51,10 +69,10 @@ reworked — and as of this pass the README and `types.ts` match it.**
   186 → 190 → 192 → 194 → 196px` across the 2.4s — 17 distinct heights, so it is a real transition and not a jump.
   `ce-reveal` grew an optional `body` attribute (the box has to be taller than the slot it reserves, or there is
   nothing to grow into); `01-defaults.html` grew a matching §5 with its own `demo-grow` (`40 → 70 → 99 → 116 → 122 →
-  124px`, `--ce-dur: 380ms`). The union selector matters here too, and more brutally than for the reveals: a
-  `[ce="defined"]`-only height rule *starts* the grow and then falls back to the reserved slot the instant `ready`
-  lands — measured `64 → 67 → 64 → 64px`, so the box ends up clipped at 4rem with its content never revealed. The
-  union runs `64 → 67 → 95 → 124 → 152 → 180 → 252px`. A keyframe animation that is cancelled degrades to "already
+  124px`, `--ce-dur: 380ms`). This is the example that made the `ready` handoff untenable: while it existed, a
+  `[ce="defined"]`-only height rule *started* the grow and then fell back to the reserved slot the instant `ready`
+  landed — measured `64 → 67 → 64 → 64px`, so the box ended up clipped at 4rem with its content never revealed. The
+  union ran `64 → 67 → 95 → 124 → 152 → 180 → 252px`. A keyframe animation that is cancelled degrades to "already
   revealed"; a *transition* that is reverted degrades to "still collapsed".
 
 - ✅ **README review pass (2026-10-12)** — the README's garbled `deferDefine` comment is fixed (the "…its own tag still morphs…"

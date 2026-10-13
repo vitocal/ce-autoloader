@@ -1,10 +1,10 @@
 # Progress
 
-_2026-10-12 · branch `defined-ready` @ `4f34819` + working tree · package 0.2.0-rc · `dist/ce-autoloader.js` = 10,945 B
-raw / **3,769 B gzip** (rebuilt 2026-10-12 with the `visible` same-tag fix) · **57 tests pass, 0 fail on
+_2026-10-12 · branch `defined-ready` @ `4f34819` + working tree · package 0.2.0-rc · `dist/ce-autoloader.js` = 10,591 B
+raw / **3,650 B gzip** (rebuilt 2026-10-12 with the `ready` removal) · **56 tests pass, 0 fail on
 Chromium + WebKit + Firefox** (`tsc --noEmit` clean; `shadow-observer` is installed, so the 6 shadow tests run — the
 old "31 pass / 6 cannot load" figure is stale) · #1, #8, #10, #14–#19 fixed, docs trued up, `visible` same-tag
-siblings fixed._
+siblings fixed, `ce="ready"` removed._
 
 House rule: **one fact, one home.** `REVIEW.md` is the audit (tiers, long-form critique); the bank is the short
 version. Anything that belongs in both goes in `REVIEW.md` and is summarised here in a line.
@@ -26,10 +26,10 @@ a **pinned, jspm-generated import map** (`importmap.src.json` → `npm run impor
 CrUX's pass/fail over only the metrics the engine can observe) · `test/importmap.test.js` (7 tests: the registry reads the
 page's `<script type="importmap">` when `useImportMapsCatalog` is set, merges it under `catalog`, reads only the first map and
 ignores a map added after construction) · a **`Lifecycle`** module (`src/lifecycle.ts`) owning the `ce` vocabulary and
-the "a failed element is terminal" invariant, with its own suite (`test/lifecycle.test.js`, 7 tests) · a
-**library-driven lifecycle demo** on the landing page (`<ce-reveal>`: five reveals, a naive-vs-union pair, a height
-change, and a `ce` Gantt chart), with both `pages/prototypes/lifecycle-animations/` pages converted off their
-`setState()` stand-in onto the same catalog + registry.
+the "a failed element is terminal" invariant, with its own suite (`test/lifecycle.test.js`) · a
+**library-driven lifecycle demo** on the landing page (`<ce-reveal>`: five reveals, a height change, and a `ce`
+Gantt chart), with both `pages/prototypes/lifecycle-animations/` pages converted off their `setState()` stand-in
+onto the same catalog + registry.
 
 ## Left
 
@@ -132,6 +132,11 @@ never patch and only guard `define()` (self-registering catalogs lose the morph)
 
 ## Fixed lately
 
+**`ce="ready"` removed (2026-10-12)** — `defined` is written in the upgrade frame and is terminal, so a reveal declared
+once on `[ce="defined"]` plays out in full. It used to be superseded about two frames later, which cancelled a keyframe
+animation and *reverted* a transition (the height example measured `64 → 67 → 64 → 64px`). The union selector is gone
+from every stylesheet, both prototypes and the README; `src/lifecycle.ts` lost `markReady`, `markReadyAfterPaint`,
+`afterPaint` and the shared paint queue ·
 **`visible` painted only the first element of a tag** — a tag-name lock plus a `customElements.get(tagName)` filter
 dropped every sibling the IntersectionObserver delivered in a later callback, leaving it upgraded but with no `ce`
 state at all (fixed 2026-10-12; the landing page's `<ce-reveal>` demo is what exposed it) ·

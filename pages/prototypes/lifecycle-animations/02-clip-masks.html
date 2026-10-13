@@ -17,11 +17,12 @@
 
        Two things make that work, and both are easy to get wrong:
 
-       1. THE UNION SELECTOR. `ready` follows `defined` two frames later, and a
-          keyframe animation is torn down the moment its matching rule stops
-          applying. A reveal declared on `.x[ce="defined"]` alone is cancelled
-          mid-flight and snaps to its end state. Declare it on
-          `.x[ce="defined"], .x[ce="ready"]`.
+       1. ANCHOR ON `[ce="defined"]`, NEVER ON `:not(:defined)`. The element is not
+          replaced when it upgrades, but `:not(:defined)` stops matching the instant
+          it is defined, so a transition declared there has no "to" state to reach.
+          `[ce="defined"]` is written in the frame the element upgrades and is the
+          last state of the success walk, so it keeps matching and the keyframes
+          play out in full.
 
        2. REGISTERED VARIABLES. An unregistered custom property is not
           interpolable — it flips discretely at the 50% mark. Every animated
@@ -115,8 +116,7 @@
     .panel:not(:defined) { opacity: .35; }
     .panel[ce="loading"],
     .panel[ce="loaded"] { opacity: .5; }
-    .panel[ce="defined"],
-    .panel[ce="ready"] { opacity: 1; }
+    .panel[ce="defined"] { opacity: 1; }
 
     /* ── 1 · clip-path wipe ───────────────────────────────────────────────────────
        clip-path cannot be transitioned from a state that no longer matches, so it
@@ -130,13 +130,11 @@
       clip-path: inset(0 round var(--r));
     }
 
-    /* NOTE the union selector: `ready` follows `defined` a couple of frames later,
-       and a keyframe animation is cancelled the moment its rule stops matching.
-       Declaring it on both states keeps the animation alive across the transition.
-       (The base state is the revealed one, so a cancellation degrades to "already
-       revealed" rather than "stuck hidden".) */
-    .wipe[ce="defined"],
-    .wipe[ce="ready"] {
+    /* `defined` is written in the frame the element upgrades and is the last state
+       of the success walk, so this rule keeps matching and the keyframes play out
+       in full. (The base state is the revealed one, so a cancellation would still
+       degrade to "already revealed" rather than "stuck hidden".) */
+    .wipe[ce="defined"] {
       animation: ce-clip-wipe var(--ce-dur) cubic-bezier(0.77, 0, 0.175, 1);
     }
 
@@ -154,16 +152,14 @@
        Geometry: the opaque stop must sit PAST the end of the gradient line for the
        box to be fully revealed, so the settled value is > 100% and the animation
        starts below 0%. Getting this backwards masks the element out entirely. */
-    .sweep[ce="defined"],
-    .sweep[ce="ready"] {
+    .sweep[ce="defined"] {
       --wipe: 120%;
       mask-image: linear-gradient(100deg, #000 var(--wipe), transparent calc(var(--wipe) + 20%));
       mask-repeat: no-repeat;
       mask-size: 100% 100%;
     }
 
-    .sweep[ce="defined"],
-    .sweep[ce="ready"] {
+    .sweep[ce="defined"] {
       animation: ce-mask-sweep var(--ce-dur) cubic-bezier(0, 0.55, 0.45, 1);
     }
 
@@ -174,8 +170,7 @@
     /* ── 3 · blinds ─────────────────────────────────────────────────────────────
        `repeating-linear-gradient` with a variable band height. Growing the opaque
        band to its maximum reveals the whole box. */
-    .blinds[ce="defined"],
-    .blinds[ce="ready"] {
+    .blinds[ce="defined"] {
       --seg: var(--seg-max);
       mask-image: repeating-linear-gradient(
         to bottom,
@@ -188,8 +183,7 @@
       mask-size: 100% 100%;
     }
 
-    .blinds[ce="defined"],
-    .blinds[ce="ready"] {
+    .blinds[ce="defined"] {
       animation: ce-blinds var(--ce-dur) cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -200,16 +194,14 @@
     /* ── 4 · iris ───────────────────────────────────────────────────────────────
        The same trick with a radial mask: the opaque radius opens from the centre
        outwards. `calc(var(--iris) + 14%)` gives the edge a soft falloff. */
-    .iris[ce="defined"],
-    .iris[ce="ready"] {
+    .iris[ce="defined"] {
       --iris: 150%;
       mask-image: radial-gradient(circle at 50% 50%, #000 var(--iris), transparent calc(var(--iris) + 14%));
       mask-repeat: no-repeat;
       mask-size: 100% 100%;
     }
 
-    .iris[ce="defined"],
-    .iris[ce="ready"] {
+    .iris[ce="defined"] {
       animation: ce-iris var(--ce-dur) cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -222,8 +214,7 @@
        intersection is a grid of squares that grows until the masks cover the box.
 
        One `--seg` drives both gradients, so they stay in lockstep. */
-    .dissolve[ce="defined"],
-    .dissolve[ce="ready"] {
+    .dissolve[ce="defined"] {
       --seg: var(--seg-max);
       mask-image:
         repeating-linear-gradient(to bottom, #000 0 var(--seg), transparent var(--seg) var(--seg-max)),
@@ -233,8 +224,7 @@
       mask-size: 100% 100%;
     }
 
-    .dissolve[ce="defined"],
-    .dissolve[ce="ready"] {
+    .dissolve[ce="defined"] {
       animation: ce-dissolve var(--ce-dur) cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -246,11 +236,11 @@
        Masks are decorative; under reduced motion drop straight to the revealed
        state. The opacity step still carries the state change. */
     @media (prefers-reduced-motion: reduce) {
-      .wipe[ce="defined"], .wipe[ce="ready"],
-      .sweep[ce="defined"], .sweep[ce="ready"],
-      .blinds[ce="defined"], .blinds[ce="ready"],
-      .iris[ce="defined"], .iris[ce="ready"],
-      .dissolve[ce="defined"], .dissolve[ce="ready"] { animation: none; }
+      .wipe[ce="defined"],
+      .sweep[ce="defined"],
+      .blinds[ce="defined"],
+      .iris[ce="defined"],
+      .dissolve[ce="defined"] { animation: none; }
     }
   </style>
 </head>
@@ -282,7 +272,7 @@
       <demo-panel class="panel wipe" label="clip-path wipe" desc="inset(0 100% 0 0) → inset(0)"></demo-panel>
     </div>
     <pre><code>.wipe { clip-path: inset(0 round var(--r)); }  /* revealed — never `none` */
-.wipe[ce="defined"], .wipe[ce="ready"] { animation: ce-clip-wipe var(--ce-dur) cubic-bezier(.77,0,.175,1); }
+.wipe[ce="defined"] { animation: ce-clip-wipe var(--ce-dur) cubic-bezier(.77,0,.175,1); }
 @keyframes ce-clip-wipe { from { clip-path: inset(0 100% 0 0 round var(--r)); opacity: 0; } }</code></pre>
   </section>
 
@@ -366,12 +356,13 @@
      * `catalog` maps the tag to a loader and `src/lifecycle.ts` paints the walk
      * itself, so what the CSS above is hooked to is the shipped state machine:
      *
-     *   :not(:defined) → [ce=loading] → [ce=loaded] → [ce=defined] → [ce=ready]
+     *   :not(:defined) → [ce=loading] → [ce=loaded] → [ce=defined]
      *                                    └─ defer barrier ─┘
      *
      * `loaded` is the window `deferDefine` opens: the module is in memory, the
-     * batch has not upgraded yet. `ready` is the first paint after the upgrade,
-     * and it is why every reveal above is declared on the union of the two.
+     * batch has not upgraded yet. `defined` is written in the frame the element
+     * upgrades and is the last state of the success walk, which is why every
+     * reveal above is declared on it alone.
      */
 
     const PANEL = `

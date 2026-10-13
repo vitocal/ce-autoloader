@@ -143,7 +143,6 @@ The attribute walks one state at a time:
 | `loading`   | the module is being fetched                                |
 | `loaded`    | the module is in memory, the element has not upgraded yet   |
 | `defined`   | `customElements.define()` ran — the element is upgraded     |
-| `ready`     | the upgrade has painted                                    |
 | `error`     | loading or defining failed (terminal)                      |
 
 ```css
@@ -164,9 +163,9 @@ my-component[ce="loaded"] {
   cursor: progress;
 }
 
-/* Upgrade + first paint. Match BOTH — see the note below. */
-my-component[ce="defined"],
-my-component[ce="ready"] {
+/* Upgrade. `defined` is written in this frame and is the last state of the
+   success walk, so this rule keeps matching and the animation plays out. */
+my-component[ce="defined"] {
   animation: fade-in 0.3s ease-out;
 }
 
@@ -178,15 +177,19 @@ my-component[ce="error"] {
 
 Each state change is a plain style change on the same element, so CSS `transition` / `animation` can animate it — no JavaScript and no View Transitions API needed. The [CSS animation reference](https://vitocal.github.io/ce-autoloader/pages/examples/animations/css.html) documents which technique fits which situation.
 
-`loading`, `loaded`, `defined` and `ready` are set by the loader. `error` is painted for a catalog component that really failed — a loader that throws, a module that will not import, a `define()` that blows up. A tag that isn't in the catalog was never the loader's business: it keeps matching `:not(:defined)`, because a third party may define it later. Set `devErrors: true` to paint those unknown tags too, which is handy while debugging a typo'd tag name. Either way `hooks.error` is called, and when a `fallback` is configured it is **appended** inside the element with the message and stack on its `.error` / `.stack` — existing light DOM is left in place.
+`loading`, `loaded` and `defined` are set by the loader. `error` is painted for a catalog component that really failed — a loader that throws, a module that will not import, a `define()` that blows up. A tag that isn't in the catalog was never the loader's business: it keeps matching `:not(:defined)`, because a third party may define it later. Set `devErrors: true` to paint those unknown tags too, which is handy while debugging a typo'd tag name. Either way `hooks.error` is called, and when a `fallback` is configured it is **appended** inside the element with the message and stack on its `.error` / `.stack` — existing light DOM is left in place.
 
-**Why `defined` and `ready` are two states.** The element is not replaced when it upgrades — `customElements.define()` swaps its prototype in place — so a stylesheet keeps matching it throughout. But `defined` is written *synchronously* by the upgrade, which means it is painted on the same frame the element upgraded: nothing has been painted from it yet. `ready` lands on the next paint, the first frame an entry animation has something to animate *from*.
+**Why `defined` is the only success state.** The element is not replaced when it upgrades — `customElements.define()` swaps its prototype in place — so a stylesheet keeps matching it throughout, and `defined` is written *synchronously* in the frame the element upgraded. Nothing supersedes it, so a rule matching `[ce="defined"]` keeps matching and an entry animation declared on it plays out in full.
 
-The consequence is a trap: a reveal declared only on `[ce="defined"]` is cancelled two frames later, the instant `ready` supersedes it — a keyframe animation is torn down the moment its matching rule stops applying. Declare it on the union, and never on `:not(:defined)` (which stops matching the instant the element is defined):
+The one thing to avoid is anchoring on `:not(:defined)`, which stops matching the instant the element is defined — so a `transition` declared there has no "to" state to reach. Anchor on `[ce="defined"]` instead:
 
 ```css
-my-component[ce="defined"],
-my-component[ce="ready"] {
+my-component:not(:defined) {
+  opacity: 0.5;
+}
+
+my-component[ce="defined"] {
+  opacity: 1;
   animation: fade-in 0.3s ease-out;
 }
 ```

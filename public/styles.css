@@ -632,8 +632,7 @@ footer {
       }
     }
 
-    &[ce="defined"],
-    &[ce="ready"] {
+    &[ce="defined"] {
       opacity: 1;
       &::after {
         opacity: 0;
@@ -645,17 +644,15 @@ footer {
 
   /* ── the lifecycle demo (index.html → #lifecycle) ───────────────────────────
      Five ways to reveal an element with clip-path / mask, each keyed on the `ce`
-     states the registry paints. Two rules make or break them:
+     state the registry paints.
 
-     1. The base state is the REVEALED one and the keyframes supply the hidden
-        from-state, so a cancelled animation degrades to "already revealed"
-        instead of "stuck hidden".
+     The base state is the REVEALED one and the keyframes supply the hidden
+     from-state, so a reveal that never runs degrades to "already revealed"
+     instead of "stuck hidden".
 
-     2. Every reveal is declared on `[ce="defined"], [ce="ready"]` — never on
-        `defined` alone. `ready` lands about two frames later, and a keyframe
-        animation is torn down the instant its rule stops matching, so a
-        `defined`-only rule is cancelled mid-flight and the element snaps.
-        `ce-reveal[naive]` is that broken version, kept as the control.
+     `defined` is written in the frame the element upgrades and is the last state
+     of the success walk, so a rule matching `[ce="defined"]` keeps matching and
+     the animation plays out in full — no union selector needed.
      ────────────────────────────────────────────────────────────────────────── */
 
   #lifecycle {
@@ -674,8 +671,7 @@ footer {
     transition: opacity 600ms ease;
   }
 
-  ce-reveal[ce="defined"],
-  ce-reveal[ce="ready"] {
+  ce-reveal[ce="defined"] {
     opacity: 1;
   }
 
@@ -717,8 +713,7 @@ footer {
     --ce-demo-anim: ce-demo-sweep var(--ce-demo-dur) cubic-bezier(0, 0.55, 0.45, 1);
   }
 
-  ce-reveal[variant="sweep"][ce="defined"],
-  ce-reveal[variant="sweep"][ce="ready"] {
+  ce-reveal[variant="sweep"][ce="defined"] {
     --ce-wipe: 120%;
     mask-image: linear-gradient(100deg, #000 var(--ce-wipe), transparent calc(var(--ce-wipe) + 20%));
     mask-repeat: no-repeat;
@@ -730,8 +725,7 @@ footer {
     --ce-demo-anim: ce-demo-blinds var(--ce-demo-dur) var(--ce-demo-ease);
   }
 
-  ce-reveal[variant="blinds"][ce="defined"],
-  ce-reveal[variant="blinds"][ce="ready"] {
+  ce-reveal[variant="blinds"][ce="defined"] {
     --ce-seg: var(--ce-demo-seg-max);
     mask-image: repeating-linear-gradient(
       to bottom,
@@ -747,8 +741,7 @@ footer {
     --ce-demo-anim: ce-demo-iris var(--ce-demo-dur) var(--ce-demo-ease);
   }
 
-  ce-reveal[variant="iris"][ce="defined"],
-  ce-reveal[variant="iris"][ce="ready"] {
+  ce-reveal[variant="iris"][ce="defined"] {
     --ce-iris: 150%;
     mask-image: radial-gradient(circle at 50% 50%, #000 var(--ce-iris), transparent calc(var(--ce-iris) + 14%));
     mask-repeat: no-repeat;
@@ -760,8 +753,7 @@ footer {
     --ce-demo-anim: ce-demo-dissolve var(--ce-demo-dur) var(--ce-demo-ease);
   }
 
-  ce-reveal[variant="dissolve"][ce="defined"],
-  ce-reveal[variant="dissolve"][ce="ready"] {
+  ce-reveal[variant="dissolve"][ce="defined"] {
     --ce-seg: var(--ce-demo-seg-max);
     mask-image: repeating-linear-gradient(to bottom, #000 0 var(--ce-seg), transparent var(--ce-seg) var(--ce-demo-seg-max)),
       repeating-linear-gradient(to right, #000 0 var(--ce-seg), transparent var(--ce-seg) var(--ce-demo-seg-max));
@@ -785,8 +777,7 @@ footer {
       height var(--ce-demo-dur) var(--ce-demo-ease);
   }
 
-  ce-reveal[variant="grow"][ce="defined"],
-  ce-reveal[variant="grow"][ce="ready"] {
+  ce-reveal[variant="grow"][ce="defined"] {
     height: auto;
   }
 
@@ -796,14 +787,8 @@ footer {
     align-content: start;
   }
 
-  /* The contract: declared on both states, so the animation outlives `defined`. */
-  ce-reveal:not([naive])[ce="defined"],
-  ce-reveal:not([naive])[ce="ready"] {
-    animation: var(--ce-demo-anim);
-  }
-
-  /* The control: declared on `defined` alone — cancelled the moment `ready` lands. */
-  ce-reveal[naive][ce="defined"] {
+  /* `defined` is terminal, so this rule keeps matching for the whole animation. */
+  ce-reveal[ce="defined"] {
     animation: var(--ce-demo-anim);
   }
 
@@ -901,10 +886,6 @@ footer {
   }
 
   .ce-timeline [data-state="defined"] {
-    --ce-state: oklch(60% 0.25 25);
-  }
-
-  .ce-timeline [data-state="ready"] {
     --ce-state: oklch(70% 0.15 145);
   }
 

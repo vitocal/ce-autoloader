@@ -428,7 +428,7 @@ describe("CEAutoLoader", () => {
 
       // The element works — someone's implementation is live — so it is marked
       // defined and never painted as broken.
-      expect(el.getAttribute("ce"), "the element should have upgraded").to.be.oneOf(["defined", "ready"]);
+      expect(el.getAttribute("ce"), "the element should have upgraded").to.equal("defined");
       expect(el.querySelector("error-fallback")).to.not.exist;
 
       expect(reported, "hooks.error should be called").to.exist;
@@ -470,11 +470,11 @@ describe("CEAutoLoader", () => {
   /**
    * The `ce` attribute is the public styling contract, so the order it takes its
    * values in is part of the API: `loaded` is the window `deferDefine` opens, and
-   * `ready` is the paint after the upgrade. A stylesheet hooking any of them has
-   * to be able to rely on the sequence, not just the endpoints.
+   * `defined` is written in the frame the element upgrades. A stylesheet hooking
+   * any of them has to be able to rely on the sequence, not just the endpoints.
    */
   describe("lifecycle walk", () => {
-    it("should walk loading → loaded → defined → ready, in order", async () => {
+    it("should walk loading → loaded → defined, in order", async () => {
       const el = document.createElement("walk-component");
       el.setAttribute("loading", "eager");
       fixtures.appendChild(el);
@@ -492,15 +492,21 @@ describe("CEAutoLoader", () => {
 
       registry = new AutoLoader({ catalog, root: fixtures, devErrors: true });
 
-      const finished = await waitFor(() => el.getAttribute("ce") === "ready");
+      const finished = await waitFor(() => el.getAttribute("ce") === "defined");
       observer.disconnect();
 
       // Drop the leading `null` and any state replayed twice by a coalesced batch.
       const walk = seen.filter((state, i) => state && state !== seen[i - 1]);
 
-      expect(finished, `the walk should reach ready (saw ${walk.join(" → ")})`).to.be.true;
-      expect(walk).to.deep.equal(["loading", "loaded", "defined", "ready"]);
+      expect(finished, `the walk should reach defined (saw ${walk.join(" → ")})`).to.be.true;
+      expect(walk).to.deep.equal(["loading", "loaded", "defined"]);
       expect(el.hasAttribute("data-upgraded"), "the element really did upgrade").to.be.true;
+
+      // `defined` is the last state of the success walk — nothing is scheduled
+      // behind it, so a rule matching `[ce="defined"]` keeps matching. This used to
+      // hand over to `ready` two frames later.
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      expect(el.getAttribute("ce"), "defined must not be superseded").to.equal("defined");
     });
   });
 });

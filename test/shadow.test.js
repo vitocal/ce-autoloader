@@ -130,7 +130,7 @@ describe("Shadow DOM", () => {
       await new Promise(requestIdleCallback);
 
       expect(el.hasAttribute("data-upgraded"), "component inside open shadow root should be upgraded").to.be.true;
-      expect(el.getAttribute("ce"), "component should be marked as defined").to.be.oneOf(["defined", "ready"]);
+      expect(el.getAttribute("ce"), "component should be marked as defined").to.equal("defined");
     });
 
     it("should upgrade components inside closed shadow roots", async () => {
@@ -162,7 +162,7 @@ describe("Shadow DOM", () => {
       await new Promise(requestIdleCallback);
 
       expect(el.hasAttribute("data-upgraded"), "component inside closed shadow root should be upgraded").to.be.true;
-      expect(el.getAttribute("ce"), "component should be marked as defined").to.be.oneOf(["defined", "ready"]);
+      expect(el.getAttribute("ce"), "component should be marked as defined").to.equal("defined");
     });
 
     it("should upgrade nested components inside shadow roots", async () => {

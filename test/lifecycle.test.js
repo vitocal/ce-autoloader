@@ -6,8 +6,6 @@ import {
   markDefined,
   markFailed,
   markLoaded,
-  markReady,
-  markReadyAfterPaint,
 } from "../src/lifecycle.ts";
 
 /**
@@ -19,10 +17,10 @@ import {
  * convention re-derived at every read site, which is how a failed `visible`
  * component got loaded again and reported a second time (issue #18).
  *
- * The third is the order. `loading → loaded → defined → ready` is a one-way walk:
- * `loaded` exists so `deferDefine` has a window to hold a batch in, and `ready` is
- * the frame after the upgrade, which is the only moment an entry animation has
- * something to animate from.
+ * The third is the order. `loading → loaded → defined` is a one-way walk: `loaded`
+ * exists so `deferDefine` has a window to hold a batch in, and `defined` is written
+ * in the frame the element upgrades and is the last state of the success walk, so a
+ * rule matching it keeps matching.
  */
 describe("Lifecycle", () => {
   const make = () => document.createElement("lifecycle-fixture");
@@ -59,7 +57,7 @@ describe("Lifecycle", () => {
     expect(hasFailed(el)).to.be.true;
   });
 
-  it("should walk loading → loaded → defined → ready", () => {
+  it("should walk loading → loaded → defined", () => {
     const el = make();
 
     beginLoading(el);
@@ -70,9 +68,6 @@ describe("Lifecycle", () => {
 
     markDefined(el);
     expect(getLifecycle(el), "defined is synchronous with the upgrade").to.equal("defined");
-
-    markReady(el);
-    expect(getLifecycle(el), "ready is the paint after").to.equal("ready");
   });
 
   it("should refuse to load an element that already failed", () => {
@@ -102,11 +97,10 @@ describe("Lifecycle", () => {
     beginLoading(el);
     markFailed(el);
 
-    // A `ready` is already sitting on the paint queue by the time a define
-    // failure lands, and `loadAndDefine` reports a rejection on the same tick.
+    // `loadAndDefine` reports a rejection on the same tick it defines, so a
+    // `defined` may land after the failure.
     markLoaded(el);
     markDefined(el);
-    markReady(el);
 
     expect(getLifecycle(el), "the failure flag must survive").to.equal("error");
     expect(hasFailed(el)).to.be.true;
@@ -118,41 +112,30 @@ describe("Lifecycle", () => {
     beginLoading(el);
     markLoaded(el);
     markDefined(el);
-    markReady(el);
 
     // `preload()` runs `load()` and `define()` back to back, so the walk can be
     // re-entered on an element that is already on screen.
     markLoaded(el);
-    expect(getLifecycle(el), "loaded must not reopen the defer window").to.equal("ready");
+    expect(getLifecycle(el), "loaded must not reopen the defer window").to.equal("defined");
 
     markDefined(el);
-    expect(getLifecycle(el), "defined must not rewind a painted element").to.equal("ready");
+    expect(getLifecycle(el), "defined is the last state of the success walk").to.equal("defined");
   });
 
-  it("should not reach ready before defined", () => {
-    const el = make();
-
-    markReady(el);
-    expect(getLifecycle(el), "an untouched element has no state to advance from").to.be.null;
-
-    beginLoading(el);
-    markReady(el);
-    expect(getLifecycle(el), "ready is meaningless while the module is still in flight").to.equal("loading");
-  });
-
-  it("should reach ready on the paint after defined", async () => {
+  it("should leave defined as the last state of the success walk", async () => {
     const el = make();
     document.body.appendChild(el);
 
     beginLoading(el);
     markDefined(el);
-    markReadyAfterPaint(el);
 
-    expect(getLifecycle(el), "still defined on the frame of the upgrade").to.equal("defined");
-
+    // Nothing is scheduled behind `defined` any more: it is written in the frame
+    // the element upgrades and stays there, so a rule matching `[ce="defined"]`
+    // keeps matching. (It used to hand over to `ready` two frames later, which is
+    // what forced every entry animation onto a union selector.)
     await new Promise((resolve) => setTimeout(resolve, 120));
 
-    expect(getLifecycle(el), "ready after the paint").to.equal("ready");
+    expect(getLifecycle(el), "defined survives the paint").to.equal("defined");
     el.remove();
   });
 
@@ -163,8 +146,6 @@ describe("Lifecycle", () => {
     expect(beginLoading(undefined)).to.be.false;
     expect(() => markLoaded(undefined)).to.not.throw();
     expect(() => markDefined(undefined)).to.not.throw();
-    expect(() => markReady(undefined)).to.not.throw();
-    expect(() => markReadyAfterPaint(undefined)).to.not.throw();
     expect(() => markFailed(undefined)).to.not.throw();
   });
 });

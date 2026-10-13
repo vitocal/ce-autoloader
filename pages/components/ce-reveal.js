@@ -2,9 +2,9 @@
  * A reveal panel for the lifecycle demo on the landing page.
  *
  * Deliberately dumb: it renders a box, a label and (optionally) a body paragraph,
- * nothing else. The reveal is page CSS keyed on `[ce="defined"], [ce="ready"]` —
- * what is being demonstrated is the *contract* a stylesheet hooks into, not a
- * component's private animation.
+ * nothing else. The reveal is page CSS keyed on `[ce="defined"]` — what is being
+ * demonstrated is the *contract* a stylesheet hooks into, not a component's private
+ * animation.
  *
  * The body exists for the height example: the box has to be taller than the slot
  * it reserves, or there is nothing to grow into.

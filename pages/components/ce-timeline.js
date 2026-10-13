@@ -3,12 +3,11 @@
  *
  * Every state the registry writes lands as an attribute change, so the whole walk
  * is observable from the outside: one MutationObserver, one timestamp per
- * transition. That matters because `defined` and `ready` are two frames apart —
- * invisible on screen, obvious on a timeline.
+ * transition. That matters because the interesting part is not the endpoint but the
+ * shape of the walk — how long the module spent fetching against how long the
+ * upgrade itself took.
  *
- * Nothing here fakes a state. The chart only draws what the registry wrote, which
- * is why it can be trusted to show the difference between a reveal declared on
- * `[ce="defined"]` alone and one declared on `[ce="defined"], [ce="ready"]`.
+ * Nothing here fakes a state. The chart only draws what the registry wrote.
  */
 
 /** The state before the registry has touched an element. */
@@ -18,15 +17,14 @@ const LEGEND = [
   [RESTING, ":not(:defined) — space reserved"],
   ["loading", "module fetching"],
   ["loaded", "in memory, not upgraded"],
-  ["defined", "define() ran, not painted yet"],
-  ["ready", "upgraded and painted"],
+  ["defined", "define() ran — upgraded"],
   ["error", "failed (terminal)"],
 ];
 
 const fmt = (ms) => (ms < 1000 ? `${Math.round(ms)}ms` : `${(ms / 1000).toFixed(2)}s`);
 
 const stateOf = (el) => el.getAttribute("ce") ?? RESTING;
-const isSettled = (el) => ["ready", "error"].includes(stateOf(el));
+const isSettled = (el) => ["defined", "error"].includes(stateOf(el));
 
 /**
  * Watch every `selector` element and draw its walk into `container`.

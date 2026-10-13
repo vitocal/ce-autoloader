@@ -100,7 +100,8 @@ the transition's `update` callback.
 ## Conventions to keep
 
 `ce` values and measure names are public contract · **every `ce` transition goes through `src/lifecycle.ts` — never compare the
-attribute to a string literal** · **"has the registry handled this element?" is `getLifecycle(el)`, never
+attribute to a string literal** · **`defined` is the last state of the success walk, written in the upgrade frame — an entry
+animation declared on `[ce="defined"]` plays out in full, so no rule needs a union with a later state** · **"has the registry handled this element?" is `getLifecycle(el)`, never
 `customElements.get(tagName)`** — a tag is shared, an element is not · option defaults live in one object in the constructor · one shared
 IntersectionObserver · no runtime dependencies · capability checks instead of polyfills, with a plain-define fallback ·
 `devErrors` never gates the hook · `transition` implies `deferDefine` · match the file you edit instead of reformatting

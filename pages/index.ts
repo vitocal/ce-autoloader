@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   globalThis.registry = new CERegistry({
     catalog: catalog,
     fallback: ErrorFallback,
-    deferDefine: false,
+    deferDefine: true,
     transition: false,
     hooks: {
       error: (e) => {
