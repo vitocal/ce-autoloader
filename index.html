@@ -503,8 +503,9 @@ const registry = new CERegistry({
           <a href="https://github.com/bitovi/react-to-web-component">react-to-web-component</a>, which
           turns a component's props into attributes, and registered in the catalog like any other
           element — so nothing is fetched until the tag appears:
-          <code>command-output</code> pulls <code>text-morph</code> and <code>number-roll</code> in as
-          its dependencies, and no tag on this page costs anything before it is used.
+          <code>command-output</code> and <code>earnings-chart</code> each pull
+          <code>text-morph</code> and <code>number-roll</code> in as their dependencies, one fetch between them,
+          and no tag on this page costs anything before it is used.
         </p>
 
         <div class="ce-demo__grid" style="margin-top: 2rem">
@@ -516,6 +517,41 @@ const registry = new CERegistry({
             <number-roll id="hairline-roll" value="1299.5" format='{"style":"currency","currency":"USD"}'></number-roll>
             <figcaption><code>&lt;number-roll value="1299.5" format="…"&gt;</code></figcaption>
           </figure>
+        </div>
+
+        <div style="margin-top: 2rem">
+          <earnings-chart title="Earnings" highlight="2026-08"
+            format='{"style":"currency","currency":"USD","maximumFractionDigits":0}' periods='[
+            {"id":"6m","label":"6M","previous":21000,"comparison":"vs the 6 months before","bars":[
+              {"key":"2026-03","label":"Mar","title":"March 2026","value":4200},
+              {"key":"2026-04","label":"Apr","title":"April 2026","value":4680},
+              {"key":"2026-05","label":"May","title":"May 2026","value":4310},
+              {"key":"2026-06","label":"Jun","title":"June 2026","value":5120},
+              {"key":"2026-07","label":"Jul","title":"July 2026","value":5480},
+              {"key":"2026-08","label":"Aug","title":"August 2026","value":5920}
+            ]},
+            {"id":"1y","label":"1Y","previous":47800,"comparison":"vs the year before","bars":[
+              {"key":"2025-09","label":"Sep","title":"September 2025","value":3120},
+              {"key":"2025-10","label":"Oct","title":"October 2025","value":3400},
+              {"key":"2025-11","label":"Nov","title":"November 2025","value":3860},
+              {"key":"2025-12","label":"Dec","title":"December 2025","value":3620},
+              {"key":"2026-01","label":"Jan","title":"January 2026","value":4180},
+              {"key":"2026-02","label":"Feb","title":"February 2026","value":4550},
+              {"key":"2026-03","label":"Mar","title":"March 2026","value":4200},
+              {"key":"2026-04","label":"Apr","title":"April 2026","value":4680},
+              {"key":"2026-05","label":"May","title":"May 2026","value":4310},
+              {"key":"2026-06","label":"Jun","title":"June 2026","value":5120},
+              {"key":"2026-07","label":"Jul","title":"July 2026","value":5480},
+              {"key":"2026-08","label":"Aug","title":"August 2026","value":5920}
+            ]}
+          ]'></earnings-chart>
+
+          <p class="ce-demo__note" style="margin-top: 1rem">
+            Hover the plot — or tab into it and use the arrow keys — and a lane follows from bar to bar while
+            the readout rides its top, its month morphing and its amount rolling. Switch the period and the bars
+            the two periods share glide to their new place, the ones that leave fold away on their side, and the
+            scale, the total and the change chip roll and morph with them.
+          </p>
         </div>
 
         <div class="ce-demo__grid" style="margin-top: 2rem">
@@ -614,9 +650,7 @@ const registry = new CERegistry({
           <div class="ce-demo__grid">
             <ce-reveal variant="wipe" label="clip-path wipe" note="inset(0 100% 0 0) → inset(0)"></ce-reveal>
             <ce-reveal variant="sweep" label="mask sweep" note="--ce-wipe: 100% → -20%"></ce-reveal>
-            <ce-reveal variant="blinds" label="blinds" note="band height 0 → 22px"></ce-reveal>
             <ce-reveal variant="iris" label="iris" note="radius 0% → 150%"></ce-reveal>
-            <ce-reveal variant="dissolve" label="grid dissolve" note="mask-composite: intersect"></ce-reveal>
           </div>
 
           <p class="ce-demo__note">
@@ -890,6 +924,7 @@ export default r2wc(Greeter, {
 
     setupImportMap();
   </script>
+  <script type="module" src="pages/components/hairline/demo.ts"></script>
   <script type="module" src="pages/index.ts"></script>
 
 </body>

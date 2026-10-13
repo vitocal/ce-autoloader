@@ -10,7 +10,28 @@ _2026-10-13 · branch `defined-ready` @ `b1c7127`, plus working-tree changes acr
 reworked — and as of this pass the README and `types.ts` match it. The `ce` walk is now three states plus `error`:
 `ready` is gone (below), so `defined` is written in the upgrade frame and is terminal.**
 
-- ✅ **Three Hairline UI components on the landing page (2026-10-13).** `text-morph`, `number-roll` and
+- ✅ **`earnings-chart` added (2026-10-13).** The fourth Hairline component, through the same pipeline
+  (`pages/components/hairline/earnings-chart.tsx` = the upstream source + an r2wc wrapper; catalog entry;
+  a `<earnings-chart>` on the landing page with two periods of JSON in the `periods` attribute). It brought
+  three things the first three didn't need, and each is a rule now:
+  - **`@theme inline`, not `@theme`.** The page declares `--color-primary` and `--color-accent` itself, so a
+    theme variable of the same name either loses the cascade or references itself — and the chart's
+    `bg-primary` bar has to be *this page's* green. `inline` puts the value in the utility, where no layer can
+    reach it. `--radius-lg` is pinned there for the same reason: the page's is 1.25rem, Tailwind's `rounded-lg`
+    is 8px, and the plot uses it.
+  - **The raw tokens have to exist too.** The chart writes `shadow-[0_0_0_1px_var(--border)]`, so `--border`
+    (and `--primary`) are defined as *variables* on the components' tags, not only as Tailwind colours.
+  - **The components got their own layer.** The first version put their base rules (the `code`/`button` resets,
+    the `.grid` reset, the host `display`) *unlayered*, which beat the utilities: `font: inherit` on a button
+    won over `text-[12px]`, and the period chips rendered at 16px. They now sit in a `hairline` layer declared
+    between the page's layers and `utilities` — above `code`/Nord's typeset, below the classes. Verified in a
+    browser: chips 12.5px, Stop 12px, `bg-accent` hover is the subtle grey (not the page's terracotta — it never
+    was, before `inline`), the plot's radius is 8px, the highlighted bar is the page's primary green.
+- ⚠️ **The commit `ed0a8c3` lost `pages/components/hairline/demo.ts`** (and the `<script>` tag that loads it),
+  so the committed `#hairline-ui` section streams nothing: the command outputs sit on "running" with an empty
+  log, `on-stop="ceCommandStop"` resolves to nothing, and the morph never cycles. Restored 2026-10-13 — the
+  module is untracked in that commit, so a `git add pages/components/hairline` is what was missing.
+- ✅ **The first three Hairline UI components on the landing page (2026-10-13; `earnings-chart` is above).** `text-morph`, `number-roll` and
   `command-output` are the upstream React sources, kept as they ship, wrapped with `r2wc`
   (`pages/components/hairline/`) and registered in the catalog — so the demo *is* the feature it demonstrates:
   `command-output` pulls the other two in as dependencies, and nothing is fetched until the tag scrolls into

@@ -49,6 +49,7 @@ let catalog = {
   "text-morph": () => import("./hairline/text-morph.tsx"),
   "number-roll": () => import("./hairline/number-roll.tsx"),
   "command-output": () => import("./hairline/command-output.tsx"),
+  "earnings-chart": () => import("./hairline/earnings-chart.tsx"),
 
   "react-counter": () => import("./vi/frameworks/react-counter.tsx"),
   "svelte-counter": () => import("./vi/frameworks/svelte-counter.svelte"),

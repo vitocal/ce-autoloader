@@ -1,22 +1,24 @@
 /**
- * Hairline UI — Tailwind for the three components, and the tokens they read.
+ * Hairline UI — Tailwind for the components, and the tokens they read.
  *
- * The upstream sources (text-morph, number-roll, command-output) are styled with
- * Tailwind class names, and this demo site has no Tailwind, so this is their
- * entry: the default theme, the utilities they use, and the shadcn-style tokens
- * they read (`--background`, `--muted`, `--border`, `--ring`, …) mapped onto this
- * page's palette.
+ * The upstream sources (text-morph, number-roll, command-output, earnings-chart)
+ * are styled with Tailwind class names, and this demo site has no Tailwind, so
+ * this is their entry: the default theme, the utilities they use, the tokens they
+ * read (`--background`, `--border`, `--primary`, …) mapped onto this page's
+ * palette, and the few base rules Tailwind's preflight would have supplied.
  *
- * Two things are deliberately left out:
+ * Three things are deliberately left out:
  *
- *   - **preflight.** It would reset margins, headings and lists across a page
- *     that has its own reset and typeset. The few resets the components need are
- *     at the bottom of this file, scoped to their own tags.
+ *   - **preflight.** It would reset margins, headings and lists across a page that
+ *     has its own reset and typeset. What the components need from it is in the
+ *     `hairline` layer below, scoped to their own tags.
  *   - **the page's own CSS.** Layer order belongs to `public/styles.css`, which
- *     positions Tailwind's `theme` and `utilities` between the page's layers.
+ *     places Tailwind's layers and this one among the page's.
+ *   - **`@theme` variables.** See the `inline` note on the block below.
  *
  * The components import this file, so it loads with them — and only with them.
  */
+@layer hairline, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 
@@ -31,61 +33,88 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /**
- * The tokens the components read, from this page's palette. A `--color-*` name
- * is a Tailwind colour: `bg-background`, `text-muted-foreground`, `border-border`,
- * `ring-ring` and their opacity modifiers (`bg-muted/70`) all come from these.
- */
-@theme {
-  --color-background: var(--color-bg-light);
-  --color-foreground: var(--color-fg);
-  --color-muted: var(--color-bg-dark);
-  --color-muted-foreground: var(--color-fg-muted);
-  --color-accent: color-mix(in oklab, var(--color-fg) 8%, var(--color-bg-light));
-  --color-border: color-mix(in oklab, var(--color-fg) 16%, transparent);
-  --color-ring: color-mix(in oklab, var(--color-primary) 60%, transparent);
-}
-
-/**
- * What preflight would have done, for the components only.
+ * The tokens as Tailwind colours: `bg-background`, `text-muted-foreground`,
+ * `border-border`, `ring-ring`, `bg-primary` and their opacity modifiers
+ * (`bg-muted/70`, `text-muted-foreground/80`) all come from these.
  *
- * The page's `code` rule is a dark pill (styles.css) and a bare `button` keeps
- * the browser's chrome; both are written for prose, not for a terminal. These
- * rules are unlayered on purpose — the page's styles all live in layers, so
- * unlayered declarations outrank them without needing specificity.
+ * `inline`, not a plain `@theme`, for two reasons: this page declares
+ * `--color-primary` and `--color-accent` itself, so a theme variable of the same
+ * name would either lose the cascade or — worse — reference itself; and
+ * Tailwind's `--radius-lg` has to be pinned here, because the page's is 1.25rem
+ * while `rounded-lg` inside a component means Tailwind's 8px. Inline puts the
+ * value straight into the utility, where no layer can reach it.
  */
-:where(text-morph, number-roll, command-output) :where(code) {
-  font-family: var(--font-mono, ui-monospace, monospace);
-  background: none;
-  border: 0;
-  padding: 0;
-}
-
-:where(command-output) :where(button) {
-  font: inherit;
-  color: inherit;
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --radius-lg: 0.5rem;
 }
 
 /**
- * shared.css's `.grid` is a column grid for the page's layout; the components
- * use `grid` for a 0fr→1fr fold, which needs the row default back.
+ * The components' base rules. They sit in their own layer — above the page's, so
+ * they beat its `code` rule (a dark pill) and Nord's typeset, and below
+ * `utilities`, so a class like `text-[12px]` still beats them.
  */
-:where(text-morph, number-roll, command-output) .grid {
-  grid-auto-flow: row;
-  align-items: stretch;
-}
+@layer hairline {
+  /**
+   * The tokens themselves, on the components' own tags rather than on `:root`, so
+   * nothing leaks onto the page. Two names are worth calling out: `--border` and
+   * `--primary` are used *raw* inside arbitrary values
+   * (`shadow-[0_0_0_1px_var(--border)]`), so they have to exist as variables, not
+   * just as Tailwind colours.
+   */
+  :where(text-morph, number-roll, command-output, earnings-chart) {
+    --background: var(--color-bg-light);
+    --foreground: var(--color-fg);
+    --muted: var(--color-bg-dark);
+    --muted-foreground: var(--color-fg-muted);
+    --accent: color-mix(in oklab, var(--color-fg) 8%, var(--color-bg-light));
+    --border: color-mix(in oklab, var(--color-fg) 16%, transparent);
+    --ring: color-mix(in oklab, var(--color-primary) 60%, transparent);
+    --primary: var(--color-primary);
+  }
 
-/* r2wc renders into the host element, so the host *is* the box. */
-:where(text-morph, number-roll) {
-  display: inline-block;
-}
+  /* What preflight would have done for the elements the page writes for prose. */
+  :where(command-output) :where(code) {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    background: none;
+    border: 0;
+    padding: 0;
+  }
 
-:where(command-output) {
-  display: block;
-  width: 100%;
+  :where(command-output, earnings-chart) :where(button) {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  /**
+   * shared.css's `.grid` is a column grid for the page's layout; the components
+   * use `grid` for a 0fr→1fr fold, which needs the row default back.
+   */
+  :where(command-output, earnings-chart) .grid {
+    grid-auto-flow: row;
+    align-items: stretch;
+  }
+
+  /* r2wc renders into the host element, so the host *is* the box. */
+  :where(text-morph, number-roll) {
+    display: inline-block;
+  }
+
+  :where(command-output, earnings-chart) {
+    display: block;
+    width: 100%;
+  }
 }
 
 /**

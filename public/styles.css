@@ -1,19 +1,23 @@
 /**
- * Layer order. `properties`, `theme` and `utilities` are Tailwind's (the Hairline
- * UI components in pages/components/hairline/); they have to sit *below* the
- * page's own layers except for two exceptions, both deliberate:
+ * Layer order. `properties`, `theme`, `utilities` are Tailwind's and `hairline`
+ * is the components' own base rules (all four live in
+ * pages/components/hairline/); everything else is this page's.
+ *
+ * The positions are deliberate:
  *
  *   - `theme` comes early: Tailwind's default theme re-declares `--radius-*`,
  *     `--shadow-*` and `--font-mono`, which this page defines itself.
+ *   - `hairline` sits above the page's layers, so the components' own resets beat
+ *     the page's `code` rule (a dark pill) and Nord's typeset — and *below*
+ *     `utilities`, so a class like `text-[12px]` still beats them.
  *   - `utilities` comes just before `hotfix`, so the components' classes outrank
- *     the page's `code` rule and Nord's typeset, while `hotfix` stays the top
- *     layer for page-level fixes.
+ *     the page's, while `hotfix` stays the top layer for page-level fixes.
  *
  * `properties` is Tailwind's `@property` fallback for engines without `@property`
  * support, and it has to be first, or those initial values would clobber the
  * custom properties the utilities set.
  */
-@layer properties, theme, normalize, ds, shared, page, components, scoped, utilities, hotfix;
+@layer properties, theme, normalize, ds, shared, page, components, scoped, hairline, utilities, hotfix;
 @import "https://nordcdn.net/ds/css/5.0.1/nord.min.css" layer(ds);
 @import "./shared.css" layer(shared);
 
@@ -609,6 +613,7 @@ footer {
 
   [ce] {
     overflow: clip;
+    overflow-clip-margin: 2em;
     position: relative;
 
     min-height: 1lh;

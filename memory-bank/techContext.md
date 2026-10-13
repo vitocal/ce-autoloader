@@ -96,11 +96,20 @@ the CI entry point; it needs network (Mocha from unpkg, `uhtml` from esm.sh).
   match the file you are editing.
 - **Tailwind's layers are positioned by `public/styles.css`, not by the component that imports Tailwind.** The
   Hairline UI components (`pages/components/hairline/`) bring Tailwind v4 into the docs build, and the page's
-  layer statement puts `theme` early (or Tailwind's `--radius-*`/`--shadow-*`/`--font-mono` would beat the page's
-  own values) and `utilities` late (or the page's `code` rule — a dark pill — and Nord's typeset would beat the
-  components'). The leftover collision is `.grid`: shared.css's is a *column* grid the "Get started" steps rely
-  on, Tailwind's is `display: grid`, so `hotfix` re-states the page's version and `hairline.css` puts the
-  components' back to the row default — which the log's `0fr → 1fr` fold needs.
+  layer statement is `properties, theme, normalize, ds, shared, page, components, scoped, hairline, utilities,
+  hotfix`:
+  - `theme` early, or Tailwind's `--radius-*`/`--shadow-*`/`--font-mono` beat the page's own values.
+  - `hairline` — the components' base rules (the `code`/`button` resets, the `.grid` reset, the host `display`) —
+    above the page's layers, so they beat the page's `code` rule (a dark pill) and Nord's typeset, and *below*
+    `utilities`, so a class like `text-[12px]` still beats them. **Unlayered is the trap here**: it wins over the
+    utilities too, so `font: inherit` on a button beats its own `text-[12px]` (the period chips rendered at 16px).
+  - `utilities` late, so the components' classes outrank the page's; `hotfix` stays the top layer.
+- **The token mapping is `@theme inline`, and the raw variables exist too.** `inline` because the page declares
+  `--color-primary` and `--color-accent` itself (a plain `@theme` of the same name either loses the cascade or
+  references itself) and because Tailwind's `--radius-lg` has to be pinned at 8px — the page's is 1.25rem, and
+  `rounded-lg` inside a component means Tailwind's. The raw names (`--border`, `--primary`, …) are defined as
+  variables on the components' own tags, because the sources use them *inside arbitrary values*
+  (`shadow-[0_0_0_1px_var(--border)]`), where a Tailwind colour name is no help.
 - **`node` / `npm` are not on the default shell `PATH`** in a fresh shell (`zsh: command not found: node`). The Homebrew
   binaries are at `/opt/homebrew/bin/node` (v25.8.1) — use the absolute path, or `export PATH=/opt/homebrew/bin:$PATH`.
   Playwright's browsers are installed under `~/Library/Caches/ms-playwright` (chromium 1248 / firefox 1555 / webkit 2370),

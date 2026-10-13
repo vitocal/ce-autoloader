@@ -29,9 +29,9 @@ ignores a map added after construction) · a **`Lifecycle`** module (`src/lifecy
 the "a failed element is terminal" invariant, with its own suite (`test/lifecycle.test.js`) · a
 **library-driven lifecycle demo** on the landing page (`<ce-reveal>`: five reveals plus a height change, and a mask
 sweep on the hero), with both `pages/prototypes/lifecycle-animations/` pages converted off their `setState()` stand-in
-onto the same catalog + registry) · three **Hairline UI components** on the landing page
-(`#hairline-ui`: `text-morph`, `number-roll` and `command-output` — the upstream React sources, wrapped with `r2wc`
-and driven purely by attributes, with Tailwind v4 compiled by the docs build for them alone).
+onto the same catalog + registry) · four **Hairline UI components** on the landing page
+(`#hairline-ui`: `text-morph`, `number-roll`, `command-output` and `earnings-chart` — the upstream React sources,
+wrapped with `r2wc` and driven purely by attributes, with Tailwind v4 compiled by the docs build for them alone).
 
 ## Left
 
