@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clip &amp; mask reveals — pure CSS lifecycle animation</title>
+
+  <style>
+    /* ───────────────────────────────────────────────────────────────────────────
+       THE CONTRACT
+
+       Each reveal below is a @keyframes triggered by the element becoming
+       `[ce="defined"]`. The BASE value is the *revealed* state and the animation
+       supplies the hidden from-state — so if the animation is ever cancelled, the
+       element degrades to "already revealed" rather than "stuck hidden".
+
+       Two things make that work, and both are easy to get wrong:
+
+       1. THE UNION SELECTOR. `ready` follows `defined` two frames later, and a
+          keyframe animation is torn down the moment its matching rule stops
+          applying. A reveal declared on `.x[ce="defined"]` alone is cancelled
+          mid-flight and snaps to its end state. Declare it on
+          `.x[ce="defined"], .x[ce="ready"]`.
+
+       2. REGISTERED VARIABLES. An unregistered custom property is not
+          interpolable — it flips discretely at the 50% mark. Every animated
+          variable here is registered with @property.
+       ─────────────────────────────────────────────────────────────────────────── */
+
+    :root {
+      --ce-dur: 720ms;
+      --ce-ease: cubic-bezier(0.16, 1, 0.3, 1);   /* expo-out: fast in, soft stop */
+      --r: 14px;
+      --seg-max: 26px;
+    }
+
+    /* ── the variables the masks interpolate ─────────────────────────────────── */
+
+    @property --wipe {
+      syntax: "<percentage>";
+      inherits: false;
+      initial-value: 100%;
+    }
+
+    @property --iris {
+      syntax: "<percentage>";
+      inherits: false;
+      initial-value: 0%;
+    }
+
+    @property --seg {
+      syntax: "<length>";
+      inherits: false;
+      initial-value: 0px;
+    }
+
+    body {
+      margin: 0;
+      padding: 2.5rem clamp(1rem, 5vw, 4rem) 6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
+      color: #0f172a;
+    }
+
+    h1 { font-size: 1.6rem; margin: 0; }
+    h2 { font-size: 1.1rem; margin: 0 0 .25rem; }
+    p  { max-width: 70ch; margin: 0 0 .75rem; }
+    .muted { color: #64748b; }
+
+    .row {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    pre {
+      margin: .5rem 0 0;
+      padding: .75rem 1rem;
+      background: #0f172a0a;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: .8rem;
+      line-height: 1.45;
+    }
+
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    button {
+      align-self: start;
+      padding: .5rem .9rem;
+      border: 0;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #fff;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    /* ── the shared host contract ─────────────────────────────────────────────── */
+
+    .panel {
+      display: block;
+      min-height: 9rem;
+      border-radius: var(--r);
+      /* reserve the box so a reveal never shifts the page */
+      contain: paint;
+      /* declared on the base so it survives every state change */
+      transition: opacity 300ms ease;
+    }
+
+    .panel:not(:defined) { opacity: .35; }
+    .panel[ce="loading"],
+    .panel[ce="loaded"] { opacity: .5; }
+    .panel[ce="defined"],
+    .panel[ce="ready"] { opacity: 1; }
+
+    /* ── 1 · clip-path wipe ───────────────────────────────────────────────────────
+       clip-path cannot be transitioned from a state that no longer matches, so it
+       runs as a keyframe. `round var(--r)` keeps the panel's rounded corners.
+
+       The base is the *revealed* inset, never `none`. `clip-path: none` does not
+       interpolate with a basic shape — Chromium holds the from-value, then snaps
+       to the to-value at the 50% mark, so the wipe becomes a pop. Both ends have
+       to be an `inset()` for the shape to animate at all. */
+    .wipe {
+      clip-path: inset(0 round var(--r));
+    }
+
+    /* NOTE the union selector: `ready` follows `defined` a couple of frames later,
+       and a keyframe animation is cancelled the moment its rule stops matching.
+       Declaring it on both states keeps the animation alive across the transition.
+       (The base state is the revealed one, so a cancellation degrades to "already
+       revealed" rather than "stuck hidden".) */
+    .wipe[ce="defined"],
+    .wipe[ce="ready"] {
+      animation: ce-clip-wipe var(--ce-dur) cubic-bezier(0.77, 0, 0.175, 1);
+    }
+
+    @keyframes ce-clip-wipe {
+      from {
+        clip-path: inset(0 100% 0 0 round var(--r));
+        opacity: 0;
+      }
+    }
+
+    /* ── 2 · mask sweep ─────────────────────────────────────────────────────────
+       A single moving gradient edge. `--wipe` is registered, so it interpolates;
+       the mask only has to be declared once, on the settled state.
+
+       Geometry: the opaque stop must sit PAST the end of the gradient line for the
+       box to be fully revealed, so the settled value is > 100% and the animation
+       starts below 0%. Getting this backwards masks the element out entirely. */
+    .sweep[ce="defined"],
+    .sweep[ce="ready"] {
+      --wipe: 120%;
+      mask-image: linear-gradient(100deg, #000 var(--wipe), transparent calc(var(--wipe) + 20%));
+      mask-repeat: no-repeat;
+      mask-size: 100% 100%;
+    }
+
+    .sweep[ce="defined"],
+    .sweep[ce="ready"] {
+      animation: ce-mask-sweep var(--ce-dur) cubic-bezier(0, 0.55, 0.45, 1);
+    }
+
+    @keyframes ce-mask-sweep {
+      from { --wipe: -20%; }
+    }
+
+    /* ── 3 · blinds ─────────────────────────────────────────────────────────────
+       `repeating-linear-gradient` with a variable band height. Growing the opaque
+       band to its maximum reveals the whole box. */
+    .blinds[ce="defined"],
+    .blinds[ce="ready"] {
+      --seg: var(--seg-max);
+      mask-image: repeating-linear-gradient(
+        to bottom,
+        #000 0,
+        #000 var(--seg),
+        transparent var(--seg),
+        transparent var(--seg-max)
+      );
+      mask-repeat: no-repeat;
+      mask-size: 100% 100%;
+    }
+
+    .blinds[ce="defined"],
+    .blinds[ce="ready"] {
+      animation: ce-blinds var(--ce-dur) cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes ce-blinds {
+      from { --seg: 0px; }
+    }
+
+    /* ── 4 · iris ───────────────────────────────────────────────────────────────
+       The same trick with a radial mask: the opaque radius opens from the centre
+       outwards. `calc(var(--iris) + 14%)` gives the edge a soft falloff. */
+    .iris[ce="defined"],
+    .iris[ce="ready"] {
+      --iris: 150%;
+      mask-image: radial-gradient(circle at 50% 50%, #000 var(--iris), transparent calc(var(--iris) + 14%));
+      mask-repeat: no-repeat;
+      mask-size: 100% 100%;
+    }
+
+    .iris[ce="defined"],
+    .iris[ce="ready"] {
+      animation: ce-iris var(--ce-dur) cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes ce-iris {
+      from { --iris: 0%; }
+    }
+
+    /* ── 5 · grid dissolve ──────────────────────────────────────────────────────
+       Two perpendicular band masks combined with `mask-composite: intersect`. The
+       intersection is a grid of squares that grows until the masks cover the box.
+
+       One `--seg` drives both gradients, so they stay in lockstep. */
+    .dissolve[ce="defined"],
+    .dissolve[ce="ready"] {
+      --seg: var(--seg-max);
+      mask-image:
+        repeating-linear-gradient(to bottom, #000 0 var(--seg), transparent var(--seg) var(--seg-max)),
+        repeating-linear-gradient(to right, #000 0 var(--seg), transparent var(--seg) var(--seg-max));
+      mask-composite: intersect;
+      mask-repeat: no-repeat;
+      mask-size: 100% 100%;
+    }
+
+    .dissolve[ce="defined"],
+    .dissolve[ce="ready"] {
+      animation: ce-dissolve var(--ce-dur) cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes ce-dissolve {
+      from { --seg: 0px; }
+    }
+
+    /* ── accessibility ─────────────────────────────────────────────────────────
+       Masks are decorative; under reduced motion drop straight to the revealed
+       state. The opacity step still carries the state change. */
+    @media (prefers-reduced-motion: reduce) {
+      .wipe[ce="defined"], .wipe[ce="ready"],
+      .sweep[ce="defined"], .sweep[ce="ready"],
+      .blinds[ce="defined"], .blinds[ce="ready"],
+      .iris[ce="defined"], .iris[ce="ready"],
+      .dissolve[ce="defined"], .dissolve[ce="ready"] { animation: none; }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Clip &amp; mask reveals — pure CSS lifecycle animation</h1>
+  <p class="muted">
+    No View Transitions. Each reveal is a <code>@keyframes</code> triggered by the element becoming
+    <code>[ce="defined"]</code>. The base value is the <em>revealed</em> state; the animation supplies the
+    hidden from-state.
+  </p>
+
+  <button id="replay">Replay</button>
+
+  <section>
+    <h2>1 · clip-path wipe</h2>
+    <p class="muted">
+      The cheapest of the five: a single <code>inset()</code> edge. It animates the clip shape, so the panel's
+      rounded corners survive with <code>round var(--r)</code>.
+    </p>
+    <p class="muted">
+      The one trap: the resting value must be <code>inset(0 round var(--r))</code>, <em>not</em>
+      <code>none</code>. <code>none</code> does not interpolate with a basic shape — the browser holds the
+      from-value and snaps at the 50% mark, turning the wipe into a pop. Measured, not guessed: at
+      <code>currentTime: 380</code> the computed value was still the from-<code>inset</code>, then
+      <code>none</code>.
+    </p>
+    <div class="row">
+      <demo-panel class="panel wipe" label="clip-path wipe" desc="inset(0 100% 0 0) → inset(0)"></demo-panel>
+    </div>
+    <pre><code>.wipe { clip-path: inset(0 round var(--r)); }  /* revealed — never `none` */
+.wipe[ce="defined"], .wipe[ce="ready"] { animation: ce-clip-wipe var(--ce-dur) cubic-bezier(.77,0,.175,1); }
+@keyframes ce-clip-wipe { from { clip-path: inset(0 100% 0 0 round var(--r)); opacity: 0; } }</code></pre>
+  </section>
+
+  <section>
+    <h2>2 · mask sweep</h2>
+    <p class="muted">
+      A soft moving edge. <code>--wipe</code> is registered with <code>@property</code>, so it interpolates;
+      the <code>mask-image</code> itself is declared once and never re-evaluated.
+    </p>
+    <div class="row">
+      <demo-panel class="panel sweep" label="mask sweep" desc="--wipe: 100% → -20%"></demo-panel>
+    </div>
+    <pre><code>@property --wipe { syntax: "&lt;percentage&gt;"; inherits: false; initial-value: 100%; }
+.sweep[ce="defined"] {
+  --wipe: 120%;
+  mask-image: linear-gradient(100deg, #000 var(--wipe), transparent calc(var(--wipe) + 20%));
+  animation: ce-mask-sweep var(--ce-dur) cubic-bezier(0,.55,.45,1);
+}
+@keyframes ce-mask-sweep { from { --wipe: -20%; } }</code></pre>
+  </section>
+
+  <section>
+    <h2>3 · blinds</h2>
+    <p class="muted">
+      A <code>repeating-linear-gradient</code> whose opaque band grows from zero. The band height is the
+      animated variable, so one number drives the whole pattern.
+    </p>
+    <div class="row">
+      <demo-panel class="panel blinds" label="blinds" desc="band height 0 → 26px"></demo-panel>
+    </div>
+    <pre><code>.blinds[ce="defined"] { --seg: var(--seg-max); animation: ce-blinds var(--ce-dur) var(--ce-ease); }
+.blinds[ce="defined"] {
+  mask-image: repeating-linear-gradient(to bottom,
+    #000 0, #000 var(--seg), transparent var(--seg), transparent var(--seg-max));
+}
+@keyframes ce-blinds { from { --seg: 0px; } }</code></pre>
+  </section>
+
+  <section>
+    <h2>4 · iris</h2>
+    <p class="muted">
+      The same trick with a radial mask: the opaque radius opens from the centre outwards.
+    </p>
+    <div class="row">
+      <demo-panel class="panel iris" label="iris" desc="radius 0% → 150%"></demo-panel>
+    </div>
+    <pre><code>@property --iris { syntax: "&lt;percentage&gt;"; inherits: false; initial-value: 0%; }
+.iris[ce="defined"] {
+  --iris: 150%;
+  mask-image: radial-gradient(circle at 50% 50%, #000 var(--iris), transparent calc(var(--iris) + 14%));
+  animation: ce-iris var(--ce-dur) var(--ce-ease);
+}
+@keyframes ce-iris { from { --iris: 0%; } }</code></pre>
+  </section>
+
+  <section>
+    <h2>5 · grid dissolve</h2>
+    <p class="muted">
+      Two perpendicular band masks combined with <code>mask-composite: intersect</code>. The intersection is a
+      grid of squares that grows until the masks cover the box.
+    </p>
+    <div class="row">
+      <demo-panel class="panel dissolve" label="grid dissolve" desc="mask-composite: intersect"></demo-panel>
+    </div>
+    <pre><code>.dissolve[ce="defined"] {
+  --seg: var(--seg-max);
+  mask-image:
+    repeating-linear-gradient(to bottom, #000 0 var(--seg), transparent var(--seg) var(--seg-max)),
+    repeating-linear-gradient(to right,  #000 0 var(--seg), transparent var(--seg) var(--seg-max));
+  mask-composite: intersect;
+  animation: ce-dissolve var(--ce-dur) var(--ce-ease);
+}
+@keyframes ce-dissolve { from { --seg: 0px; } }</code></pre>
+  </section>
+
+  <script type="module">
+    import CERegistry from "/src/index.ts";
+
+    /**
+     * The panels are loaded by the real registry — there is no stand-in here.
+     * `catalog` maps the tag to a loader and `src/lifecycle.ts` paints the walk
+     * itself, so what the CSS above is hooked to is the shipped state machine:
+     *
+     *   :not(:defined) → [ce=loading] → [ce=loaded] → [ce=defined] → [ce=ready]
+     *                                    └─ defer barrier ─┘
+     *
+     * `loaded` is the window `deferDefine` opens: the module is in memory, the
+     * batch has not upgraded yet. `ready` is the first paint after the upgrade,
+     * and it is why every reveal above is declared on the union of the two.
+     */
+
+    const PANEL = `
+      .inner {
+        height: 100%; box-sizing: border-box; display: grid; align-content: end;
+        gap: .2rem; padding: 1.25rem; border-radius: inherit; color: #fff;
+        background: linear-gradient(135deg, #6366f1, #ec4899 55%, #f59e0b);
+      }
+      h3 { margin: 0; font-size: 1rem; }
+      p  { margin: 0; font-size: .8rem; opacity: .85; }
+    `;
+
+    class DemoPanel extends HTMLElement {
+      connectedCallback() {
+        if (this.shadowRoot) return;
+        this.attachShadow({ mode: "open" }).innerHTML = `
+          <style>${PANEL}</style>
+          <div class="inner">
+            <h3>${this.getAttribute("label") ?? "component"}</h3>
+            <p>${this.getAttribute("desc") ?? "revealed on [ce=defined]"}</p>
+          </div>`;
+      }
+    }
+
+    /** A loader that takes its time, so `loading` is a state you can see. */
+    const slow = (ctor) => async () => {
+      await new Promise((r) => setTimeout(r, 900));
+      return ctor;
+    };
+
+    globalThis.registry = new CERegistry({
+      catalog: { "demo-panel": slow(DemoPanel) },
+    });
+
+    /* A defined tag cannot un-define itself, so a replay is a reload. */
+    document.getElementById("replay").addEventListener("click", () => location.reload());
+  </script>
+</body>
+
+</html>

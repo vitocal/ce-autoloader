@@ -196,7 +196,7 @@ describe("Transition Enabled (View Transitions)", () => {
       await customElements.whenDefined("transition-base");
 
       expect(el.hasAttribute("data-upgraded")).to.be.true;
-      expect(el.getAttribute("ce")).to.equal("defined");
+      expect(el.getAttribute("ce"), "the element should have upgraded").to.be.oneOf(["defined", "ready"]);
 
       // Deferred definitions are only batched in transition mode, so a
       // scoped transition on the fixture is proof the queue did the work.
@@ -312,7 +312,7 @@ describe("Transition Enabled (View Transitions)", () => {
       await customElements.whenDefined("transition-self");
 
       expect(el.hasAttribute("data-upgraded")).to.be.true;
-      expect(el.getAttribute("ce")).to.equal("defined");
+      expect(el.getAttribute("ce"), "the element should have upgraded").to.be.oneOf(["defined", "ready"]);
 
       // The module defined the tag itself, yet the definition still happened
       // inside the transition (that is what the defer queue is for).
@@ -437,7 +437,7 @@ describe("Transition Enabled (View Transitions)", () => {
       await new Promise(requestIdleCallback);
 
       expect(el.hasAttribute("data-upgraded")).to.be.true;
-      expect(el.getAttribute("ce")).to.equal("defined");
+      expect(el.getAttribute("ce"), "the element should have upgraded").to.be.oneOf(["defined", "ready"]);
 
       // Nothing left to define ⇒ no transition should be started for it.
       expect(scoped_transitions).to.have.lengthOf(0);

@@ -23,6 +23,12 @@ and closed, `shadow: 3`). The `shadowObserver` option (`'auto' | true | false`) 
 | `eager`, `manual` | `loadAndDefine(elements)` now (`manual` normally comes from `registry.upgrade(root, "manual")`) |
 | anything else | `console.error` and **no load** (issue #7) — `ce_elements` is in scope there (declared before the call), so the "undefined" reading in earlier notes was wrong |
 
+`when_visible` takes an element on only while `getLifecycle(el)` is `null` — `ce` is the per-element "the registry has
+handled this" flag. **Not** `customElements.get(tagName)`: that flips true the moment *any* element with the tag is
+defined, so a sibling delivered in a later IntersectionObserver callback was dropped and never painted at all (fixed
+2026-10-12). The per-element lock (`loading_locks: Set<HTMLElement>`) is the same mistake avoided — a tag-name key is a
+per-*tag* lock. A tag already defined but absent from the catalog is someone else's registration, and is left alone.
+
 `loadAndDefine` → `Promise.allSettled(elements.map(load))` → report the load failures **once** → define the survivors
 (`runScopedViewTransition` when `transition`, else `Promise.allSettled(map(define))`) → report the **define** failures
 from those `allSettled` results → `customElements.flush()` when `deferDefine`.
@@ -94,7 +100,8 @@ the transition's `update` callback.
 ## Conventions to keep
 
 `ce` values and measure names are public contract · **every `ce` transition goes through `src/lifecycle.ts` — never compare the
-attribute to a string literal** · option defaults live in one object in the constructor · one shared
+attribute to a string literal** · **"has the registry handled this element?" is `getLifecycle(el)`, never
+`customElements.get(tagName)`** — a tag is shared, an element is not · option defaults live in one object in the constructor · one shared
 IntersectionObserver · no runtime dependencies · capability checks instead of polyfills, with a plain-define fallback ·
 `devErrors` never gates the hook · `transition` implies `deferDefine` · match the file you edit instead of reformatting
 it.

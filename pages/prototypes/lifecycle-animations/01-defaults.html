@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lifecycle animation — good defaults (pure CSS)</title>
+
+  <style>
+    /* ───────────────────────────────────────────────────────────────────────────
+       THE CONTRACT
+
+       The element is NOT replaced when it upgrades. `customElements.define()`
+       swaps its [[Prototype]] in place and calls connectedCallback synchronously.
+       Same node, same attributes, same identity — one frame later it paints the
+       component's DOM.
+
+       So two things change on that frame:
+         1. the host's computed style   (loading → defined)
+         2. the host's contents         (empty → rendered)
+
+       A transition needs a "from" and a "to" on the SAME element, so the
+       transition property must live on a selector that matches BEFORE and AFTER
+       the upgrade. `:not(:defined)` does not survive (it stops matching the
+       instant the element is defined) — that is why every rule below anchors on
+       `[ce]` instead.
+       ─────────────────────────────────────────────────────────────────────────── */
+
+    :root {
+      --ce-dur: 380ms;
+      --ce-ease: cubic-bezier(0.16, 1, 0.3, 1);   /* expo-out: fast in, soft stop */
+      --ce-radius: 12px;
+
+      /* Makes `auto` interpolable for width/height. Without it a transition to
+         `height: auto` snaps at the 50% mark instead of animating — see §5. */
+      interpolate-size: allow-keywords;
+    }
+
+    body {
+      margin: 0;
+      padding: 2.5rem clamp(1rem, 5vw, 4rem) 6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
+      color: #0f172a;
+    }
+
+    h1 { font-size: 1.6rem; margin: 0; }
+    h2 { font-size: 1.1rem; margin: 0 0 .25rem; }
+    p  { max-width: 70ch; margin: 0 0 .75rem; }
+    .muted { color: #64748b; }
+
+    .row {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .caption { font-size: .8rem; color: #64748b; margin: .35rem 0 0; }
+    .caption b { color: #0f172a; }
+
+    pre {
+      margin: .5rem 0 0;
+      padding: .75rem 1rem;
+      background: #0f172a0a;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: .8rem;
+      line-height: 1.45;
+    }
+
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    button {
+      align-self: start;
+      padding: .5rem .9rem;
+      border: 0;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #fff;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    /* ── the state machine, in one place ─────────────────────────────────────── */
+
+    /* Every host that participates reserves its space and declares ONE transition
+       on `[ce]` — the selector that survives the upgrade. Animate opacity and
+       transform only; they are the two the compositor can run off the main thread. */
+    .host {
+      display: block;
+      position: relative;
+      overflow: clip;
+      border-radius: var(--ce-radius);
+      /* reserved space → the page never reflows when the content lands (CLS = 0) */
+      min-height: 8.5rem;
+      transition: opacity var(--ce-dur) var(--ce-ease);
+    }
+
+    /* :not(:defined) is fine for a *static* placeholder look, but never for the
+       transition itself — this rule only sets the resting appearance. */
+    .host:not(:defined) { opacity: .35; }
+
+    .host[ce="loading"] { opacity: .5; }
+    .host[ce="loaded"]  { opacity: .5; }
+    .host[ce="defined"] { opacity: 1; }
+    .host[ce="ready"]   { opacity: 1; }
+    .host[ce="error"]   { opacity: 1; }
+
+    /* Skeleton: shimmer lives on the host while the module is in flight. It is a
+       pseudo-element so it costs no DOM and dies with the state. */
+    .host[ce="loading"]::after,
+    .host[ce="loaded"]::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(100deg, transparent 30%, #ffffffb0 50%, transparent 70%);
+      transform: translateX(-100%);
+      animation: ce-shimmer 1.4s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    /* `loaded` = the code is in memory, held at the defer barrier. Give it a hair
+       more presence than `loading` so a slow batch member reads as "almost". */
+    .host[ce="loaded"]::after { animation-duration: 900ms; }
+
+    .host[ce="defined"]::after,
+    .host[ce="ready"]::after,
+    .host[ce="error"]::after { content: none; }
+
+    @keyframes ce-shimmer {
+      to { transform: translateX(100%); }
+    }
+
+    /* ── demo: @starting-style ───────────────────────────────────────────────────
+       @starting-style fires on an element's FIRST render (display:none → block, or
+       insertion). An upgrade is not a first render — the element was already on
+       screen — so to use it you hide the host until `defined`, and the display swap
+       IS the entry. Trade-off: no skeleton while loading. */
+    .enter {
+      display: block;
+      border-radius: var(--ce-radius);
+      min-height: 8.5rem;
+      opacity: 1;
+      translate: 0 0;
+      transition:
+        opacity var(--ce-dur) var(--ce-ease),
+        translate var(--ce-dur) var(--ce-ease),
+        display var(--ce-dur) allow-discrete;
+    }
+
+    .enter:not(:defined),
+    .enter[ce="loading"],
+    .enter[ce="loaded"] {
+      display: none;
+    }
+
+    .enter[ce="defined"],
+    .enter[ce="ready"] {
+      display: block;
+
+      @starting-style {
+        opacity: 0;
+        translate: 0 10px;
+      }
+    }
+
+    /* ── demo: staggered list ─────────────────────────────────────────────────── */
+    .list { display: grid; gap: .75rem; }
+
+    .list > * {
+      display: block;
+      min-height: 3.25rem;
+      border-radius: 10px;
+      transition: opacity var(--ce-dur) var(--ce-ease), translate var(--ce-dur) var(--ce-ease);
+    }
+
+    .list > :not(:defined) { opacity: .3; }
+    .list > [ce="loading"] { opacity: .5; }
+    .list > [ce="loaded"]  { opacity: .5; }
+
+    .list > :not(:defined),
+    .list > [ce="loading"],
+    .list > [ce="loaded"] { translate: 0 12px; }
+
+    /* The stagger is the delay, and the delay is a function of position — no JS
+       index bookkeeping. */
+    .list > [ce="defined"],
+    .list > [ce="ready"] {
+      opacity: 1;
+      translate: 0 0;
+    }
+
+    .list > :nth-child(1)[ce="defined"] { transition-delay: 0ms; }
+    .list > :nth-child(2)[ce="defined"] { transition-delay: 70ms; }
+    .list > :nth-child(3)[ce="defined"] { transition-delay: 140ms; }
+
+    /* ── demo: height expansion ─────────────────────────────────────────────────
+       A component's height is unknown until it loads, so whatever the placeholder
+       reserves is a guess. `interpolate-size: allow-keywords` makes `auto`
+       interpolable, which lets the guess be a *floor*: the box animates to the
+       real height, and nothing below it moves.
+
+       The slot is deliberately short (2.5rem) and the panel deliberately narrow,
+       so the growth is big enough to read. */
+    .grow {
+      display: block;
+      max-width: 22rem;
+      overflow: clip;
+      border-radius: var(--ce-radius);
+      height: 2.5rem;
+      transition: height var(--ce-dur) var(--ce-ease);
+    }
+
+    .grow[ce="defined"],
+    .grow[ce="ready"] { height: auto; }
+
+    /* ── accessibility ─────────────────────────────────────────────────────────
+       Reduced motion kills the movement and the shimmer, but keeps the opacity
+       change so the state is still legible. Never remove the state cue entirely. */
+    @media (prefers-reduced-motion: reduce) {
+      :root { --ce-dur: 1ms; }
+
+      .host[ce="loading"]::after,
+      .host[ce="loaded"]::after { animation: none; opacity: .25; }
+
+      .enter[ce="defined"] { translate: 0 0; }
+      .list > :not(:defined),
+      .list > [ce="loading"],
+      .list > [ce="loaded"] { translate: 0 0; }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Good defaults — pure CSS lifecycle animation</h1>
+  <p class="muted">
+    No View Transitions. Every effect below is a style change on the <em>same</em> node, anchored on
+    <code>[ce]</code> so it survives <code>define()</code>.
+  </p>
+
+  <button id="replay">Replay</button>
+
+  <section>
+    <h2>1 · Skeleton + host crossfade (page-level)</h2>
+    <p class="muted">
+      One <code>transition: opacity</code> declared on <code>[ce]</code>. Because the selector matches on
+      both sides of the upgrade, the change is animated. The shimmer is a pseudo-element, so it costs no DOM
+      and disappears with the state.
+    </p>
+    <div class="row">
+      <demo-card class="host"></demo-card>
+      <demo-card class="host"></demo-card>
+    </div>
+    <pre><code>.host { transition: opacity var(--ce-dur) var(--ce-ease); min-height: 8.5rem; }
+.host[ce="loading"] { opacity: .5; }
+.host[ce="defined"] { opacity: 1; }</code></pre>
+  </section>
+
+  <section>
+    <h2>2 · Content entry across the shadow boundary</h2>
+    <p class="muted">
+      The page owns the host box; the component owns its guts. Both read the same attribute — the component
+      through <code>:host([ce="defined"])</code>. This is the part <code>:not(:defined)</code> can never do,
+      because a shadow root has no idea what <code>:not(:defined)</code> resolved to.
+    </p>
+    <div class="row">
+      <demo-card class="host"></demo-card>
+    </div>
+    <pre><code>/* inside the component's shadow root */
+:host([ce="defined"]) .inner > * {
+  animation: ce-rise var(--ce-dur) cubic-bezier(.16,1,.3,1) both;
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>3 · <code>@starting-style</code> entry</h2>
+    <p class="muted">
+      The host stays <code>display: none</code> until it is defined, so the display swap is a genuine
+      <em>first render</em> and <code>@starting-style</code> supplies the from-state. Elegant, and the only
+      technique here that needs no keyframes — but there is no skeleton while loading.
+    </p>
+    <div class="row">
+      <!-- `eager`: this host is `display: none` until it is defined, so it reserves
+           no space and can never intersect — `visible` would deadlock it. -->
+      <demo-enter class="enter" loading="eager"></demo-enter>
+    </div>
+    <pre><code>.enter:not(:defined), .enter[ce="loading"] { display: none; }
+.enter[ce="defined"] {
+  display: block;
+  transition: opacity .38s, translate .38s, display .38s allow-discrete;
+  @starting-style { opacity: 0; translate: 0 10px; }
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>4 · Staggered list</h2>
+    <p class="muted">
+      The batch defines on one frame, so the whole list would otherwise move at once. The stagger is a
+      <code>transition-delay</code> keyed on position — no JS index bookkeeping.
+    </p>
+    <div class="list">
+      <demo-item></demo-item>
+      <demo-item></demo-item>
+      <demo-item></demo-item>
+    </div>
+    <pre><code>.list > :nth-child(1)[ce="defined"] { transition-delay: 0ms; }
+.list > :nth-child(2)[ce="defined"] { transition-delay: 70ms; }
+.list > :nth-child(3)[ce="defined"] { transition-delay: 140ms; }</code></pre>
+  </section>
+
+  <section>
+    <h2>5 · Height expansion</h2>
+    <p class="muted">
+      A component's height is unknown until it loads, so whatever the placeholder reserves is a guess.
+      <code>interpolate-size: allow-keywords</code> makes <code>auto</code> interpolable, which lets the guess be a
+      <em>floor</em> rather than a promise: the box animates to the real height, and nothing below it moves.
+    </p>
+    <div class="row">
+      <demo-grow class="grow"></demo-grow>
+    </div>
+    <pre><code>:root { interpolate-size: allow-keywords; }
+
+.grow { height: 2.5rem; transition: height var(--ce-dur) var(--ce-ease); }
+.grow[ce="defined"], .grow[ce="ready"] { height: auto; }</code></pre>
+  </section>
+
+  <script type="module">
+    import CERegistry from "/src/index.ts";
+
+    /**
+     * The components below are loaded by the real registry — there is no stand-in
+     * here. `catalog` maps each tag to a loader and `src/lifecycle.ts` paints the
+     * walk itself, so what the CSS is hooked to is the shipped state machine:
+     *
+     *   :not(:defined) → [ce=loading] → [ce=loaded] → [ce=defined] → [ce=ready]
+     *                                    └─ defer barrier ─┘
+     *
+     * `loaded` is the window `deferDefine` opens: the module is in memory, the
+     * batch has not upgraded yet. `ready` is the first paint after the upgrade.
+     */
+
+    /* ── components ───────────────────────────────────────────────────────────── */
+
+    const CARD = `
+      .inner { display: grid; gap: .3rem; height: 100%; box-sizing: border-box;
+               padding: 1.1rem 1.25rem; background: #fff; border: 1px solid #e2e8f0;
+               border-radius: inherit; }
+      h3 { margin: 0; font-size: .95rem; }
+      p  { margin: 0; font-size: .82rem; color: #64748b; }
+
+      /* The component animates its own guts, keyed on the same attribute the page
+         uses for the host box. Fill-mode "both" holds the end state if cut. */
+      :host([ce="defined"]) .inner > *,
+      :host([ce="ready"])   .inner > * {
+        animation: ce-rise var(--ce-dur, 380ms) cubic-bezier(.16, 1, .3, 1) both;
+      }
+      :host([ce="defined"]) .inner > *:nth-child(2),
+      :host([ce="ready"])   .inner > *:nth-child(2) { animation-delay: 70ms; }
+
+      @keyframes ce-rise { from { opacity: 0; translate: 0 6px; } }
+    `;
+
+    const ENTER = `
+      .inner { display: grid; gap: .3rem; height: 100%; box-sizing: border-box;
+               padding: 1.1rem 1.25rem; background: #fff; border: 1px solid #e2e8f0;
+               border-radius: inherit; }
+      h3 { margin: 0; font-size: .95rem; }
+      p  { margin: 0; font-size: .82rem; color: #64748b; }
+    `;
+
+    const ITEM = `
+      .inner { display: flex; align-items: center; gap: .6rem; height: 100%;
+               box-sizing: border-box; padding: .85rem 1rem; background: #fff;
+               border: 1px solid #e2e8f0; border-radius: inherit; font-size: .85rem; }
+      .dot { width: .6rem; height: .6rem; border-radius: 50%; background: #6366f1; flex: none; }
+    `;
+
+    const define = (css, html) => class extends HTMLElement {
+      connectedCallback() {
+        if (this.shadowRoot) return;
+        this.attachShadow({ mode: "open" }).innerHTML = `<style>${css}</style>${html}`;
+      }
+    };
+
+    const GROW = `
+      .inner { display: grid; gap: .3rem; box-sizing: border-box; height: 100%;
+               padding: 1.1rem 1.25rem; background: #fff; border: 1px solid #e2e8f0;
+               border-radius: inherit; }
+      h3 { margin: 0; font-size: .95rem; }
+      p  { margin: 0; font-size: .82rem; color: #64748b; }
+    `;
+
+    const CLASSES = {
+      "demo-card": define(CARD,
+        `<div class="inner">
+           <h3>Loaded component</h3>
+           <p>Upgraded in place — the host faded, then the contents rose in.</p>
+         </div>`),
+      "demo-enter": define(ENTER,
+        `<div class="inner">
+           <h3>Revealed by @starting-style</h3>
+           <p>Never had a loading look; it went from nothing to rendered.</p>
+         </div>`),
+      "demo-item": define(ITEM,
+        `<div class="inner"><span class="dot"></span>Item upgraded with the batch</div>`),
+      "demo-grow": define(GROW,
+        `<div class="inner">
+           <h3>Grown to its real height</h3>
+           <p>The slot reserved 2.5rem. The component needs more than that, so the box
+              animates to <code>height: auto</code> — and everything below it stays put.</p>
+         </div>`),
+    };
+
+    /* ── the walk ─────────────────────────────────────────────────────────────── */
+
+    /** A loader that takes its time, so `loading` is a state you can see. */
+    const slow = (ctor) => async () => {
+      await new Promise((r) => setTimeout(r, 900));
+      return ctor;
+    };
+
+    globalThis.registry = new CERegistry({
+      catalog: Object.fromEntries(Object.entries(CLASSES).map(([tag, ctor]) => [tag, slow(ctor)])),
+    });
+
+    /* A defined tag cannot un-define itself, so a replay is a reload. */
+    document.getElementById("replay").addEventListener("click", () => location.reload());
+  </script>
+</body>
+
+</html>

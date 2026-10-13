@@ -506,7 +506,7 @@ const registry = new CERegistry({
         <p>
           Every component moves through a predictable state machine that you can style with CSS
 
-          <code>:not(:defined) → [ce="loading"] → [ce="defined"]</code>
+          <code>:not(:defined) → [ce="loading"] → [ce="loaded"] → [ce="defined"] → [ce="ready"]</code>
         </p>
 
         <br />
@@ -542,16 +542,76 @@ const registry = new CERegistry({
 
           <div>
             <div class="title">
-              <h3>Interactive state <code>[ce="defined"]</code></h3>
+              <h3>Interactive state <code>[ce="defined"]</code> / <code>[ce="ready"]</code></h3>
             </div>
             <div class="description">
               <p>
-                The component is defined and upgraded to a fully interactive web component. Use this to trigger a
-                final "fade-in" or entrance animation.
+                The component is defined and upgraded to a fully interactive web component. <code>defined</code> is
+                written synchronously with the upgrade; <code>ready</code> lands on the next paint. Trigger an
+                entrance animation on <b>both</b> — a rule matching only <code>defined</code> is cancelled the
+                moment <code>ready</code> supersedes it.
               </p>
 
               <vi-defined></vi-defined>
             </div>
+          </div>
+        </div>
+
+        <br />
+
+        <div class="ce-demo">
+          <h3>The five reveals, slowed down</h3>
+          <p class="ce-demo__note">
+            Real catalog components (<code>&lt;ce-reveal&gt;</code>), loaded by the registry this page already runs —
+            nothing here fakes a <code>ce</code> attribute. The fetch is stretched to <code>1.2s</code> and the reveal
+            to <code>2.4s</code> so the walk is watchable, and the timeline below is drawn from the attribute changes
+            themselves.
+          </p>
+
+          <div class="ce-demo__grid">
+            <ce-reveal data-ce-watch variant="wipe" label="clip-path wipe" note="inset(0 100% 0 0) → inset(0)"></ce-reveal>
+            <ce-reveal data-ce-watch variant="sweep" label="mask sweep" note="--ce-wipe: 100% → -20%"></ce-reveal>
+            <ce-reveal data-ce-watch variant="blinds" label="blinds" note="band height 0 → 22px"></ce-reveal>
+            <ce-reveal data-ce-watch variant="iris" label="iris" note="radius 0% → 150%"></ce-reveal>
+            <ce-reveal data-ce-watch variant="dissolve" label="grid dissolve" note="mask-composite: intersect"></ce-reveal>
+          </div>
+
+          <p class="ce-demo__note">
+            Same reveal, two selectors — this is the difference <code>ready</code> exists to fix. The left one declares
+            its animation on <code>[ce="defined"]</code> alone, so it is cancelled the moment <code>ready</code> lands
+            and the panel simply appears. The right one declares it on <code>[ce="defined"], [ce="ready"]</code> and
+            plays all the way through.
+          </p>
+
+          <div class="ce-demo__grid">
+            <ce-reveal data-ce-watch variant="wipe" naive label="[ce=&quot;defined&quot;] only" note="cancelled when ready lands"></ce-reveal>
+            <ce-reveal data-ce-watch variant="wipe" label="[ce=&quot;defined&quot;], [ce=&quot;ready&quot;]" note="survives ready"></ce-reveal>
+          </div>
+
+          <h3>When the height changes</h3>
+
+          <div class="ce-demo__grid ce-demo__grid--split">
+            <ce-reveal data-ce-watch variant="grow" label="height: 4rem → auto" note="transition: height 2.4s"
+              body="Reserving space is only ever a guess. Let the box grow to the height the component actually needs, and the guess becomes a floor instead of a promise — the page below it stays exactly where it was, and nothing shifts under the reader's eye."></ce-reveal>
+            <p class="ce-demo__note">
+              You cannot know a component's height before it loads, so the box reserves a short slot and the height
+              <em>animates</em> to the real one. It grows, and everything below stays put instead of jumping.
+              <code>height: auto</code> interpolates only because the stylesheet sets
+              <code>interpolate-size: allow-keywords</code> — without it the box snaps, which is the layout shift this
+              exists to avoid.
+            </p>
+          </div>
+
+          <div id="ce-timeline" class="ce-timeline"></div>
+
+          <div class="ce-demo__actions">
+            <button type="button" class="ce-demo__replay" onclick="location.hash = '#lifecycle'; location.reload()">
+              Reload the walk
+            </button>
+            <span class="ce-demo__note">
+              The walk happens once per page load — a defined tag cannot un-define itself — so replaying it means
+              reloading.
+            </span>
           </div>
         </div>
 

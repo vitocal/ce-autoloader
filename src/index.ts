@@ -1,7 +1,7 @@
 import type { Catalog, Loader, Options, Directives, LoadError, LoadResult } from './types';
 export type { Catalog, Loader, Options, Directives, LoadError, LoadResult }
 import { CEError } from './types'
-import { beginLoading, hasFailed, markDefined, markFailed } from './lifecycle';
+import { beginLoading, getLifecycle, hasFailed, markDefined, markFailed, markLoaded, markReadyAfterPaint } from './lifecycle';
 
 /** Helpers */
 function isCustomElement(element: Element) {
@@ -60,8 +60,20 @@ function matchCustomElement(root: Element) {
  * Every custom web component (aka `<c-name ></c-name>`) on a `document` is
  * consulted in the `catalog` and and loaded via `dynamic import(file)`.
  *
- * It'll load those files and add `ce="loading"` to those `DOM Elements`, that you
- * can style with css until the component becomes [registered](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements#registering_a_custom_element)
+ * Every element it touches is painted with a `ce` attribute, walking one state
+ * per step so a stylesheet can hook any of them:
+ *
+ * | `ce`        | meaning                                                        |
+ * | ----------- | -------------------------------------------------------------- |
+ * | `loading`   | the module is being fetched                                    |
+ * | `loaded`    | the module is in memory, the element has not upgraded yet      |
+ * | `defined`   | `customElements.define()` ran — the element is upgraded        |
+ * | `ready`     | the upgrade has painted                                        |
+ * | `error`     | loading or defining failed (terminal)                          |
+ *
+ * `defined` and `ready` are two frames apart, so a rule that reveals something
+ * has to match both: `[ce="defined"], [ce="ready"]`. Matching only `defined`
+ * means the animation is torn down the instant `ready` lands.
  *
  * Once registered, the CustomElement generally style it's own DOM node.
  *
@@ -103,8 +115,10 @@ class CEAutoLoader {
   // Active view transition
   activeTransition?: ViewTransition;
 
-  // Lock components while loading to avoid retriggers
-  loading_locks: Record<string, HTMLElement> = {}
+  // Elements with a load in flight, so a re-intersection cannot start a second
+  // one. Keyed by the element itself: two elements that share a tag name are two
+  // independent loads, and a tag-name key would block the second one.
+  loading_locks = new Set<HTMLElement>()
 
   constructor(options: Options = { catalog: {} }) {
     this.options = {
@@ -302,15 +316,35 @@ class CEAutoLoader {
   public upgrade(root: HTMLElement = this.options.root, directive?: Directives) {
 
     const when_visible: IntersectionObserverCallback = (entries, _observer) => {
+      /**
+       * Does the registry still owe this element a `ce` state?
+       *
+       * `ce` is the per-element "already handled" flag, and the only correct one
+       * here. `customElements.get(tagName)` flips to true the moment *any*
+       * element with that tag name is defined — so a sibling sharing the tag is
+       * dropped and never painted at all, while the tag it shares sits defined
+       * and interactive. (The IntersectionObserver hands over the batch in as
+       * many callbacks as it likes, so a slow first batch is all it takes.)
+       *
+       * This also covers `ce="error"`, which is terminal: a failed element is
+       * never re-loaded, so a re-entry into the viewport cannot append a second
+       * fallback.
+       *
+       * A tag that is already defined but absent from the catalog is someone
+       * else's registration, and is left alone.
+       */
+      const owesState = (el: HTMLElement) => {
+        if (getLifecycle(el) !== null) return false;
+        if (!customElements.get(el.tagName.toLowerCase())) return true;
+
+        return !!this.getLoader(el.tagName.toLowerCase());
+      };
+
       let html_elements = entries
         .filter((entry) => entry.isIntersecting)
-        .filter((entry) => !customElements.get(entry.target.tagName.toLowerCase()))
         .map((entry) => entry.target as HTMLElement)
-        // Don't retry a component that already failed: `ce="error"` is the
-        // "already reported" marker. Without this, re-entering the viewport
-        // would load it again and append a second fallback.
-        .filter((el) => !hasFailed(el))
-        .filter((el) => !this.loading_locks[el.tagName])
+        .filter(owesState)
+        .filter((el) => !this.loading_locks.has(el))
 
       if (html_elements.length > 0) {
         this.loadAndDefine(html_elements);
@@ -426,16 +460,21 @@ class CEAutoLoader {
     let perf = measure('load', name);
 
     try {
-      this.loading_locks[el.tagName] = el;
+      this.loading_locks.add(el);
       // A failed element is terminal; `loadAndDefine` filters those out first.
       beginLoading(el);
 
       module = await this.loadModule(name, loader);
+
+      // The module is in memory, the upgrade has not happened. With
+      // `deferDefine` this is the window the queue holds open, and the last
+      // moment at which the batch is known to be complete-but-unapplied.
+      markLoaded(el);
     } catch (error: any) {
       load_error = error;
       throw new CEError(`${name} - ${error.message}`, { name, el, module, cause: error });
     } finally {
-      delete this.loading_locks[el.tagName];
+      this.loading_locks.delete(el);
 
       perf.end({ error: load_error });
     }
@@ -486,7 +525,12 @@ class CEAutoLoader {
         customElements.define(name, module, {});
       }
 
+      // `define()` is synchronous, so the element is upgraded before this line.
+      // `defined` is therefore painted on *this* frame: hand over to `ready` on
+      // the next one, which is the first moment an entry animation has
+      // something to animate from.
       markDefined(el);
+      markReadyAfterPaint(el);
 
     } catch (error: any) {
       define_error = error;

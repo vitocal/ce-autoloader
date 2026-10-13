@@ -13,6 +13,17 @@ let catalog = {
     return import("./my-component.js");
   },
 
+  /**
+   * The reveal panels for the lifecycle demo (index.html → `#lifecycle`).
+   *
+   * Deliberately slow: `loading` is only visible if the fetch is. `CE_DEMO_DELAY`
+   * is set by `pages/index.ts`; the fallback keeps the fetch honest if it isn't.
+   */
+  "ce-reveal": async () => {
+    await new Promise((resolve) => setTimeout(resolve, globalThis.CE_DEMO_DELAY ?? 1200));
+    return import("./ce-reveal.js");
+  },
+
   "confetti-button": () => import("./confetti-button.ts"),
   "three-cube": () => import("./three-cube.js"),
   "gl-globe": () => import("./vi/gl-globe.ts"),

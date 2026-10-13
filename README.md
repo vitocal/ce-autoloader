@@ -136,6 +136,16 @@ Two methods round out the registry: `registry.preload(["my-element"])` fetches a
 
 Elements are decorated with a `ce` attribute reflecting their current state. You can use this for skeleton screens, spinners, or fade-ins.
 
+The attribute walks one state at a time:
+
+| `ce`        | meaning                                                    |
+| ----------- | ---------------------------------------------------------- |
+| `loading`   | the module is being fetched                                |
+| `loaded`    | the module is in memory, the element has not upgraded yet   |
+| `defined`   | `customElements.define()` ran — the element is upgraded     |
+| `ready`     | the upgrade has painted                                    |
+| `error`     | loading or defining failed (terminal)                      |
+
 ```css
 /* Placeholder state */
 my-component:not(:defined) {
@@ -149,8 +159,14 @@ my-component[ce="loading"] {
   opacity: 0.7;
 }
 
-/* Success state */
-my-component[ce="defined"] {
+/* Loaded — the module is in memory; this is the window `deferDefine` opens */
+my-component[ce="loaded"] {
+  cursor: progress;
+}
+
+/* Upgrade + first paint. Match BOTH — see the note below. */
+my-component[ce="defined"],
+my-component[ce="ready"] {
   animation: fade-in 0.3s ease-out;
 }
 
@@ -162,7 +178,20 @@ my-component[ce="error"] {
 
 Each state change is a plain style change on the same element, so CSS `transition` / `animation` can animate it — no JavaScript and no View Transitions API needed. The [CSS animation reference](https://vitocal.github.io/ce-autoloader/pages/examples/animations/css.html) documents which technique fits which situation.
 
-`loading` and `defined` are set by the loader. `error` is painted for a catalog component that really failed — a loader that throws, a module that will not import, a `define()` that blows up. A tag that isn't in the catalog was never the loader's business: it keeps matching `:not(:defined)`, because a third party may define it later. Set `devErrors: true` to paint those unknown tags too, which is handy while debugging a typo'd tag name. Either way `hooks.error` is called, and when a `fallback` is configured it is **appended** inside the element with the message and stack on its `.error` / `.stack` — existing light DOM is left in place.
+`loading`, `loaded`, `defined` and `ready` are set by the loader. `error` is painted for a catalog component that really failed — a loader that throws, a module that will not import, a `define()` that blows up. A tag that isn't in the catalog was never the loader's business: it keeps matching `:not(:defined)`, because a third party may define it later. Set `devErrors: true` to paint those unknown tags too, which is handy while debugging a typo'd tag name. Either way `hooks.error` is called, and when a `fallback` is configured it is **appended** inside the element with the message and stack on its `.error` / `.stack` — existing light DOM is left in place.
+
+**Why `defined` and `ready` are two states.** The element is not replaced when it upgrades — `customElements.define()` swaps its prototype in place — so a stylesheet keeps matching it throughout. But `defined` is written *synchronously* by the upgrade, which means it is painted on the same frame the element upgraded: nothing has been painted from it yet. `ready` lands on the next paint, the first frame an entry animation has something to animate *from*.
+
+The consequence is a trap: a reveal declared only on `[ce="defined"]` is cancelled two frames later, the instant `ready` supersedes it — a keyframe animation is torn down the moment its matching rule stops applying. Declare it on the union, and never on `:not(:defined)` (which stops matching the instant the element is defined):
+
+```css
+my-component[ce="defined"],
+my-component[ce="ready"] {
+  animation: fade-in 0.3s ease-out;
+}
+```
+
+`loaded` is the window `deferDefine` opens: the module is in memory and the batch has not been applied, so it is the only state from which a set of components can be upgraded together.
 
 ### Directives (The `loading` attribute)
 

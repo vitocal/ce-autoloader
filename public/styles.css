@@ -2,6 +2,31 @@
 @import "https://nordcdn.net/ds/css/5.0.1/nord.min.css" layer(ds);
 @import "./shared.css" layer(shared);
 
+/**
+ * Variables the lifecycle demo's masks interpolate.
+ *
+ * An unregistered custom property is not interpolable — it flips discretely at
+ * the 50% mark instead of animating — so every animated variable has to be
+ * registered. These sit outside the layers because a registration is global.
+ */
+@property --ce-wipe {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+
+@property --ce-iris {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+@property --ce-seg {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 @layer normalize {
   :root {
     interpolate-size: allow-keywords;
@@ -607,7 +632,8 @@ footer {
       }
     }
 
-    &[ce="defined"] {
+    &[ce="defined"],
+    &[ce="ready"] {
       opacity: 1;
       &::after {
         opacity: 0;
@@ -615,6 +641,351 @@ footer {
         display: none;
       }
     }
+  }
+
+  /* ── the lifecycle demo (index.html → #lifecycle) ───────────────────────────
+     Five ways to reveal an element with clip-path / mask, each keyed on the `ce`
+     states the registry paints. Two rules make or break them:
+
+     1. The base state is the REVEALED one and the keyframes supply the hidden
+        from-state, so a cancelled animation degrades to "already revealed"
+        instead of "stuck hidden".
+
+     2. Every reveal is declared on `[ce="defined"], [ce="ready"]` — never on
+        `defined` alone. `ready` lands about two frames later, and a keyframe
+        animation is torn down the instant its rule stops matching, so a
+        `defined`-only rule is cancelled mid-flight and the element snaps.
+        `ce-reveal[naive]` is that broken version, kept as the control.
+     ────────────────────────────────────────────────────────────────────────── */
+
+  #lifecycle {
+    --ce-demo-dur: 2.4s;
+    --ce-demo-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --ce-demo-radius: 0.75rem;
+    --ce-demo-seg-max: 22px;
+  }
+
+  ce-reveal {
+    display: grid;
+    /* Reserve the box, so a reveal never shifts the page. */
+    min-height: 7rem;
+    border-radius: var(--ce-demo-radius);
+    overflow: clip;
+    transition: opacity 600ms ease;
+  }
+
+  ce-reveal[ce="defined"],
+  ce-reveal[ce="ready"] {
+    opacity: 1;
+  }
+
+  ce-reveal .ce-reveal__inner {
+    display: grid;
+    align-content: end;
+    gap: 0.15rem;
+    padding: 1rem;
+    border-radius: inherit;
+    color: #fff;
+    background: linear-gradient(135deg, #6366f1, #ec4899 55%, #f59e0b);
+  }
+
+  ce-reveal .ce-reveal__inner strong {
+    font-size: 0.95rem;
+  }
+
+  ce-reveal .ce-reveal__inner small {
+    font-size: 0.75rem;
+    opacity: 0.85;
+  }
+
+  ce-reveal .ce-reveal__inner p {
+    margin: 0.6rem 0 0;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    opacity: 0.9;
+  }
+
+  /* 1 · clip-path wipe */
+  ce-reveal[variant="wipe"] {
+    --ce-demo-anim: ce-demo-wipe var(--ce-demo-dur) cubic-bezier(0.77, 0, 0.175, 1);
+    clip-path: inset(0 round var(--ce-demo-radius));
+  }
+
+  /* 2 · mask sweep — the opaque stop must sit past the gradient line to reveal
+     the whole box, so it settles above 100% and starts below 0%. */
+  ce-reveal[variant="sweep"] {
+    --ce-demo-anim: ce-demo-sweep var(--ce-demo-dur) cubic-bezier(0, 0.55, 0.45, 1);
+  }
+
+  ce-reveal[variant="sweep"][ce="defined"],
+  ce-reveal[variant="sweep"][ce="ready"] {
+    --ce-wipe: 120%;
+    mask-image: linear-gradient(100deg, #000 var(--ce-wipe), transparent calc(var(--ce-wipe) + 20%));
+    mask-repeat: no-repeat;
+    mask-size: 100% 100%;
+  }
+
+  /* 3 · blinds — one band height drives the whole pattern. */
+  ce-reveal[variant="blinds"] {
+    --ce-demo-anim: ce-demo-blinds var(--ce-demo-dur) var(--ce-demo-ease);
+  }
+
+  ce-reveal[variant="blinds"][ce="defined"],
+  ce-reveal[variant="blinds"][ce="ready"] {
+    --ce-seg: var(--ce-demo-seg-max);
+    mask-image: repeating-linear-gradient(
+      to bottom,
+      #000 0 var(--ce-seg),
+      transparent var(--ce-seg) var(--ce-demo-seg-max)
+    );
+    mask-repeat: no-repeat;
+    mask-size: 100% 100%;
+  }
+
+  /* 4 · iris — the same trick with a radial mask. */
+  ce-reveal[variant="iris"] {
+    --ce-demo-anim: ce-demo-iris var(--ce-demo-dur) var(--ce-demo-ease);
+  }
+
+  ce-reveal[variant="iris"][ce="defined"],
+  ce-reveal[variant="iris"][ce="ready"] {
+    --ce-iris: 150%;
+    mask-image: radial-gradient(circle at 50% 50%, #000 var(--ce-iris), transparent calc(var(--ce-iris) + 14%));
+    mask-repeat: no-repeat;
+    mask-size: 100% 100%;
+  }
+
+  /* 5 · grid dissolve — two perpendicular masks, intersected. */
+  ce-reveal[variant="dissolve"] {
+    --ce-demo-anim: ce-demo-dissolve var(--ce-demo-dur) var(--ce-demo-ease);
+  }
+
+  ce-reveal[variant="dissolve"][ce="defined"],
+  ce-reveal[variant="dissolve"][ce="ready"] {
+    --ce-seg: var(--ce-demo-seg-max);
+    mask-image: repeating-linear-gradient(to bottom, #000 0 var(--ce-seg), transparent var(--ce-seg) var(--ce-demo-seg-max)),
+      repeating-linear-gradient(to right, #000 0 var(--ce-seg), transparent var(--ce-seg) var(--ce-demo-seg-max));
+    mask-composite: intersect;
+    mask-repeat: no-repeat;
+    mask-size: 100% 100%;
+  }
+
+  /* 6 · height — you cannot know a component's height before it loads, so the box
+     reserves a short slot and the height animates to the real one. `auto` is only
+     interpolable because `:root` sets `interpolate-size: allow-keywords`; without
+     it the box snaps, which is exactly the layout shift this exists to avoid.
+     `min-height: 0` lets the short start actually apply — the shared base rule
+     reserves 7rem, which would hold it. */
+  ce-reveal[variant="grow"] {
+    --ce-demo-anim: none;
+    min-height: 0;
+    height: 4rem;
+    transition:
+      opacity 600ms ease,
+      height var(--ce-demo-dur) var(--ce-demo-ease);
+  }
+
+  ce-reveal[variant="grow"][ce="defined"],
+  ce-reveal[variant="grow"][ce="ready"] {
+    height: auto;
+  }
+
+  /* Revealed from the top, so the box grows down into content the reader has not
+     seen yet rather than dragging what is already there. */
+  ce-reveal[variant="grow"] .ce-reveal__inner {
+    align-content: start;
+  }
+
+  /* The contract: declared on both states, so the animation outlives `defined`. */
+  ce-reveal:not([naive])[ce="defined"],
+  ce-reveal:not([naive])[ce="ready"] {
+    animation: var(--ce-demo-anim);
+  }
+
+  /* The control: declared on `defined` alone — cancelled the moment `ready` lands. */
+  ce-reveal[naive][ce="defined"] {
+    animation: var(--ce-demo-anim);
+  }
+
+  @keyframes ce-demo-wipe {
+    from {
+      clip-path: inset(0 100% 0 0 round var(--ce-demo-radius));
+      opacity: 0;
+    }
+  }
+
+  @keyframes ce-demo-sweep {
+    from {
+      --ce-wipe: -20%;
+    }
+  }
+
+  @keyframes ce-demo-blinds {
+    from {
+      --ce-seg: 0px;
+    }
+  }
+
+  @keyframes ce-demo-iris {
+    from {
+      --ce-iris: 0%;
+    }
+  }
+
+  @keyframes ce-demo-dissolve {
+    from {
+      --ce-seg: 0px;
+    }
+  }
+
+  .ce-demo {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .ce-demo__grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  /* A narrow panel beside its explanation: the body has to wrap to several lines
+     before the height change has anything to do. */
+  .ce-demo__grid--split {
+    grid-template-columns: minmax(220px, 340px) 1fr;
+    align-items: start;
+  }
+
+  .ce-demo__note {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-fg-muted);
+  }
+
+  .ce-demo__replay {
+    justify-self: start;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-fg-muted);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  .ce-demo__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  /* ── the timeline ─────────────────────────────────────────────────────────
+     A Gantt chart of what the registry actually wrote. The point is the pair
+     that is invisible on screen: `defined` and `ready` are two frames apart, so
+     the `defined` segment is a sliver next to 1200ms of `loading`.
+     ────────────────────────────────────────────────────────────────────────── */
+
+  .ce-timeline [data-state="undefined"] {
+    --ce-state: oklch(60% 0.02 145);
+  }
+
+  .ce-timeline [data-state="loading"] {
+    --ce-state: oklch(72% 0.15 85);
+  }
+
+  .ce-timeline [data-state="loaded"] {
+    --ce-state: oklch(65% 0.2 250);
+  }
+
+  .ce-timeline [data-state="defined"] {
+    --ce-state: oklch(60% 0.25 25);
+  }
+
+  .ce-timeline [data-state="ready"] {
+    --ce-state: oklch(70% 0.15 145);
+  }
+
+  .ce-timeline [data-state="error"] {
+    --ce-state: oklch(55% 0.22 25);
+  }
+
+  .ce-timeline__rows {
+    display: grid;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ce-timeline__row {
+    display: grid;
+    grid-template-columns: minmax(8rem, 13rem) 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .ce-timeline__name {
+    display: grid;
+    line-height: 1.2;
+  }
+
+  .ce-timeline__name small {
+    color: var(--color-fg-muted);
+    font-size: 0.68rem;
+  }
+
+  .ce-timeline__track {
+    display: flex;
+    height: 1.15rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-fg) 6%, transparent);
+  }
+
+  .ce-timeline__seg {
+    /* A 2px sliver still reads as a tick — which is the whole point. */
+    flex-basis: 0;
+    min-width: 2px;
+    overflow: hidden;
+    padding: 0 0.35rem;
+    color: #fff;
+    font-size: 0.62rem;
+    line-height: 1.15rem;
+    white-space: nowrap;
+    background: var(--ce-state);
+  }
+
+  .ce-timeline__total {
+    color: var(--color-fg-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ce-timeline__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.7rem;
+    color: var(--color-fg-muted);
+  }
+
+  .ce-timeline__legend li {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .ce-timeline__legend i {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 3px;
+    background: var(--ce-state);
   }
 
   .counter-card {

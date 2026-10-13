@@ -55,7 +55,25 @@ const catalog = {
   "error-component": async () => {
     throw new Error("Failed to load component");
   },
+  "walk-component": async () => {
+    // A delay, so `loading` is a state the test can actually observe rather
+    // than a step the loader takes and leaves within one task.
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    class WalkComponent extends BaseComp {}
+    customElements.define("walk-component", WalkComponent);
+  },
 };
+
+/** Poll `check` until it is truthy, or give up after `timeout`. */
+async function waitFor(check, timeout = 2000) {
+  const deadline = performance.now() + timeout;
+
+  while (performance.now() < deadline) {
+    if (check()) return true;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  return false;
+}
 
 describe("CEAutoLoader", () => {
   let registry;
@@ -410,7 +428,7 @@ describe("CEAutoLoader", () => {
 
       // The element works — someone's implementation is live — so it is marked
       // defined and never painted as broken.
-      expect(el.getAttribute("ce")).to.equal("defined");
+      expect(el.getAttribute("ce"), "the element should have upgraded").to.be.oneOf(["defined", "ready"]);
       expect(el.querySelector("error-fallback")).to.not.exist;
 
       expect(reported, "hooks.error should be called").to.exist;
@@ -446,6 +464,43 @@ describe("CEAutoLoader", () => {
 
       expect(el.getAttribute("ce")).to.equal("error");
       expect(el.querySelectorAll("error-fallback"), "the fallback must not be duplicated").to.have.length(1);
+    });
+  });
+
+  /**
+   * The `ce` attribute is the public styling contract, so the order it takes its
+   * values in is part of the API: `loaded` is the window `deferDefine` opens, and
+   * `ready` is the paint after the upgrade. A stylesheet hooking any of them has
+   * to be able to rely on the sequence, not just the endpoints.
+   */
+  describe("lifecycle walk", () => {
+    it("should walk loading → loaded → defined → ready, in order", async () => {
+      const el = document.createElement("walk-component");
+      el.setAttribute("loading", "eager");
+      fixtures.appendChild(el);
+
+      /** Every value `ce` takes, oldest first. */
+      const seen = [];
+      const observer = new MutationObserver((records) => {
+        // One callback can carry more than one step — `loaded` and `defined` are
+        // written in adjacent microtasks, so the browser may coalesce them. Replay
+        // the value each mutation *left behind* before recording where it ended up.
+        for (const record of records) seen.push(record.oldValue);
+        seen.push(el.getAttribute("ce"));
+      });
+      observer.observe(el, { attributes: true, attributeFilter: ["ce"], attributeOldValue: true });
+
+      registry = new AutoLoader({ catalog, root: fixtures, devErrors: true });
+
+      const finished = await waitFor(() => el.getAttribute("ce") === "ready");
+      observer.disconnect();
+
+      // Drop the leading `null` and any state replayed twice by a coalesced batch.
+      const walk = seen.filter((state, i) => state && state !== seen[i - 1]);
+
+      expect(finished, `the walk should reach ready (saw ${walk.join(" → ")})`).to.be.true;
+      expect(walk).to.deep.equal(["loading", "loaded", "defined", "ready"]);
+      expect(el.hasAttribute("data-upgraded"), "the element really did upgrade").to.be.true;
     });
   });
 });

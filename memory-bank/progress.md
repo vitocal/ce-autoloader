@@ -1,9 +1,10 @@
 # Progress
 
-_2026-10-12 · `option-deferDefine` @ `f3b0c57` + working tree · package 0.2.0-rc · `dist/ce-autoloader.js` = 10,125 B
-raw / **3,467 B gzip** (rebuilt 2026-10-12 with the #19 fix) · **51 tests pass, 0 fail on
+_2026-10-12 · branch `defined-ready` @ `4f34819` + working tree · package 0.2.0-rc · `dist/ce-autoloader.js` = 10,945 B
+raw / **3,769 B gzip** (rebuilt 2026-10-12 with the `visible` same-tag fix) · **57 tests pass, 0 fail on
 Chromium + WebKit + Firefox** (`tsc --noEmit` clean; `shadow-observer` is installed, so the 6 shadow tests run — the
-old "31 pass / 6 cannot load" figure is stale) · #1, #8, #10, #14–#19 fixed, docs trued up._
+old "31 pass / 6 cannot load" figure is stale) · #1, #8, #10, #14–#19 fixed, docs trued up, `visible` same-tag
+siblings fixed._
 
 House rule: **one fact, one home.** `REVIEW.md` is the audit (tiers, long-form critique); the bank is the short
 version. Anything that belongs in both goes in `REVIEW.md` and is summarised here in a line.
@@ -25,7 +26,10 @@ a **pinned, jspm-generated import map** (`importmap.src.json` → `npm run impor
 CrUX's pass/fail over only the metrics the engine can observe) · `test/importmap.test.js` (7 tests: the registry reads the
 page's `<script type="importmap">` when `useImportMapsCatalog` is set, merges it under `catalog`, reads only the first map and
 ignores a map added after construction) · a **`Lifecycle`** module (`src/lifecycle.ts`) owning the `ce` vocabulary and
-the "a failed element is terminal" invariant, with its own suite (`test/lifecycle.test.js`, 7 tests).
+the "a failed element is terminal" invariant, with its own suite (`test/lifecycle.test.js`, 7 tests) · a
+**library-driven lifecycle demo** on the landing page (`<ce-reveal>`: five reveals, a naive-vs-union pair, a height
+change, and a `ce` Gantt chart), with both `pages/prototypes/lifecycle-animations/` pages converted off their
+`setState()` stand-in onto the same catalog + registry.
 
 ## Left
 
@@ -128,6 +132,9 @@ never patch and only guard `define()` (self-registering catalogs lose the morph)
 
 ## Fixed lately
 
+**`visible` painted only the first element of a tag** — a tag-name lock plus a `customElements.get(tagName)` filter
+dropped every sibling the IntersectionObserver delivered in a later callback, leaving it upgraded but with no `ce`
+state at all (fixed 2026-10-12; the landing page's `<ce-reveal>` demo is what exposed it) ·
 Define-phase failures were swallowed (`ce="error"` was never set) · skipped transitions leaked unhandled rejections ·
 the queue swallowed non-catalog definitions · `docs/.nojekyll` died in a docs build · the animation page's `ce` states
 never painted (a `:not(:defined) { visibility: hidden }` guard from Nord's design system, hidden in the `ds` layer) ·

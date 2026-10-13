@@ -1,14 +1,61 @@
 # Active context
 
-_2026-10-12 · branch `option-deferDefine` @ `f3b0c57`, plus working-tree changes across `src/index.ts`, the tests, the
-docs, the import map (`importmap.src.json` → `importmap.json`) and this bank (the types split and the demo wiring
-landed earlier)._
+_2026-10-12 · branch `defined-ready` @ `4f34819`, plus working-tree changes across `src/index.ts`, the landing page's
+lifecycle demo (`index.html`, `public/styles.css`, `pages/components/ce-reveal.js` + `ce-timeline.js`), the tests, the
+docs, the import map (`importmap.src.json` → `importmap.json`) and this bank._
 
 ## Right now
 
 **The defaults went lean: nothing is deferred, nothing animates — but every registry still patches
 `customElements.define`, to make it _idempotent_ (`polyfill_safe_ce_define`), not to queue. The failure model was
 reworked — and as of this pass the README and `types.ts` match it.**
+
+- ✅ **`visible` dropped same-tag siblings — fixed (2026-10-12).** Found while wiring the landing page's lifecycle demo.
+  With **two or more elements of one tag**, only those in the *first* IntersectionObserver callback were painted.
+  `when_visible` filtered `!customElements.get(entry.target.tagName.toLowerCase())` and
+  `!this.loading_locks[el.tagName]`. The IO hands a batch over in as many callbacks as it likes, so a slow first batch
+  is all it takes: the rest are dropped by the **tag-name** lock while that batch is in flight, then permanently by
+  `customElements.get(tagName)`, which flips true the moment *any* element with that tag is defined. Reproduced on the
+  docs page — 7 × `<ce-reveal>`, IO callbacks at 1044 ms (4 panels), 1086 ms (1), 1220 ms (2) → **4 painted, 3 upgraded
+  but unpainted** (`innerHTML` rendered, `ce` never written). **Settled fix:** the predicate is
+  `getLifecycle(el) === null` — `ce` is the per-element "the registry has handled this" flag and the only correct one;
+  a tag already defined but *absent from the catalog* is someone else's and is left alone (it also covers `ce="error"`,
+  so #18's guard is intact). `loading_locks` became a `Set<HTMLElement>`, because a tag-name key is a per-*tag* lock,
+  which is not what it was ever meant to be. Both live in `when_visible`; `matchCustomElement`/`upgrade` still key on
+  `:not(:defined)`, so that path is unchanged — a known remaining sharp edge. `npm test` **57 × 3 green**,
+  `tsc --noEmit` clean, `dist/` → **10,945 B raw / 3,769 B gzip**. A/B on the docs page: `hooks.error` count identical
+  before and after (1), so the fix adds no console noise — the flaky `nord-*` diagnostics are #20, untouched.
+- ✅ **The landing page grew a real lifecycle demo (2026-10-12).** `#lifecycle` used to *describe* the state machine and
+  fake it (`pages/examples/animations/css.html` still does: `runLifecycleSimulation()` writes `ce="loading"`/`"defined"`
+  by hand). The new block is a catalog component — `<ce-reveal>` (`pages/components/ce-reveal.js`, loader in
+  `catalog.js` with a `CE_DEMO_DELAY` fetch of 1200 ms) — so the walk is the registry's own. Five reveals (clip-path
+  wipe, mask sweep, blinds, iris, grid dissolve) plus a **naive-vs-union pair**: the same wipe declared on
+  `[ce="defined"]` alone and on `[ce="defined"], [ce="ready"]`. Verified live 400 ms into a 2.4 s reveal —
+  naive → `clip-path: inset(0px round 12px)`, `getAnimations()` **empty** (cancelled the instant `ready` landed);
+  union → `inset(0px 97.8% 0 0 round 12px)`, `ce-demo-wipe:running`. The **timeline**
+  (`pages/components/ce-timeline.js`, mounted from `pages/index.ts`) is a Gantt chart drawn *only* from `ce` attribute
+  mutations — it is what makes `defined` visible, as a ~1 ms sliver against 1200 ms of `loading`. Reveal + timeline CSS
+  live in `public/styles.css` (`@layer components`), with the three `@property` registrations at the top level because a
+  registration is global. Replay is a reload: a defined tag cannot un-define itself.
+  **The two prototypes use the library now too** — `01-defaults.html` and `02-clip-masks.html` dropped their
+  `setState()` stand-in (the first documented itself as *"a stand-in for CEAutoLoader"*) for a real `catalog` +
+  `new CERegistry(...)`, so all 11 demo elements walk through `src/lifecycle.ts`. Both are same-tag-heavy
+  (`demo-card` ×3, `demo-item` ×3, `demo-panel` ×5), which makes them a live regression test for the `visible` fix.
+  `01-defaults.html`'s `@starting-style` host is `display: none` until defined, so it reserves no space and can never
+  intersect — it needs `loading="eager"`, or `visible` deadlocks it. Verified: both walk `loading → loaded → defined →
+  ready`, 02's five reveals are still `running` 400 ms in, and neither page logs a console error.
+  **A sixth example: the height change (2026-10-12).** `ce-reveal[variant="grow"]` reserves `height: 4rem` and
+  animates to `height: auto` when the component lands — the layout-shift case the lifecycle exists for. It works only
+  because `public/styles.css` sets `interpolate-size: allow-keywords` on `:root`; a `numeric-only` control in the same
+  probe snaps `112px → 207px` instead of interpolating. Measured on the docs page: `64 → 109 → 140 → 160 → 173 → 181 →
+  186 → 190 → 192 → 194 → 196px` across the 2.4s — 17 distinct heights, so it is a real transition and not a jump.
+  `ce-reveal` grew an optional `body` attribute (the box has to be taller than the slot it reserves, or there is
+  nothing to grow into); `01-defaults.html` grew a matching §5 with its own `demo-grow` (`40 → 70 → 99 → 116 → 122 →
+  124px`, `--ce-dur: 380ms`). The union selector matters here too, and more brutally than for the reveals: a
+  `[ce="defined"]`-only height rule *starts* the grow and then falls back to the reserved slot the instant `ready`
+  lands — measured `64 → 67 → 64 → 64px`, so the box ends up clipped at 4rem with its content never revealed. The
+  union runs `64 → 67 → 95 → 124 → 152 → 180 → 252px`. A keyframe animation that is cancelled degrades to "already
+  revealed"; a *transition* that is reverted degrades to "still collapsed".
 
 - ✅ **README review pass (2026-10-12)** — the README's garbled `deferDefine` comment is fixed (the "…its own tag still morphs…"
   fragment had lost its subject; it now matches `src/types.ts`), along with a stray-space slip in the transition paragraph,
