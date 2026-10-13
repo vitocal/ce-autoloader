@@ -594,6 +594,9 @@ footer {
 
   [ce] {
     overflow: clip;
+    position: relative;
+
+    min-height: 1lh;
 
     &::after {
       content: " ";
@@ -629,6 +632,15 @@ footer {
       &::after {
         display: none;
         opacity: 0;
+      }
+    }
+
+    &[ce="loaded"] {
+      opacity: 1;
+
+      &::after {
+        opacity: 0;
+        display: none;
       }
     }
 
@@ -755,7 +767,8 @@ footer {
 
   ce-reveal[variant="dissolve"][ce="defined"] {
     --ce-seg: var(--ce-demo-seg-max);
-    mask-image: repeating-linear-gradient(to bottom, #000 0 var(--ce-seg), transparent var(--ce-seg) var(--ce-demo-seg-max)),
+    mask-image:
+      repeating-linear-gradient(to bottom, #000 0 var(--ce-seg), transparent var(--ce-seg) var(--ce-demo-seg-max)),
       repeating-linear-gradient(to right, #000 0 var(--ce-seg), transparent var(--ce-seg) var(--ce-demo-seg-max));
     mask-composite: intersect;
     mask-repeat: no-repeat;
