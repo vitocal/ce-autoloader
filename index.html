@@ -132,8 +132,8 @@
     <img src="/logo.svg" alt="ce-autoloader logo" class="nav-logo" />
     <a href="#about" class="nav-link">About</a>
     <a href="#get-started" class="nav-link">Get Started</a>
-    <a href="#examples" class="nav-link">Examples</a>
     <a href="#docs" class="nav-link">Docs</a>
+    <a href="#examples" class="nav-link">Examples</a>
     <a href="#faq" class="nav-link">FAQ</a>
     <a href="https://github.com/vitocal/ce-autoloader" target="_blank" class="nav-link icon-only"
       aria-label="GitHub Repository">
@@ -246,25 +246,6 @@ const registry = new CERegistry({
           </div>
         </div>
       </div>
-    </div>
-
-    <div id="examples">
-      <h1>Examples</h1>
-
-      <ul>
-        <li>
-          <a href="pages/examples/cdn/cdn.html"> CDN + Import-maps </a>
-          Load directly from CDN and configure with import-maps
-        </li>
-        <li>
-          <a href="pages/examples/mfe-store/"> Micro-Frontends + Vite</a>
-          Framework agnostic Tractor Store with Vite + Preact store
-        </li>
-        <li>
-          <a href="pages/examples/animations/a-b_testing.html"> A/B Testing </a>
-          A/B Testing webcomponents is very simple!
-        </li>
-      </ul>
     </div>
 
     <div id="docs">
@@ -489,88 +470,6 @@ const registry = new CERegistry({
         </div>
       </div>
 
-      <div id="hairline-ui">
-        <h2>
-          Real Components
-          <span class="n-color-text-weaker">& Lazy Loading</span>
-        </h2>
-        <h3 class="n-color-text-weaker">Third-party React components, on demand, as custom elements.</h3>
-        <hr />
-
-        <p>
-          <a href="https://hairlineui.com/ui/command-output">Hairline UI</a>'s components are React, and
-          this page runs them as tags. Each is wrapped with
-          <a href="https://github.com/bitovi/react-to-web-component">react-to-web-component</a>, which
-          turns a component's props into attributes, and registered in the catalog like any other
-          element — so nothing is fetched until the tag appears:
-          <code>command-output</code> and <code>earnings-chart</code> each pull
-          <code>text-morph</code> and <code>number-roll</code> in as their dependencies, one fetch between them,
-          and no tag on this page costs anything before it is used.
-        </p>
-
-        <div class="ce-demo__grid" style="margin-top: 2rem">
-          <figure>
-            <text-morph id="hairline-morph" text="Save"></text-morph>
-            <figcaption><code>&lt;text-morph text="Saving"&gt;</code></figcaption>
-          </figure>
-          <figure>
-            <number-roll id="hairline-roll" value="1299.5" format='{"style":"currency","currency":"USD"}'></number-roll>
-            <figcaption><code>&lt;number-roll value="1299.5" format="…"&gt;</code></figcaption>
-          </figure>
-        </div>
-
-        <div style="margin-top: 2rem">
-          <earnings-chart title="Earnings" highlight="2026-08"
-            format='{"style":"currency","currency":"USD","maximumFractionDigits":0}' periods='[
-            {"id":"6m","label":"6M","previous":21000,"comparison":"vs the 6 months before","bars":[
-              {"key":"2026-03","label":"Mar","title":"March 2026","value":4200},
-              {"key":"2026-04","label":"Apr","title":"April 2026","value":4680},
-              {"key":"2026-05","label":"May","title":"May 2026","value":4310},
-              {"key":"2026-06","label":"Jun","title":"June 2026","value":5120},
-              {"key":"2026-07","label":"Jul","title":"July 2026","value":5480},
-              {"key":"2026-08","label":"Aug","title":"August 2026","value":5920}
-            ]},
-            {"id":"1y","label":"1Y","previous":47800,"comparison":"vs the year before","bars":[
-              {"key":"2025-09","label":"Sep","title":"September 2025","value":3120},
-              {"key":"2025-10","label":"Oct","title":"October 2025","value":3400},
-              {"key":"2025-11","label":"Nov","title":"November 2025","value":3860},
-              {"key":"2025-12","label":"Dec","title":"December 2025","value":3620},
-              {"key":"2026-01","label":"Jan","title":"January 2026","value":4180},
-              {"key":"2026-02","label":"Feb","title":"February 2026","value":4550},
-              {"key":"2026-03","label":"Mar","title":"March 2026","value":4200},
-              {"key":"2026-04","label":"Apr","title":"April 2026","value":4680},
-              {"key":"2026-05","label":"May","title":"May 2026","value":4310},
-              {"key":"2026-06","label":"Jun","title":"June 2026","value":5120},
-              {"key":"2026-07","label":"Jul","title":"July 2026","value":5480},
-              {"key":"2026-08","label":"Aug","title":"August 2026","value":5920}
-            ]}
-          ]'></earnings-chart>
-
-          <p class="ce-demo__note" style="margin-top: 1rem">
-            Hover the plot — or tab into it and use the arrow keys — and a lane follows from bar to bar while
-            the readout rides its top, its month morphing and its amount rolling. Switch the period and the bars
-            the two periods share glide to their new place, the ones that leave fold away on their side, and the
-            scale, the total and the change chip roll and morph with them.
-          </p>
-        </div>
-
-        <div class="ce-demo__grid" style="margin-top: 2rem">
-          <command-output id="hairline-pass" command="pnpm test" status="running" lines="[]"
-            on-stop="ceCommandStop"></command-output>
-          <command-output id="hairline-fail" command="pnpm build" status="running" lines="[]"
-            on-stop="ceCommandStop"></command-output>
-        </div>
-
-        <div class="ce-demo__actions" style="margin-top: 1.5rem">
-          <button type="button" class="ce-demo__replay" id="hairline-replay">Run them again</button>
-          <span class="ce-demo__note">
-            The log streams in through the <code>lines</code> attribute, as JSON. Stop cancels a run; the
-            passing log folds away, the failing one stays open with its error line marked — and the
-            status word, the exit code and the timer morph as it goes.
-          </span>
-        </div>
-      </div>
-
       <div id="lifecycle">
         <h2>
           Animations
@@ -636,66 +535,6 @@ const registry = new CERegistry({
             </div>
           </div>
         </div>
-
-        <br />
-
-        <div class="ce-demo">
-          <h3>The five reveals, slowed down</h3>
-          <p class="ce-demo__note">
-            Real catalog components (<code>&lt;ce-reveal&gt;</code>), loaded by the registry this page already runs —
-            nothing here fakes a <code>ce</code> attribute. The fetch is stretched to <code>1.2s</code> and the reveal
-            to <code>2.4s</code> so the walk is watchable.
-          </p>
-
-          <div class="ce-demo__grid">
-            <ce-reveal variant="wipe" label="clip-path wipe" note="inset(0 100% 0 0) → inset(0)"></ce-reveal>
-            <ce-reveal variant="sweep" label="mask sweep" note="--ce-wipe: 100% → -20%"></ce-reveal>
-            <ce-reveal variant="iris" label="iris" note="radius 0% → 150%"></ce-reveal>
-          </div>
-
-          <p class="ce-demo__note">
-            Each reveal is declared once, on <code>[ce="defined"]</code>. That is enough: <code>defined</code> is
-            written in the frame the element upgrades and nothing supersedes it, so the rule keeps matching for the
-            whole animation.
-          </p>
-
-          <h3>When the height changes</h3>
-
-          <div class="ce-demo__grid ce-demo__grid--split">
-            <ce-reveal variant="grow" label="height: 4rem → auto" note="transition: height 2.4s"
-              body="Reserving space is only ever a guess. Let the box grow to the height the component actually needs, and the guess becomes a floor instead of a promise — the page below it stays exactly where it was, and nothing shifts under the reader's eye."></ce-reveal>
-            <p class="ce-demo__note">
-              You cannot know a component's height before it loads, so the box reserves a short slot and the height
-              <em>animates</em> to the real one. It grows, and everything below stays put instead of jumping.
-              <code>height: auto</code> interpolates only because the stylesheet sets
-              <code>interpolate-size: allow-keywords</code> — without it the box snaps, which is the layout shift this
-              exists to avoid.
-            </p>
-          </div>
-
-          <div class="ce-demo__actions">
-            <button type="button" class="ce-demo__replay" onclick="location.hash = '#lifecycle'; location.reload()">
-              Reload the walk
-            </button>
-            <span class="ce-demo__note">
-              The walk happens once per page load — a defined tag cannot un-define itself — so replaying it means
-              reloading.
-            </span>
-          </div>
-        </div>
-
-        <br />
-        <hr />
-        <br />
-
-        <p class="n-color-text-weaker">
-          <strong>Experimental (alpha):</strong> the opt-in <code>transition</code> option wraps the definition in an
-          element-scoped <code>Element.startViewTransition()</code>. Element-scoped view transitions are
-          <strong>Chromium 147+ only</strong> — Firefox and Safari fall back to a plain define, so the component still
-          loads, it just doesn't animate — and the option may change without notice. Prefer the <code>ce</code>
-          lifecycle
-          states above, which work everywhere.
-        </p>
 
         <!-- prettier-ignore
           <vi-example class="equal-size">
@@ -791,6 +630,25 @@ const registry = new CERegistry({
           You can also attach a function whenever an error occurs by setting <code>hooks.error</code>.
         </p>
       </div>
+    </div>
+
+    <div id="examples">
+      <h1>Examples</h1>
+
+      <ul>
+        <li>
+          <a href="pages/examples/cdn/cdn.html"> CDN + Import-maps </a>
+          Load directly from CDN and configure with import-maps
+        </li>
+        <li>
+          <a href="pages/examples/mfe-store/"> Micro-Frontends + Vite</a>
+          Framework agnostic Tractor Store with Vite + Preact store
+        </li>
+        <li>
+          <a href="pages/examples/animations/a-b_testing.html"> A/B Testing </a>
+          A/B Testing webcomponents is very simple!
+        </li>
+      </ul>
     </div>
 
     <div class="brazilian-card prose" style="margin-top: 4rem" id="faq">
