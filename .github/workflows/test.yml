@@ -22,17 +22,29 @@ jobs:
       - uses: actions/checkout@v4
 
       # vite 8 needs ^20.19 || >=22.12; "22" resolves to the latest 22.x LTS.
+      # `cache: npm` restores ~/.npm, keyed on package-lock.json.
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
 
-      # `npm ci` is not an option: package-lock.json is gitignored.
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
+
+      # Browsers live outside node_modules, so they need their own cache. The
+      # lockfile hash is the exact key: keying on package.json would let a newer
+      # Playwright 1.x resolve against the browser build already in the cache.
+      # No restore-keys on purpose — a stale browser is worse than a re-download.
+      - name: Restore Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       # WebKit and Firefox need shared libraries that the runner does not ship,
       # hence --with-deps. Keep the browser list in sync with DEFAULT_BROWSERS
-      # in scripts/run-integration-tests.js.
+      # in scripts/run-integration-tests.js. Already-downloaded browsers are
+      # skipped, so this is cheap on a cache hit.
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox webkit
 
