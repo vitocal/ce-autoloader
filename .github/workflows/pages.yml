@@ -1,0 +1,60 @@
+name: Deploy docs
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Pages deploys are serialised: cancelling one mid-flight can leave the site
+# half-published, and the docs build is only ~1 min.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # Requires Pages → Source = "GitHub Actions". Without it this step fails
+      # with a message pointing at the setting, before anything is built.
+      - uses: actions/configure-pages@v5
+
+      # `base` is `/ce-autoloader/` only under NODE_ENV=production, which is what
+      # a project page needs; a plain `npm run build:docs` builds base "/".
+      - name: Build docs
+        run: npm run build:docs
+        env:
+          NODE_ENV: production
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

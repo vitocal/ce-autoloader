@@ -328,8 +328,9 @@ npm run test:all      # every browser above
 
 `npx playwright install chromium webkit firefox` fetches the bundled engines. A browser that is not installed is reported as _skipped_, not failed; add `--strict` (or `TEST_STRICT=1`) to make a skip fail the run. Playwright only ships the _current_ build of each engine, so it cannot target a pinned older version — testing an older browser means pinning an older Playwright release.
 
-To publish the demos/docs, run `NODE_ENV=production npm run build:docs`,
-add the "docs/" changes and push to github.
+The demos/docs site is deployed to GitHub Pages by `.github/workflows/pages.yml`: every push to `main` runs
+`NODE_ENV=production npm run build:docs` and publishes `docs/` as a Pages artifact. `docs/` is build output — it is
+gitignored, so there is nothing to commit. Enable it once under **Settings → Pages → Source: GitHub Actions**.
 
 ## License
 

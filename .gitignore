@@ -1,5 +1,6 @@
 node_modules/
 dist/
+docs/
 lighthouse-report-local.json
 lighthouse-report.json
 .DS_Store
