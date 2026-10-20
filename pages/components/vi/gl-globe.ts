@@ -8,7 +8,7 @@ import Globe from "globe.gl";
 //   color: ["red", "white", "blue", "green"][Math.round(Math.random() * 3)],
 // }));
 
-class GlGlobe extends HTMLElement {
+export class GlGlobe extends HTMLElement {
   connectedCallback() {
     this.render();
     this.setup();
@@ -31,4 +31,6 @@ class GlGlobe extends HTMLElement {
     this.innerHTML = `<div id="globeViz"></div>`;
   }
 }
+export default GlGlobe;
+
 customElements.define("gl-globe", GlGlobe);

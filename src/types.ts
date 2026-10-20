@@ -11,9 +11,12 @@ export class CEError extends Error {
 }
 
 /**
- * A Loader can be a URL or any function that returns a `Promise<CustomElementConstructor>`
+ * A Loader can be a URL or a function that returns a custom element constructor,
+ * a module (whose default export is used when present), or nothing if the module
+ * defines the element itself.
  */
-export type Loader = string | ((name: string, el?: HTMLElement) => Promise<CustomElementConstructor>);
+type Module = { [key: string]: unknown; }
+export type Loader = string | ((name: string, el?: HTMLElement) => Promise<CustomElementConstructor | Module>);
 
 /**
  * A catalog maps between `tag-names` and a `loader`.

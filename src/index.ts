@@ -306,8 +306,10 @@ class CEAutoLoader {
         return null;
       }
 
-      const module = (isModule(answer) ? answer.default :
-        await this.loadModule(comp_name, loader));
+      // Same rule as `load()`: `loaded` sees the module, `define` unwraps it.
+      const module = (isModule(answer) ? answer :
+        (HTMLElement.isPrototypeOf(answer) ? answer :
+          await this.loadModule(comp_name, loader)));
 
       this.options.hooks?.loaded?.({ name: comp_name, loader, module });
 
@@ -571,7 +573,9 @@ class CEAutoLoader {
       // A failed element is terminal; `loadAndDefine` filters those out first.
       markLoading(el);
 
-      module = (isModule(answer) ? answer.default :
+      // The namespace is kept as it came back: `loaded` is handed the module,
+      // `define` is the one that unwraps it to the constructor.
+      module = (isModule(answer) ? answer :
         (HTMLElement.isPrototypeOf(answer) ? answer :
           await this.loadModule(name, loader)))
 

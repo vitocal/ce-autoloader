@@ -27,12 +27,6 @@ let catalog = {
   "confetti-button": () => import("./confetti-button.ts"),
   "three-cube": () => import("./three-cube.js"),
   "gl-globe": () => import("./vi/gl-globe.ts"),
-  "observable-plot-wrapper": async () => {
-    await new Promise((resolve) => {
-      import("./observable-plot-wrapper.js");
-      setTimeout(resolve, 1250);
-    });
-  },
   "performance-metrics-plot": () => import("./performance-metrics-plot.js"),
   "web-vitals": () => import("./web-vitals.js"),
   "pix-qrcode": () => import("./pix/qrcode.ts"),
@@ -63,7 +57,11 @@ let catalog = {
     throw new Error(`I've crashed 😭`);
   },
   "vi-notloaded": async (full_name, el) => {
-    await new Promise((resolve) => setTimeout(resolve, 900 * 1000));
+    return new Promise<{ default: any }>((resolve) => {
+      setTimeout(() => {
+        resolve({ default: false });
+      }, 900 * 1000)
+    });
   },
   "vi-defined": () => import("./vi/vi-defined.js"),
 
@@ -72,9 +70,7 @@ let catalog = {
   "wc-markdown": "https://cdn.skypack.dev/@vanillawc/wc-markdown",
   "fireworks-js": () => import("https://esm.sh/@fireworks-js/web"),
 
-  "model-viewer": async () => {
-    await import("@google/model-viewer");
-  },
+  "model-viewer": () => import("@google/model-viewer"),
 
   "syntax-highlight": async () => {
     loadCSSLayer("https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/dist/themes/prettylights.min.css", "scoped");

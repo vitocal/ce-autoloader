@@ -13,12 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
   globalThis.registry = new CERegistry({
     catalog: catalog,
     fallback: ErrorFallback,
-    deferDefine: true,
+    deferDefine: false,
     transition: false,
     hooks: {
-      load: async (name, el) => {
-        return import("./components/vi-example.js");
-      },
+      // load: async (name, el) => {
+      //   return import("./components/vi-example.js");
+      // },
       error: (e) => {
         console.error(e.error.message);
         performance.mark('error')
