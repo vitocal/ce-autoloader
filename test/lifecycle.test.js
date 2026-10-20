@@ -1,12 +1,5 @@
 import { expect } from "chai";
-import {
-  beginLoading,
-  getLifecycle,
-  hasFailed,
-  markDefined,
-  markFailed,
-  markLoaded,
-} from "../src/lifecycle.ts";
+import { markLoading, getLifecycle, hasFailed, markDefined, markFailed, markLoaded } from "../src/lifecycle.ts";
 
 /**
  * The module owns the `ce` vocabulary, so these tests assert the literal attribute
@@ -36,7 +29,7 @@ describe("Lifecycle", () => {
   it("should move an element to loading", () => {
     const el = make();
 
-    expect(beginLoading(el), "beginLoading reports that it moved the element").to.be.true;
+    expect(markLoading(el), "markLoading reports that it moved the element").to.be.true;
     expect(el.getAttribute("ce")).to.equal("loading");
   });
 
@@ -60,7 +53,7 @@ describe("Lifecycle", () => {
   it("should walk loading → loaded → defined", () => {
     const el = make();
 
-    beginLoading(el);
+    markLoading(el);
     expect(getLifecycle(el), "loading").to.equal("loading");
 
     markLoaded(el);
@@ -77,7 +70,7 @@ describe("Lifecycle", () => {
     const el = make();
     markFailed(el);
 
-    expect(beginLoading(el), "a failed element must not begin loading again").to.be.false;
+    expect(markLoading(el), "a failed element must not begin loading again").to.be.false;
     expect(el.getAttribute("ce"), "the failure flag must survive").to.equal("error");
     expect(hasFailed(el)).to.be.true;
   });
@@ -94,7 +87,7 @@ describe("Lifecycle", () => {
   it("should not let a failure be walked back by a later state", () => {
     const el = make();
 
-    beginLoading(el);
+    markLoading(el);
     markFailed(el);
 
     // `loadAndDefine` reports a rejection on the same tick it defines, so a
@@ -109,7 +102,7 @@ describe("Lifecycle", () => {
   it("should not walk backwards", () => {
     const el = make();
 
-    beginLoading(el);
+    markLoading(el);
     markLoaded(el);
     markDefined(el);
 
@@ -126,7 +119,7 @@ describe("Lifecycle", () => {
     const el = make();
     document.body.appendChild(el);
 
-    beginLoading(el);
+    markLoading(el);
     markDefined(el);
 
     // Nothing is scheduled behind `defined` any more: it is written in the frame
@@ -143,7 +136,7 @@ describe("Lifecycle", () => {
     // `preload()` defines a component with no element behind it.
     expect(hasFailed(undefined)).to.be.false;
     expect(getLifecycle(undefined)).to.be.null;
-    expect(beginLoading(undefined)).to.be.false;
+    expect(markLoading(undefined)).to.be.false;
     expect(() => markLoaded(undefined)).to.not.throw();
     expect(() => markDefined(undefined)).to.not.throw();
     expect(() => markFailed(undefined)).to.not.throw();

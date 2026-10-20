@@ -39,6 +39,21 @@ export type LoadError = {
     error: CEError;
 };
 
+/**
+ * What a `hooks.load` handler may answer, one call per component:
+ *
+ * - `false` — skip it: nothing is fetched and nothing is defined.
+ * - `true` — nothing special, the catalog loader runs as usual.
+ * - an ES module — used in place of the module the catalog loader would return,
+ *   so a handler can fetch (or fabricate) the component itself.
+ *
+ * A handler that just returns (`undefined`) is read as `true`. Anything that is
+ * not a boolean is used as the module, and only a real ES module
+ * (`Symbol.toStringTag === "Module"`) is unwrapped to its `default` export — the
+ * same rule the catalog loaders follow.
+ */
+export type LoadHookResult = boolean | { default: CustomElementConstructor } | undefined;
+
 export type Directives = "eager" | "visible" | "click" | "manual";
 export type Options = {
     /* The component catalog */
@@ -114,6 +129,29 @@ export type Options = {
             finished?: (transition: ViewTransition) => Promise<void>;
         };
         error?: (error: LoadError) => void;
+
+        /**
+         * Called once per component, before it is fetched.
+         *
+         * - `false` — skip it: nothing is fetched, nothing is defined, and the
+         *   element is left without a `ce` state, so a later `upgrade()` asks again.
+         * - `true`, or a handler that returns nothing — the catalog loader runs.
+         * - an ES module — used in place of the catalog loader's module.
+         */
+        load?: (name: string, el?: HTMLElement) => LoadHookResult | Promise<LoadHookResult>;
+
+        /**
+         * Called once per component, the moment its module is in memory and the
+         * element has not upgraded yet — the `loaded` step of the walk. A
+         * notification: whatever it returns is ignored.
+         */
+        loaded?: (result: LoadResult) => void;
+
+        /**
+         * Called once per component, before it is defined. Return `false` to
+         * disable the definition; anything else lets it proceed.
+         */
+        define?: (result: LoadResult) => boolean | void | Promise<boolean | void>;
     };
 };
 

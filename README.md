@@ -117,12 +117,19 @@ const registry = new CERegistry({
   /* Shadow-root discovery. "auto" uses `shadow-observer` if the host app imported it;
      true forces it (and warns when the module is missing); false disables it. (default: "auto") */
   shadowObserver: "auto",
-  /* Lifecycle hooks */
+  /* Lifecycle hooks, one call each per component */
   hooks: {
     viewTransition: {
       ready: (transition) => console.log("Transition ready"),
       finished: (transition) => console.log("Transition finished"),
     },
+    /* Before the fetch: `false` skips the component, `true` loads it as usual,
+       an ES module is used in place of the catalog loader's */
+    load: (name, el) => true,
+    /* Once the module is in memory and the element has not upgraded yet */
+    loaded: ({ name, el, module }) => {},
+    /* Before the definition: `false` disables it */
+    define: ({ name, el, module }) => true,
     error: (error) => console.error(error),
   },
 });
@@ -134,6 +141,31 @@ That's useful for loading ce-autoloader from a CDN, and configuring it's
 catalog from the page import-map.
 
 Two methods round out the registry: `registry.preload(["my-element"])` fetches and defines components before they appear in the DOM, and `registry.clean()` disconnects every observer.
+
+### Hooks
+
+Each hook runs once per component, in walk order:
+
+```js
+const registry = new CERegistry({
+  catalog: { "heavy-chart": "/assets/heavy-chart.js" },
+  hooks: {
+    load: (name, el) => navigator.onLine ? true : false,
+    loaded: ({ name, el }) => track("component-loaded", name),
+    define: ({ name, el, module }) => !isHidden(el),
+  },
+});
+```
+
+- **`load(name, el)`** runs before the fetch, and its answer decides the walk. `false` skips the component: nothing is fetched, nothing is defined, and the element is left with no `ce` state — a skip is a decision, not a failure, so it is not reported and a later `registry.upgrade(root)` asks again. `true` — or a handler that returns nothing — loads it as usual. An ES module is used **in place of** the catalog loader's module, so a handler can fetch the component itself:
+
+  ```js
+  hooks: { load: (name) => import(`/variants/${name}.js`) }
+  ```
+
+- **`loaded({ name, el, module, loader })`** is a notification, sent the moment the module is in memory and the element has not upgraded yet — the `loaded` step of the walk, and the window `deferDefine` holds open. Its return value is ignored.
+
+- **`define({ name, el, module })`** runs before the registration, with `module` unwrapped to the constructor. `false` disables the definition — the walk stops at `loaded`, nothing is reported and nothing is painted. `registry.preload()` runs the same three hooks, with `el` `undefined`.
 
 ### CSS Styling & Lifecycle States
 

@@ -1,7 +1,7 @@
-import type { Catalog, Loader, Options, Directives, LoadError, LoadResult } from './types';
-export type { Catalog, Loader, Options, Directives, LoadError, LoadResult }
+import type { Catalog, Loader, Options, Directives, LoadError, LoadResult, LoadHookResult } from './types';
+export type { Catalog, Loader, Options, Directives, LoadError, LoadResult, LoadHookResult }
 import { CEError } from './types'
-import { beginLoading, getLifecycle, hasFailed, markDefined, markFailed, markLoaded } from './lifecycle';
+import { markLoading, getLifecycle, hasFailed, markDefined, markFailed, markLoaded } from './lifecycle';
 
 /** Helpers */
 function isCustomElement(element: Element) {
@@ -293,12 +293,25 @@ class CEAutoLoader {
 
   /**
    * Preload those specific custom-elements, right now!
+   *
+   * There is no element behind a preloaded component, so the hooks run with
+   * `el` `undefined`: `load` before the fetch, `loaded` once the module is in
+   * memory, `define` before the registration.
    */
   public async preload(components: string[]): Promise<void> {
     for (const comp_name of components) {
       const loader = this.getLoader(comp_name)
-      const module = await this.loadModule(comp_name, loader);
-      this.define({ name: comp_name, el: undefined, module: module })
+      const answer: LoadHookResult = await this.options.hooks?.load?.(comp_name);
+      if (answer === false) {
+        return null;
+      }
+
+      const module = (isModule(answer) ? answer.default :
+        await this.loadModule(comp_name, loader));
+
+      this.options.hooks?.loaded?.({ name: comp_name, loader, module });
+
+      await this.define({ name: comp_name, el: undefined, module: module })
     }
   }
 
@@ -496,7 +509,11 @@ class CEAutoLoader {
     loaded.filter(isRejected).map((r) => this.handleComponentLoadError(r));
 
     // 3. Then, define the components on a single frame
-    const success = loaded.filter(isFulfilled).map((r) => r.value)
+    // A component `hooks.load` skipped loaded nothing, so there is nothing to define.
+    const success = loaded
+      .filter(isFulfilled)
+      .map((r) => r.value)
+      .filter((result): result is LoadResult => result !== null)
 
     const defined = this.options.transition
       ? await this.runScopedViewTransition(success, (r) => this.define(r))
@@ -516,11 +533,18 @@ class CEAutoLoader {
     return []
   }
 
-
   /**
    * Load a single component
+   *
+   * `hooks.load` runs first, one call per component, and can skip the component
+   * entirely or hand back the module itself. A skipped
+   * element keeps no `ce` state and is not a failure, so a later `upgrade()` can
+   * ask again.
+   *
+   * `hooks.loaded` runs the moment the module is in memory and the element has not
+   * upgraded yet.
    */
-  async load(el: HTMLElement): Promise<LoadResult> {
+  async load(el: HTMLElement): Promise<LoadResult | null> {
     const name = el.tagName.toLowerCase();
 
     let loader = this.getLoader(name);
@@ -531,26 +555,36 @@ class CEAutoLoader {
     let module;
     // let before_imports = { ...customElements.waiting };
     let load_error = null;
-    let perf = measure('load', name);
+    let perf;
 
     try {
+      // Held for the hook too: the hook is part of the load, so a re-entry while it
+      // is in flight must not ask a second time.
       this.loading_locks.add(el);
+      perf = measure('load', name);
+
+      const answer: LoadHookResult = await this.options.hooks?.load?.(name, el);
+      if (answer === false) {
+        return null;
+      }
+
       // A failed element is terminal; `loadAndDefine` filters those out first.
-      beginLoading(el);
+      markLoading(el);
 
-      module = await this.loadModule(name, loader);
+      module = (isModule(answer) ? answer.default :
+        (HTMLElement.isPrototypeOf(answer) ? answer :
+          await this.loadModule(name, loader)))
 
-      // The module is in memory, the upgrade has not happened. With
-      // `deferDefine` this is the window the queue holds open, and the last
-      // moment at which the batch is known to be complete-but-unapplied.
+      // The module is in memory, the upgrade has not happened yet
       markLoaded(el);
+      this.options.hooks?.loaded?.({ name, el, module, loader });
     } catch (error: any) {
       load_error = error;
       throw new CEError(`${name} - ${error.message}`, { name, el, module, cause: error });
     } finally {
       this.loading_locks.delete(el);
 
-      perf.end({ error: load_error });
+      perf?.end({ error: load_error });
     }
 
     return { name, module, loader, el };
@@ -558,6 +592,9 @@ class CEAutoLoader {
 
   /**
    * Define a single component
+   *
+   * `hooks.define` runs first, one call per component, on the unwrapped constructor:
+   * returning `false` disables the definition and nothing else.
    */
   async define({ name, el, module }: LoadResult) {
     /**
@@ -567,6 +604,11 @@ class CEAutoLoader {
     if (isModule(module)) {
       module = module.default;
     }
+
+    const decision = await this.options.hooks?.define?.({ name, el, module });
+
+    // A disabled definition is not a failure: nothing is reported, nothing is painted.
+    if (decision === false) return;
 
     let define_error = null;
     let perf = measure('define', name);

@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     deferDefine: true,
     transition: false,
     hooks: {
+      load: async (name, el) => {
+        return import("./components/vi-example.js");
+      },
       error: (e) => {
         console.error(e.error.message);
         performance.mark('error')

@@ -7,7 +7,7 @@
  * handled. That is why the vocabulary lives here and nowhere else: a writer free to
  * overwrite it can erase the evidence the reporter depends on.
  *
- * Failure is terminal. `beginLoading` refuses to move a failed element back to
+ * Failure is terminal. `markLoading` refuses to move a failed element back to
  * `loading`, so it is never fetched twice and never reported twice.
  *
  * @see {@link LifecycleState} for what each state means.
@@ -57,7 +57,7 @@ export function hasFailed(el?: Element | null): boolean {
  * Returns whether it moved: a caller that gets `false` should not fetch the
  * module, because the element is done failing.
  */
-export function beginLoading(el?: Element | null): boolean {
+export function markLoading(el?: Element | null): boolean {
   if (!el || hasFailed(el)) return false;
 
   el.setAttribute(ATTRIBUTE, LOADING);
@@ -87,7 +87,7 @@ const RANK: Record<LifecycleState, number> = {
  *
  * Rank is what keeps the walk one-way. `preload()` runs `load()` and `define()` back
  * to back, so neither may rewrite an element that is already on screen. Only
- * `beginLoading` may rewind: a re-entered load really is a new walk, and the
+ * `markLoading` may rewind: a re-entered load really is a new walk, and the
  * skeleton coming back is the honest thing to show.
  */
 function advance(el: Element | null | undefined, state: LifecycleState, from?: LifecycleState): boolean {

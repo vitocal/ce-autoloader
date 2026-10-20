@@ -110,4 +110,5 @@ export class ViExample extends SlottedElement {
   }
 }
 
+export default ViExample;
 customElements.define("vi-example", ViExample);
