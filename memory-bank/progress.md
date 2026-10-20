@@ -37,8 +37,13 @@ sweep on the hero), with both `pages/prototypes/lifecycle-animations/` pages con
 onto the same catalog + registry) · four **Hairline UI components** on the landing page
 (`#hairline-ui`: `text-morph`, `number-roll`, `command-output` and `earnings-chart` — the upstream React sources,
 wrapped with `r2wc` and driven purely by attributes, with Tailwind v4 compiled by the docs build for them alone) ·
-**CI** (`.github/workflows/test.yml`: `npm ci` with the npm and Playwright browser caches, `npm run test` with
-`TEST_STRICT=1`, on every push and PR — `package-lock.json` is tracked as of 2026-10-20).
+**CI** (`.github/workflows/test.yml`: `npm ci` with the npm and Playwright browser caches, `typecheck`, `build` +
+`npm pack --dry-run`, a 4096 B gzip budget gate, then `npm run test` with `TEST_STRICT=1`, on every branch push and PR —
+`package-lock.json` is tracked as of 2026-10-20) · **`docs/` is out of git** and published by
+`.github/workflows/pages.yml` as a Pages artifact (330 files / 42 MB of build output dropped; Pages source must be set to
+"GitHub Actions") · **releases** are `npm version` + `git push --follow-tags`: `release.yml` checks the tag against
+`package.json`, refuses a version npm already has, then publishes through a tokenless **trusted publisher** (OIDC,
+provenance automatic) and opens a GitHub release.
 
 ## Left
 

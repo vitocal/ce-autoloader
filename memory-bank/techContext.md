@@ -10,7 +10,9 @@
 - Library build: `vite.config.js` — lib mode + `vite-plugin-dts`, `formats: ["es"]`, `external: ["shadow-observer"]`.
   Only `tsconfig.json` (`include: ["src/*"]`) is used by `tsc` and the dts step. Note: the dts step writes
   `dist/dist.d.ts` even when `--outDir` points elsewhere.
-- Docs build: `vite.docs.js` — Vite MPA, `base: /ce-autoloader/` in production, output `docs/`, plugins for Vue,
+- Docs build: `vite.docs.js` — Vite MPA, `base: /ce-autoloader/` in production, output `docs/`, which is **gitignored**
+  and published by `.github/workflows/pages.yml` (`configure-pages` → `build:docs` with `NODE_ENV=production` →
+  `upload-pages-artifact` → `deploy-pages`), so hashed-asset churn never reaches git. Plugins for Vue,
   Svelte (`customElement: true`), Preact and import maps. The Stencil plugin is imported but never registered (issue
   #9). Tailwind v4 (`@tailwindcss/vite`) is in the build as well, but only for
   `pages/components/hairline/hairline.css` — the Hairline UI demo components; the layer order it needs is the
@@ -20,8 +22,7 @@
   `npm run importmap` (`@jspm/generator`).
 - Editor project: `pages/tsconfig.json` (`extends` the root, `include: ["**/*.ts", "**/*.tsx"]`) binds the demo sources to a *configured* project. A file outside every tsconfig lands in an **inferred** project, which ignores `skipLibCheck` — that is why untyped deps (`three`) leaked "missing declaration file" errors from `node_modules/**/*.d.ts`. `pages/env.d.ts` supplies the demo-only ambient types (CSS side-effect imports, `virtual:importmap`, `process`).
 - The big Problems-panel flood is not tsconfig at all: the user profile sets `typescript.tsserver.experimental.enableProjectDiagnostics: true`, so VS Code reports diagnostics for every file in every project, `node_modules` included. `.vscode/settings.json` overrides it to `false` for this workspace; `lit-plugin.rules.no-invalid-tag-name: "off"` stops the (ts-server-plugin) lit analyzer from flagging `preact`/`svelte` `.d.ts` tag-name unions.
-- No runtime dependencies. `peerDependencies: shadow-observer` (optional, via `peerDependenciesMeta`). The library no longer imports it — the host app imports it to enable shadow root discovery, and the library detects it via `globalThis[Symbol.for('shadow-observer')]`. `sideEffects: false`.
-  `package.json` advertises `custom-elements.json`, which nothing generates.
+- No runtime dependencies. `peerDependencies: shadow-observer` (optional, via `peerDependenciesMeta`). The library no longer imports it — the host app imports it to enable shadow root discovery, and the library detects it via `globalThis[Symbol.for('shadow-observer')]`. `sideEffects: true`, and it genuinely is: the module patches `customElements.define` and boots `window.registry` on `?autoload`. The Node floor is declared in `engines` + `.nvmrc` (22.12 — vite 8's floor). `custom-elements.json` is no longer advertised: nothing generated it, and the library ships no elements of its own.
 
 ## Commands
 
@@ -29,13 +30,14 @@
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | `npm run dev`                            | docs/demo dev server, port 5173                                                                                                        |
 | `npm run build`                          | library → `dist/` (also on `prepack`); the dts step is clean today                                                                     |
-| `npx tsc --noEmit -p tsconfig.json`      | **clean** as of the `types.ts` split (issue #12 fixed)                                                                                 |
+| `npm run typecheck`                      | `tsc --noEmit -p tsconfig.json` — **clean** as of the `types.ts` split (issue #12 fixed); this is the CI gate                          |
 | `npm test`                               | `scripts/run-integration-tests.js`: dev server + Playwright + in-browser Mocha, **68 tests × Chromium / WebKit / Firefox**, non-zero exit on failure |
 | `npm run test:all`                       | same, plus the branded `chrome` / `msedge` channels — a browser that is not installed is *skipped*, and `--strict` turns a skip into a failure |
-| `npm run test` (CI)                      | `.github/workflows/test.yml`, every push and PR: Node 22, `npm ci` (`setup-node` `cache: npm`), `~/.cache/ms-playwright` cached on `hashFiles('package-lock.json')`, `npx playwright install --with-deps chromium firefox webkit`, then `npm run test` with `TEST_STRICT=1` |
+| `npm run test` (CI)                      | `.github/workflows/test.yml`, every push and PR: Node 22, `npm ci` (`setup-node` `cache: npm`), `typecheck`, `build` + `npm pack --dry-run` + a **4096 B gzip budget gate** (`dist/index.d.ts` must exist), `~/.cache/ms-playwright` cached on `hashFiles('package-lock.json')`, `npx playwright install --with-deps chromium firefox webkit`, then `npm run test` with `TEST_STRICT=1` |
+| `npm version patch` → push tag           | release: the tag fires `.github/workflows/release.yml` — tag vs `package.json` check, an "already published" guard, `typecheck`, `build` + `pack --dry-run`, `npm publish` through a **trusted publisher** (OIDC, no token), `gh release create`. Tags may be `1.2.3` or `v1.2.3` (the old ones are bare) |
 | `gzip -c dist/ce-autoloader.js \| wc -c` | budget check: 3,467 B (10,125 B raw) — measured 2026-10-12, after the #19 fix                                                           |
 | `npm run importmap`                       | regenerates `importmap.json` (pinned + `integrity`) from `importmap.src.json` via `@jspm/generator`; needs network. Run it when a pinned version changes — `importmap.json` is generated, so hand edits are lost |
-| `NODE_ENV=production npm run build:docs` | rebuilds all of `docs/` with new hashes — **restore `docs/.nojekyll`** (Vite empties the output dir), and never run it just to "check" |
+| `NODE_ENV=production npm run build:docs` | writes `docs/` (~47 MB, 331 files, new hashes) — **gitignored**, so it no longer pollutes git and the old `docs/.nojekyll` restore trap is gone (an artifact deploy skips Jekyll entirely). CI runs it and uploads `docs` |
 
 **While iterating, use the Chrome DevTools MCP instead of `npm test`**: same Mocha report (`window.__MOCHA_STATS__`,
 `#mocha-report .test`) plus a live console, `customElements` and the real demo pages in one session. `npm test` stays
@@ -47,6 +49,20 @@ ruled out both `npm ci` and `setup-node`'s `cache: npm`; both are in play now, a
 resolve against an older cached browser build. No `restore-keys` on purpose: a mismatched browser is worse than a
 re-download, and `TEST_STRICT=1` turns the resulting launch failure red instead of a silent skip. `npm test` needs network
 (Mocha from unpkg, `uhtml` from esm.sh), which a runner has.
+
+**Three workflows, three jobs.** `test.yml` (branches and PRs: the browser suite plus the cheap gates), `pages.yml` (push
+to `main`: `build:docs` → Pages artifact), `release.yml` (a version tag: tag/version check, npm duplicate guard,
+`typecheck`, `build`, `npm publish`, `gh release create`). The browser suite is deliberately **not** re-run on release — it
+already gated the commit on `main`, and repeating it would duplicate the Playwright install into a third workflow.
+`test.yml` filters `push: branches: ["**"]` so a tag does not spawn a second suite run under a tag-scoped cache.
+
+**Publishing is tokenless, and that has two traps.** `release.yml` authenticates with a **trusted publisher** (OIDC): the
+npmjs.com package settings must name `vitocal/ce-autoloader`, workflow `release.yml`, and **no environment** (the job
+declares none); the workflow needs `id-token: write`. (1) Node 22 bundles npm 10, and trusted publishing needs **npm >=
+11.5.1**, so the job installs `npm@^11.5.1` first (11.21.1 today) — without that, publish fails on an unknown auth path.
+(2) An **unvalidated** configuration *expires 48 h after creation* (validated = its first successful publish), so create
+it close to a release. Provenance is automatic — the `--provenance` flag is redundant — and OIDC tokens are rejected on
+`pull_request_target` / `issue_comment` events; publishing on a tag `push` is permitted.
 
 ## Test traps (each of these cost real debugging time)
 

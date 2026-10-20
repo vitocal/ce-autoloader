@@ -13,6 +13,30 @@ _2026-10-20 · branch `defined-ready` @ `9503625` plus working-tree changes to `
   surfaced a **red HEAD**: `load()` unwrapped a `hooks.load` module namespace *before* `hooks.loaded` ran, so
   `loaded[0].module.default` was `undefined` (test, README and `types.ts` all said otherwise). `load()` and `preload()`
   keep the namespace now and `define()` is the only unwrap → **68 × 3 green**, `tsc --noEmit` clean.
+- ✅ **The cheap gates ride along in the same job (2026-10-20).** `npm run typecheck` (**2 s**, and the only thing no suite
+  covers), `npm run build` + `test -f dist/index.d.ts` + `npm pack --dry-run` (proves the tarball: `dist/`, LICENSE, README,
+  package.json and nothing else), and a **4096 B gzip budget gate** — measured 3,905 B, so ~190 B of headroom. All three
+  run before the browser install, so a type or packaging error fails in seconds.
+- ✅ **Hygiene sweep (2026-10-20).** Four `.DS_Store` files untracked; `engines: { node: ">=22.12" }` + `.nvmrc` (vite 8's
+  floor, and what CI runs); `homepage` / `bugs` added to `package.json`; the dead `customElements` field dropped; a CI badge
+  in the README; and the "3kb gzipped" claim trued up to 3.9kb. `package-lock.json` also picked up the 0.2.0 version bump
+  the release commit missed.
+- ✅ **Releases publish on a tag, through a trusted publisher (2026-10-20).** `.github/workflows/release.yml` on
+  `push: tags: ["*.*.*"]` — the tag is checked against `package.json` (`v1.2.3` and `1.2.3` both accepted; the repo's older
+  tags are bare), a version npm already has is refused, then `typecheck` → `build` + `pack --dry-run` → `npm publish` (no
+  token: OIDC trusted publisher, provenance automatic) → `gh release create --generate-notes`. The job upgrades npm to
+  ≥ 11.5.1 first (Node 22 ships npm 10), and npmjs.com must name repo+workflow `release.yml` with **no** environment. An
+  unvalidated trusted publisher expires in 48 h, so it has to be created close to the first release.
+  `permissions: contents: write, id-token: write`. The browser suite is **not** re-run here (it gated the commit on
+  `main`), and `test.yml` stopped firing on tag pushes — `push: branches: ["**"]` — so a release does not spawn a second
+  suite run under a tag-scoped cache.
+- ✅ **`docs/` left git, Pages deploys it from an artifact (2026-10-20).** `.github/workflows/pages.yml` on push to `main`
+  (and `workflow_dispatch`): `configure-pages` → `NODE_ENV=production npm run build:docs` → `upload-pages-artifact` →
+  `deploy-pages`, with `pages`/`id-token` permissions and a serialised `pages` concurrency group. `docs/` is gitignored
+  now — 330 tracked files dropped — which kills the 42 MB of hashed-asset churn, and the `.nojekyll` trap dies with it
+  (no Jekyll on an artifact deploy). **The Pages source must be set to "GitHub Actions" once**, or `configure-pages`
+  fails. Verified locally: the build emits `/ce-autoloader/` asset paths, and the served artifact boots — 6/6 catalog
+  elements reach `ce="defined"`, zero console errors, every deep page 200.
 
 **The three load-time hooks exist: `hooks.load` (decides: skip / as-usual / hand back the module), `hooks.loaded`
 (a notification) and `hooks.define` (a gate: `false` disables the definition). Each runs exactly once per component —
