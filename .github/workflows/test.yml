@@ -31,6 +31,24 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Typecheck
+        run: npm run typecheck
+
+      # `files` + `exports` decide what actually ships, and the dts step has
+      # written `dist/dist.d.ts` before — check the tarball, not just the build.
+      - name: Build and check the package
+        run: |
+          npm run build
+          test -f dist/index.d.ts
+          npm pack --dry-run
+
+      # Budget is a gate, not a report: the library is sold as ~3.9 kB.
+      - name: Check the gzip budget
+        run: |
+          size=$(gzip -c dist/ce-autoloader.js | wc -c | tr -d ' ')
+          echo "ce-autoloader.js: ${size} B gzipped (budget 4096 B)"
+          test "$size" -le 4096
+
       # Browsers live outside node_modules, so they need their own cache. The
       # lockfile hash is the exact key: keying on package.json would let a newer
       # Playwright 1.x resolve against the browser build already in the cache.

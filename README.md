@@ -5,6 +5,7 @@
 <h1 align="center">ce-autoloader</h1>
 
 <p align="center">
+  <a href="https://github.com/vitocal/ce-autoloader/actions/workflows/test.yml"><img src="https://github.com/vitocal/ce-autoloader/actions/workflows/test.yml/badge.svg" alt="tests"></a>
   <a href="https://www.npmjs.com/package/ce-autoloader"><img src="https://img.shields.io/npm/v/ce-autoloader.svg" alt="npm version"></a>
   <a href="https://bundlephobia.com/package/ce-autoloader"><img src="https://img.shields.io/bundlephobia/min/ce-autoloader.svg" alt="bundle size"></a>
   <a href="https://bundlephobia.com/package/ce-autoloader"><img src="https://img.shields.io/bundlephobia/minzip/ce-autoloader.svg" alt="bundle size (gzip)"></a>
@@ -31,7 +32,7 @@ The ce-autoloader is a lightweight library to lazy-load Web Components on demand
 - Polished Animations: Animate components as they load with the `ce` lifecycle states and plain CSS — no JavaScript required.
 - Error Handling: Define a custom fallback component to show when a module fails to load.
 - Native Telemetry: Built-in performance markers for every stage of the lifecycle, deep visibility into load times.
-- Zero Friction: 3kb gzipped without dependencies and no build/bundler required.
+- Zero Friction: 3.9kb gzipped without dependencies and no build/bundler required.
 
 ### Use Cases
 

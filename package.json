@@ -13,7 +13,6 @@
       "import": "./dist/ce-autoloader.js"
     }
   },
-  "customElements": "custom-elements.json",
   "files": [
     "dist/"
   ],
@@ -21,6 +20,7 @@
     "dev": "vite dev --config vite.docs.js",
     "build:docs": "vite build --config vite.docs.js",
     "build": "vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "importmap": "node scripts/build-importmap.js",
     "test": "npm run test:headless",
     "test:headless": "node scripts/run-integration-tests.js",
@@ -35,6 +35,10 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vitocal/ce-autoloader.git"
+  },
+  "homepage": "https://vitocal.github.io/ce-autoloader/",
+  "bugs": {
+    "url": "https://github.com/vitocal/ce-autoloader/issues"
   },
   "keywords": [
     "webcomponents",
@@ -51,6 +55,9 @@
     "url": "https://www.vical.me"
   },
   "license": "GPL-3.0",
+  "engines": {
+    "node": ">=22.12"
+  },
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.11.0",
     "@google/model-viewer": "^4.3.1",
