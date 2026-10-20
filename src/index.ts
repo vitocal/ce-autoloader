@@ -213,7 +213,7 @@ class CEAutoLoader {
   }
 
   set catalog(next: Catalog) {
-    this.#catalog = next;
+    this.#catalog = { ...next, ...this.#catalog }
   }
 
   /**

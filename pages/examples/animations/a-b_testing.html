@@ -48,7 +48,7 @@
 
   <script type="module" defer>
     import { loadCSSLayer, setupImportMap } from "@/utils.ts";
-    import CERegistry from "/src/index.js";
+    import CERegistry from "/src/index";
     import catalog from "@/components/catalog.js";
 
     loadCSSLayer("/shared.css", "ds");
@@ -64,6 +64,13 @@
       },
     };
 
+    const registry = new CERegistry({
+      catalog: catalog,
+      defaultDirective: "visible",
+      live: true,
+    });
+
+
     function registerComponents(event) {
       const loader = loaders[event.target.getAttribute("loader")];
       if (!loader) {
@@ -72,22 +79,16 @@
 
       console.info(("registerComponents: registering component with loader", loader));
 
-      catalog["ab-component"] = loader;
+      registry.catalog = { "ab-component": loader };
       registry.discover();
     }
 
     document.querySelectorAll("button").forEach((button) => button.addEventListener("click", registerComponents));
-
-    const registry = new CERegistry({
-      catalog: catalog,
-      defaultDirective: "visible",
-      live: true,
-      transition: true,
-    });
   </script>
 </head>
 
 <body>
+  <svelte-counter></svelte-counter>
   <button loader="a">register A component</button>
   <button loader="b">register B component</button>
   <ab-component loading="visible">I'm a A/B component, not yet defined!</ab-component>
