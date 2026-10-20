@@ -1,0 +1,44 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A new commit on the same branch cancels the run it superseded.
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # vite 8 needs ^20.19 || >=22.12; "22" resolves to the latest 22.x LTS.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # `npm ci` is not an option: package-lock.json is gitignored.
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      # WebKit and Firefox need shared libraries that the runner does not ship,
+      # hence --with-deps. Keep the browser list in sync with DEFAULT_BROWSERS
+      # in scripts/run-integration-tests.js.
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Run npm run test
+        run: npm run test
+        env:
+          # A browser that fails to launch is reported as "skipped" and does not
+          # fail the run, so CI turns that case into a failure.
+          TEST_STRICT: "1"
