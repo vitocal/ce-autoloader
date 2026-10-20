@@ -1,70 +1,92 @@
 <!doctype html>
-<html>
-  <head>
+<html lang="en">
 
-    <style>
-      @layer normalize, ds, shared, page, components, scoped, hotfix;
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Animating the lifecycle with CSS — ce-autoloader</title>
 
-      body {
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        gap: 1em;
-      }
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
-      :not(:defined) {
-        min-width: fit-content;
-        min-height: 24px;
-        display: block;
-        visibility: visible;
-        outline: 2px dashed teal;
-      }
+  <!-- Page chrome. The demo state styles live in the blocks below, one per documented section. -->
+  <style>body{flex-direction:column;gap:2em;padding:2em clamp(1em,5vw,4em) 6em;font-family:system-ui,-apple-system,sans-serif;display:flex;overflow-x:hidden}:root{interpolate-size:allow-keywords;--duration:2s}h1,h2,h3{font-size:revert;font-weight:revert;margin-bottom:.25em}p,li,table{max-width:72ch}code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:.9em}pre{background:#0000000a;border-radius:.5em;max-width:100%;padding:.75em 1em;overflow-x:auto}table{border-collapse:collapse}th,td{text-align:left;vertical-align:top;padding:.35em .75em .35em 0}.demo{grid-auto-flow:column;place-content:center space-evenly;align-items:center;gap:1em;min-height:3em;display:grid}.demo>:only-child{flex:auto}</style>
 
-      /* 2. Loading State: maybe a skeleton or a spinner? */
-      [ce-loading] {
-        display: block;
-        position: relative;
-        overflow: clip;
+  <!-- 1. Default CSS selectors -->
+  <style>:not(:defined){opacity:.5;filter:blur(2px);transition:opacity var(--duration) ease}[ce]{contain:layout paint;position:relative;overflow:clip}[ce]:after{content:"";opacity:0;filter:blur(5px);transition:opacity var(--duration) ease;background:linear-gradient(90deg,#0000,#0003,#0000);animation:1.5s infinite shimmer;position:absolute;inset:0;transform:translate(-100%)}[ce][ce=loading]{opacity:.75}[ce][ce=loading]:after{opacity:1}[ce][ce=defined]{opacity:1}[ce][ce=defined]:after{opacity:0;pointer-events:none}[ce][ce=error]{color:red;outline:1px solid red}[ce][ce=error]:after{opacity:0;pointer-events:none;display:none}@keyframes shimmer{to{transform:translate(100%)}}</style>
 
-        &::after {
-          content: "";
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          animation: shimmer 1s ease-out infinite;
-          background: linear-gradient(to right, transparent 10%, #0006 50%, transparent 90%);
-          background-size: 100% 100%;
+  <!-- 2. Use CSS transitions to animate state changes -->
+  <style>.ce{opacity:.25;transition:all 1s ease-out}.ce[ce=loading]{opacity:.75}.ce[ce=defined]{opacity:1}</style>
+
+  <!-- 3. Use CSS animations for the last defined state -->
+  <style>.ce[ce=defined]{height:calc-size(auto, size)}@keyframes pop-in{0%{opacity:0}to{opacity:1}}</style>
+
+  <!-- 4. Other examples -->
+  <style>.grid{gap:1.5rem;display:grid}.card{border:1px solid #334155;border-radius:12px;padding:1.25rem}demo-pop{background:#3b82f6;border-radius:8px;padding:1rem;display:block}demo-pop[ce=defined]{animation:pop-in var(--duration) cubic-bezier(.175, .885, .32, 1.275) forwards}@keyframes pop-in{0%{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}demo-expand{transition:height var(--duration) ease-in-out;background:#10b981;border-radius:8px;height:calc(1lh + 2rem);padding:1rem;overflow:hidden}demo-expand[ce=defined]{height:calc-size(auto, size);animation:expand-fade var(--duration) ease-in-out forwards}@keyframes expand-fade{0%{opacity:.75}to{opacity:1}}demo-flip{perspective:600px;background:#8b5cf6;border-radius:8px;padding:1rem;display:block}demo-flip[ce=defined]{animation:flip-3d var(--duration) cubic-bezier(.23, 1, .32, 1) forwards}@keyframes flip-3d{0%{opacity:0;transform:rotateX(-70deg)}to{opacity:1;transform:rotateX(0)}}demo-reveal{background:#ec4899;border-radius:8px;padding:1rem;display:block}demo-reveal[ce=defined]{animation:reveal-sweep var(--duration) cubic-bezier(.77, 0, .175, 1) forwards}@keyframes reveal-sweep{0%{opacity:0;clip-path:inset(0 100% 0 0)}to{opacity:1;clip-path:inset(0)}}demo-stagger-container{gap:.75rem;display:flex}demo-stagger-item{background:#f59e0b;border-radius:8px;flex:1;padding:1rem;display:block}demo-stagger-item[ce=defined]{opacity:0;animation:slide-up var(--duration) cubic-bezier(.16, 1, .3, 1) forwards}demo-stagger-item:first-child[ce=defined]{animation-delay:50ms}demo-stagger-item:nth-child(2)[ce=defined]{animation-delay:.15s}demo-stagger-item:nth-child(3)[ce=defined]{animation-delay:.25s}@keyframes slide-up{0%{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}</style>
+
+  <script>
+    window.DEFAULT_CE_DELAY = 3000
+  </script>
+  <script type="module" crossorigin src="/ce-autoloader/assets/css.html-DJDyz70w.js"></script>
+</head>
+
+<body>
+  <zero-md no-shadow src="./css.md"></zero-md>
+
+  <script>
+    /**
+     * The demo components are plain classes, not catalog entries, so the lifecycle
+     * attributes painted on them (`ce="loading"` / `ce="defined"`) are faked here to
+     * show the CSS states without waiting on the network.
+     */
+    function runLifecycleSimulation() {
+      const elements = Array.from(document.querySelectorAll('demo-pop, demo-expand, demo-flip, demo-reveal, demo-stagger-item'));
+      if (!elements.length) return;
+
+      // Step 1: Reset to Unregistered / Loading state
+      setTimeout(() => {
+        elements.forEach(el => el.setAttribute('ce', 'loading'));
+      }, 1000);
+
+      // Step 2: Simulate module resolution & customElement definition delay
+      setTimeout(() => {
+        const tags = ['demo-pop', 'demo-flip', 'demo-reveal', 'demo-stagger-container', 'demo-stagger-item'];
+        tags.forEach(tag => {
+          if (!customElements.get(tag)) {
+            customElements.define(tag, class extends HTMLElement { });
+          }
+        });
+
+        if (!customElements.get('demo-expand')) {
+          customElements.define('demo-expand', class extends HTMLElement {
+            connectedCallback() {
+              // Set a fixed height to allow smooth transition
+              const p = document.createElement('p')
+              p.innerText = 'Grows gracefully to reveal multi-line content using calc-size().';
+              this.appendChild(p);
+            }
+          });
         }
-      }
 
-      /* 3. Final State: fade in */
-      [ce-defined] {
-        display: block;
-        animation: fade-in 3s ease-out 1;
-      }
-    </style>
+        // Step 3: Set state to defined to trigger keyframe entrances
+        elements.forEach(el => el.setAttribute('ce', 'defined'));
+      }, 3000);
+    }
 
-    <script type="importmap">
-      {
-        "imports": {
-          "lit": "/assets/vendor.js",
-          "lit/decorators.js": "/assets/vendor.js",
-          "lit/directives/ref.js": "/assets/vendor.js",
-          "lit/directives/if-defined.js": "/assets/vendor.js",
-          "lit-element": "/assets/vendor.js",
-          "lit-html": "/assets/vendor.js",
-          "lit/directives/unsafe-html.js": "/assets/vendor.js",
-          "lit/directives/style-map.js": "/assets/vendor.js",
-          "syntax-highlight": "https://cdn.jsdelivr.net/npm/syntax-highlight-element@1/+esm"
+    // <zero-md> fetches ./css.md and renders it *after* this script runs, so wait
+    // for the demo elements to land before running the simulation.
+    function whenDemosReady(callback) {
+      if (document.querySelector('demo-pop')) return callback();
+
+      const timer = setInterval(() => {
+        if (document.querySelector('demo-pop')) {
+          clearInterval(timer);
+          callback();
         }
-      }
-    </script>
-    <script type="module" crossorigin src="/assets/css.html-CxfzYpER.js"></script>
-  </head>
+      }, 100);
+    }
 
-  <body>
-    <nord-button>nord-button</nord-button>
-  </body>
+    whenDemosReady(runLifecycleSimulation);
+  </script>
+</body>
+
 </html>

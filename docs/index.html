@@ -34,159 +34,25 @@
       }
   </script>
 
-  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <link rel="icon" type="image/svg+xml" href="/ce-autoloader/logo.svg" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital@1&display=swap" rel="stylesheet" />
 
-  <style>
-    /** To avoid FOUC (Flash of Unstyled Content) or Layout Shifts,
-      	we should style early our components, before the first render of page.
-
-      	I like to just match the size/aspect ratio, aligning before/after to avoid layout shifts.
-      	See `:not(:defined)` for more info on how to style every component at once.
-      */
-    hero-example {
-      width: 100%;
-      height: 50svh;
-      overflow: clip;
-      overflow-clip-margin: 2em;
-      display: grid;
-      contain: paint;
-    }
-
-    nord-qrcode {
-      aspect-ratio: 1;
-      width: 128px;
-      height: 128px;
-    }
-
-    pix-qrcode {
-      aspect-ratio: 1;
-      width: 196px;
-      height: 196px;
-    }
-
-    @media (max-width: 100ch) {
-      hero-example {
-        height: calc(80dvh + 2em);
-
-        grid-gap: 2em;
-      }
-    }
-
-    #about {
-      margin-top: 0em;
-      overflow-clip-margin: 2em;
-    }
-
-    #docs {
-      display: flex;
-      flex-direction: column;
-      gap: 2em;
-    }
-
-    #lifecycle {
-      .animation-lifecycle-states .title h3 {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-    }
-
-    /** Id's are used for navigation, so we need to add a scroll-margin-top to avoid the sticky nav covering the title */
-    [id] {
-      scroll-margin-top: 80px;
-    }
-
-    observable-plot-wrapper {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      flex-direction: row;
-      align-content: center;
-      justify-content: center;
-    }
-
-    performance-metrics-plot {
-      display: block;
-      width: 100%;
-      min-width: 0;
-      overflow: hidden;
-      height: 100%;
-      min-height: 580px;
-    }
-
-    performance-metrics-plot svg {
-      width: 100% !important;
-      height: auto;
-      display: block;
-    }
-
-    /**
-       * View transitions
-       */
-
-    ::view-transition-group(*) {
-      animation-duration: 2s;
-    }
-
-    /** Grow with content */
-    ::view-transition-old(*) {
-      width: auto;
-      height: 100%;
-      object-fit: none;
-      object-position: top left;
-    }
-
-    ::view-transition-new(*) {
-      width: auto;
-      height: 100%;
-      object-fit: none;
-      object-position: top left;
-    }
-
-    ::view-transition-group(*) {
-      overflow: clip;
-      overflow-clip-margin: 32px;
-      animation-timing-function: ease-in-out;
-    }
-
-    /* Animation styles component upgrade */
-    html:active-view-transition-type(ce) {
-      &::view-transition-old(root) {
-        animation: none;
-      }
-
-      &::view-transition-new(root) {
-        animation: none;
-      }
-    }
-
-
-
-    /* ::view-transition-group(hero-example) {
-      animation-duration: 2s;
-      transform-style: preserve-3d;
-      perspective-origin: center;
-      perspective: 1000px;
-    } */
-  </style>
+  <style>hero-example{overflow-clip-margin:2em;width:100%;height:50svh;display:grid;overflow:clip}nord-qrcode{aspect-ratio:1;width:128px;height:128px}@media (width<=100ch){hero-example{grid-gap:2em;height:calc(80dvh + 2em)}}#about{overflow-clip-margin:2em;margin-top:4em}#docs{flex-direction:column;gap:2em;display:flex}#lifecycle .animation-lifecycle-states .title h3{justify-content:space-between;align-items:center;display:flex}[id]{scroll-margin-top:80px}observable-plot-wrapper{flex-direction:row;place-content:center;align-items:center;width:100%;display:flex}performance-metrics-plot{width:100%;min-width:0;height:100%;min-height:580px;display:block;overflow:hidden}performance-metrics-plot svg{height:auto;display:block;width:100%!important}web-vitals{width:100%;margin-top:1rem;display:block}</style>
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="shared.css" />
 
-
-  <script type="module" crossorigin src="/assets/main-BM-dn7in.js"></script>
+  <script type="module" crossorigin src="/ce-autoloader/assets/main-DcwbiZkt.js"></script>
 </head>
 
 <body class="n-reset n-typeset">
   <nav class="sticky-nav">
-    <img src="/logo.svg" alt="ce-autoloader logo" class="nav-logo" />
+    <img src="/ce-autoloader/logo.svg" alt="ce-autoloader logo" class="nav-logo" />
     <a href="#about" class="nav-link">About</a>
     <a href="#get-started" class="nav-link">Get Started</a>
-    <a href="#examples" class="nav-link">Examples</a>
     <a href="#docs" class="nav-link">Docs</a>
+    <a href="#examples" class="nav-link">Examples</a>
     <a href="#faq" class="nav-link">FAQ</a>
     <a href="https://github.com/vitocal/ce-autoloader" target="_blank" class="nav-link icon-only"
       aria-label="GitHub Repository">
@@ -203,7 +69,7 @@
     <div class="fold">
       <div class="fold-header">
         <h1 style="display: flex; align-items: center; gap: 0.5rem; justify-content: center">
-          <img src="/logo.svg" alt="logo" style="width: 80px" />
+          <img src="/ce-autoloader/logo.svg" alt="logo" style="width: 80px; height: 50px;" />
           ce-autoloader
         </h1>
         <p class="font-display n-color-text-weaker" style="font-size: 1.3rem; line-height: 1.3; text-align: center">
@@ -212,7 +78,7 @@
         </p>
       </div>
 
-      <hero-example view-transition-name="hero-example" bundled></hero-example>
+      <hero-example loading="eager"></hero-example>
     </div>
 
     <div class="" id="about">
@@ -236,15 +102,13 @@
           <strong>Wildcard Loaders</strong>: Wildcard loaders allow you to load a whole design system with minimal
           footprint.
         </li>
-        <!--
-          <li>
-            <strong>Import maps</strong>: Native support for import-maps allow you to define modules without a
-            compiler/bundler.
-          </li>
-          -->
         <li>
-          <strong>Polished Animations</strong>: Use the lifecycle states and View Transitions API to animate
-          components as they load/render, providing a smooth and polished user experience.
+          <strong>Import maps</strong>: Native support for import-maps allow you to define modules without a
+          compiler/bundler.
+        </li>
+        <li>
+          <strong>Polished Animations</strong>: Animate components as they load with the <code>ce</code> lifecycle
+          states and plain CSS, providing a smooth and polished user experience.
         </li>
         <li>
           <strong>Smart Scheduling</strong>: Automatically batches into a single animation frame to prevent
@@ -280,7 +144,6 @@
         <div class="grid gap-md">
           <span><strong>Define</strong> your catalog</span>
           <div>
-            <!-- prettier-ignore -->
             <pre><syntax-highlight language="javascript">import CERegistry from 'ce-autoloader';
 
 const registry = new CERegistry({
@@ -298,26 +161,10 @@ const registry = new CERegistry({
             on the body HTML
           </div>
           <div>
-            <!-- prettier-ignore -->
             <pre><syntax-highlight language="html">&lt;my-component loading="visible">World&lt;/my-component></syntax-highlight></pre>
           </div>
         </div>
       </div>
-    </div>
-
-    <div id="examples">
-      <h1>Examples</h1>
-
-      <ul>
-        <li>
-          <a href="pages/examples/animations/a-b_testing.html"> A/B Testing </a>
-          A/B Testing webcomponents is very simple!
-        </li>
-        <li>
-          <a href="pages/demos/view-transition.html"> View Transition Example </a>
-          Animations using View Transition
-        </li>
-      </ul>
     </div>
 
     <div id="docs">
@@ -330,13 +177,14 @@ const registry = new CERegistry({
 
         <p>
           Because <code>ce-autoloader</code> targets the standard <strong>Custom Elements API</strong>, it doesn't
-          care how your component was built. You can mix and match components from <strong>React</strong>,
+          care how your component was built. You can mix components from <strong>React</strong>,
           <strong>Vue</strong>, <strong>Svelte</strong>, <strong>Lit</strong>, or <strong>Vanilla JS</strong> in the
           same page without any problems.
         </p>
 
         <p>
-          The example below are three components with different frameworks but sharing the same <mark>state</mark>!
+          The example below are three components with different frameworks but sharing the same <mark>state</mark>
+          with <a href="https://preactjs.com/guide/v10/signals/">preact signals</a>.
         </p>
 
         <br />
@@ -418,7 +266,7 @@ const registry = new CERegistry({
               <vi-example class="card w-full">
                 <!-- prettier-ignore -->
                 <div slot="example" class="flex-y">
-                  <three-cube loading="click" view-transition-name="three-cube">
+                  <three-cube loading="click">
                     Click to load
                   </three-cube>
                 </div>
@@ -433,7 +281,8 @@ const registry = new CERegistry({
               <p>
                 Any custom string (e.g., loading="lazy-load") can be used as a loading strategy, and triggered
                 manually via
-                <code>registry.upgrade('lazy-load')</code>. This is useful for custom workflows that don't fit
+                <code>registry.upgrade(document.body, 'lazy-load')</code>. This is useful for custom workflows that
+                don't fit
                 into
                 the built-in strategies.
               </p>
@@ -441,7 +290,7 @@ const registry = new CERegistry({
               <vi-example class="card w-full">
                 <!-- prettier-ignore -->
                 <div slot="example" class="flex-y">
-                  <confetti-button loading="manual" id="confetti" onclick="registry.upgrade('manual')">
+                  <confetti-button loading="manual" id="confetti" onclick="registry.upgrade(document.body, 'manual')">
                     * custom (click) *
                   </confetti-button>
                 </div>
@@ -493,7 +342,7 @@ const registry = new CERegistry({
 
         <div class="flex-x" style="align-items: end">
           <figure>
-            <nord-qrcode value="https://vitocal.github.io/ce-autoloader/" view-transition-name="qr-code"></nord-qrcode>
+            <nord-qrcode value="https://vitocal.github.io/ce-autoloader/"></nord-qrcode>
             <figcaption>
               <code>&lt;nord-qrcode&gt;</code>
             </figcaption>
@@ -556,7 +405,7 @@ const registry = new CERegistry({
         <p>
           Every component moves through a predictable state machine that you can style with CSS
 
-          <code>:not(:defined) → [ce="loading"] → [ce="defined"]</code>
+          <code>:not(:defined) → [ce="loading"] → [ce="loaded"] → [ce="defined"]</code>
         </p>
 
         <br />
@@ -596,49 +445,15 @@ const registry = new CERegistry({
             </div>
             <div class="description">
               <p>
-                The component is defined and upgraded to a fully interactive web component. Use this to trigger a
-                final "fade-in" or entrance animation.
+                The component is defined and upgraded to a fully interactive web component. <code>defined</code> is
+                written synchronously in the frame the element upgrades, and it is the last state of the success walk
+                — so an entrance animation declared on it plays out in full.
               </p>
 
-              <vi-defined view-transition-name="vi-defined"></vi-defined>
+              <vi-defined></vi-defined>
             </div>
           </div>
         </div>
-
-        <br />
-        <hr />
-        <br />
-
-        <p>
-          The CSS <strong>View Transitions API</strong> are supported out of the box, and allow to create a seamless
-          transition when the component is defined. Check out the
-          <a href="pages/demos/view-transition.html">demo below</a>.
-        </p>
-
-        <!--
-        <div style="height: min(100dvh, 640px)">
-          <iframe src="pages/demos/view-transition.html" frameborder="0" style="width: 100%; height: 100%"
-            loading="lazy"></iframe>
-        </div>
-        -->
-
-        <!--
-        <div class="callout info">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-            class="lucide lucide-info" aria-hidden="true">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M12 16v-4"></path>
-            <path d="M12 8h.01"></path>
-          </svg>
-          <div>
-            The CSS <strong>view transitions</strong> are supported, allowing a seamless transition between loading
-            and defined states.
-
-
-          </div>
-        </div>
-      -->
 
         <!-- prettier-ignore
           <vi-example class="equal-size">
@@ -713,7 +528,7 @@ const registry = new CERegistry({
           -->
 
         <div class="card">
-          <performance-metrics-plot view-transition-name="performance-metrics-plot"></performance-metrics-plot>
+          <performance-metrics-plot></performance-metrics-plot>
         </div>
       </div>
 
@@ -726,21 +541,35 @@ const registry = new CERegistry({
 
         <p>
           Define your own fallback component via
-          <code>fallback</code>, that is displayed when a module throws an error during loading.
+          <code>fallback</code>, that is displayed when a module throws an error during loading:
         </p>
 
         <vi-error></vi-error>
-
         <p>
-          Additionaly, the attribute <code>[ce=error]</code> is also set on the component, allowing you to style it
-          differently when an error occurs.
+          You can also attach a function whenever an error occurs by setting <code>hooks.error</code>.
         </p>
-
-        <p>And you can also handle it manually by setting <code>hooks.error</code> on the constructor</p>
       </div>
     </div>
 
-    <!--
+    <div id="examples">
+      <h1>Examples</h1>
+
+      <ul>
+        <li>
+          <a href="pages/examples/cdn/cdn.html"> CDN + Import-maps </a>
+          Load directly from CDN and configure with import-maps
+        </li>
+        <li>
+          <a href="pages/examples/mfe-store/"> Micro-Frontends + Vite</a>
+          Framework agnostic Tractor Store with Vite + Preact store
+        </li>
+        <li>
+          <a href="pages/examples/animations/a-b_testing.html"> A/B Testing </a>
+          A/B Testing webcomponents is very simple!
+        </li>
+      </ul>
+    </div>
+
     <div class="brazilian-card prose" style="margin-top: 4rem" id="faq">
       <h1 style="border-bottom: 0; margin-bottom: 2rem">
         FAQ
@@ -813,18 +642,16 @@ export default r2wc(Greeter, {
 
         <div>
           <h3 style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem">
-            <span style="font-size: 1.5rem">🚀</span> What's the performance like?
+            <span style="font-size: 1.5rem">🚀</span> What's the lighthouse performance like?
           </h3>
           <p>
-            Glad you asked! Core Web Vitals with ce-autoloader matches or exceeds SSR frameworks like Next.js. Don't
-            believe me? This is the score of the page you're reading now:
+            These are the metrics of the page you're reading now, measured live in your browser:
           </p>
 
-          <img src="assets/core-web-vitals.jpg" alt="Core Web Vitals" width="735" height="629" loading="lazy" />
+          <web-vitals loading="eager"></web-vitals>
         </div>
       </div>
     </div>
-    -->
   </main>
 
   <footer style="background: var(--color-bg-dark); border-top: 1px solid var(--color-bg-dark); padding: 4rem 0">

@@ -1,10 +1,11 @@
 # Progress
 
-_2026-10-12 · branch `defined-ready` @ `616cc8b` + working tree · package 0.2.0-rc · `dist/ce-autoloader.js` = 10,725 B
-raw / **3,683 B gzip** (rebuilt 2026-10-12 with the `matchCustomElement` fix) · **57 tests pass, 0 fail on
+_2026-10-20 · branch `defined-ready` @ `9503625` + working tree · package 0.2.0-rc2 · `dist/ce-autoloader.js` = 11,772 B
+raw / **3,951 B gzip** (rebuilt 2026-10-20 with the load-time hooks) · **68 tests pass, 0 fail on
 Chromium + WebKit + Firefox** (`tsc --noEmit` clean; `shadow-observer` is installed, so the 6 shadow tests run — the
 old "31 pass / 6 cannot load" figure is stale) · #1, #8, #10, #14–#19 fixed, docs trued up, `visible` same-tag
-siblings fixed, `ce="ready"` removed, both `upgrade()` entry points fixed._
+siblings fixed, `ce="ready"` removed, both `upgrade()` entry points fixed, every import map read on demand,
+`hooks.load` / `hooks.loaded` / `hooks.define` implemented._
 
 House rule: **one fact, one home.** `REVIEW.md` is the audit (tiers, long-form critique); the bank is the short
 version. Anything that belongs in both goes in `REVIEW.md` and is summarised here in a line.
@@ -15,6 +16,10 @@ Catalog resolution (URLs, functions, wildcards, import maps, `?autoload`) · ini
 `MutationObserver` discovery (fixed in `src/index.ts` — skip targets already `ce="error"`) · directives (`eager`, `visible`, `click`, `manual`,
 custom values) · `ce` lifecycle states · element-scoped view transitions (`types: ["ce"]`, per-element name/class,
 `ready` / `finished` hooks, plain define when unsupported) · deferred define queue (`deferDefine`) ·
+**the load-time hooks — `hooks.load` (once per component, before the fetch: `false` skips it with no `ce` state and no
+report, `true` loads as usual, an ES module replaces the catalog loader's), `hooks.loaded` (a notification between
+`ce="loaded"` and the definition) and `hooks.define` (`false` disables the definition) — wired into `load()`, `define()`
+and `preload()`, with `test/hooks.test.js` (11 tests) covering each answer** ·
 `polyfill_safe_ce_define` (idempotent `define` on the default path) · `load:` / `define:` measures · failure path
 (`hooks.error` always, catalog failures always painted, `devErrors` extends painting to non-catalog tags, fallback
 appended with `.error` / `.stack` properties) · a catalog tag already owned by a foreign constructor is reported to
@@ -24,14 +29,16 @@ a **pinned, jspm-generated import map** (`importmap.src.json` → `npm run impor
 `integrity` manifest; `scripts/vite-plugin-importmap.js` injects the whole map into every demo page) · a live
 **`<web-vitals>`** panel in the FAQ (Core Web Vitals from `web-vitals@6.2.3` through the import map, headline is
 CrUX's pass/fail over only the metrics the engine can observe) · `test/importmap.test.js` (7 tests: the registry reads the
-page's `<script type="importmap">` when `useImportMapsCatalog` is set, merges it under `catalog`, reads only the first map and
-ignores a map added after construction) · a **`Lifecycle`** module (`src/lifecycle.ts`) owning the `ce` vocabulary and
+page's `<script type="importmap">` elements when `useImportMapsCatalog` is set, merges them under `catalog`, reads *every* map
+in document order, and honours a map added after construction) · a **`Lifecycle`** module (`src/lifecycle.ts`) owning the `ce` vocabulary and
 the "a failed element is terminal" invariant, with its own suite (`test/lifecycle.test.js`) · a
 **library-driven lifecycle demo** on the landing page (`<ce-reveal>`: five reveals plus a height change, and a mask
 sweep on the hero), with both `pages/prototypes/lifecycle-animations/` pages converted off their `setState()` stand-in
 onto the same catalog + registry) · four **Hairline UI components** on the landing page
 (`#hairline-ui`: `text-morph`, `number-roll`, `command-output` and `earnings-chart` — the upstream React sources,
-wrapped with `r2wc` and driven purely by attributes, with Tailwind v4 compiled by the docs build for them alone).
+wrapped with `r2wc` and driven purely by attributes, with Tailwind v4 compiled by the docs build for them alone) ·
+**CI** (`.github/workflows/test.yml`: `npm ci` with the npm and Playwright browser caches, `npm run test` with
+`TEST_STRICT=1`, on every push and PR — `package-lock.json` is tracked as of 2026-10-20).
 
 ## Left
 
@@ -129,7 +136,7 @@ never patch and only guard `define()` (self-registering catalogs lose the morph)
 | 16 | A define-phase failure was swallowed on the non-transition path (`Promise.allSettled(success.map(define))` discarded): left `ce="loading"`, no hook | **fixed** 2026-10-01 |
 | 17 | `transition.finished`'s cleanup ran after `await updateCallbackDone`, so a failing update leaked `view-transition-name`/`-class` and left `finished` unhandled | **fixed** 2026-10-01 (handler attached before the await) |
 | 18 | A failed `visible` component that re-entered the viewport was re-loaded: `load()` overwrote `ce="error"` with `ce="loading"`, defeating the "already reported" guard, so `handleComponentLoadError` appended a **duplicate fallback** every re-intersection (the demo's `<vi-error>` accumulated one `<error-fallback>` per scroll pass) | **fixed** 2026-10-01 (`when_visible` now skips `ce="error"` targets, mirroring `dom_watcher`) |
-| 19 | **`useImportMapsCatalog` was inverted, so `?autoload` threw.** `useImportMapsCatalog: true` took the `this.catalog = options.catalog` branch (`undefined` when no `catalog` was passed) — the *default* (`false`) branch was the one that read the page import map. So `?autoload` (which sets the flag) threw `TypeError: Cannot read properties of undefined (reading '<prefix>-*')` in `getWildcardResolver` and the tag never loaded. Reproduced 2026-10-12 against `dist/` in Chromium: `?autoload` → not defined + the TypeError; `new CEAutoLoader({})` + import map → defined; `new CEAutoLoader({ useImportMapsCatalog: true })` → not defined. The CDN quickstart (`pages/examples/cdn/cdn.md`) documents exactly this path | **fixed** 2026-10-12 — the flag is literal now: `true` reads the page's import map and merges it *under* `catalog` (`false`, the default, ignores the map), only the *first* import map is read, and `getWildcardResolver` is null-safe. Covered by `test/importmap.test.js` (7 tests) + `npm test` **44 × 3 green** |
+| 19 | **`useImportMapsCatalog` was inverted, so `?autoload` threw.** `useImportMapsCatalog: true` took the `this.catalog = options.catalog` branch (`undefined` when no `catalog` was passed) — the *default* (`false`) branch was the one that read the page import map. So `?autoload` (which sets the flag) threw `TypeError: Cannot read properties of undefined (reading '<prefix>-*')` in `getWildcardResolver` and the tag never loaded. Reproduced 2026-10-12 against `dist/` in Chromium: `?autoload` → not defined + the TypeError; `new CEAutoLoader({})` + import map → defined; `new CEAutoLoader({ useImportMapsCatalog: true })` → not defined. The CDN quickstart (`pages/examples/cdn/cdn.md`) documents exactly this path | **fixed** 2026-10-12 — the flag is literal now: `true` reads the page's import map and merges it *under* `catalog` (`false`, the default, ignores the map), ~~only the *first* import map is read~~ (**superseded 2026-10-20** — every map is read, on every access; `import.meta.resolve` was researched and rejected as the alternative), and `getWildcardResolver` is null-safe. Covered by `test/importmap.test.js` (7 tests) + `npm test` **44 × 3 green** |
 | 20 | The **"already defined by another constructor"** diagnostic fires for every Svelte component on the docs site: `@sveltejs/vite-plugin-svelte` with `customElement: { tag }` registers the generated class itself (`name === "Class"`) while `export default` is a `wrapper` function, so `customElements.get(name) !== module` holds by construction. Diagnostic-only — no `ce="error"`, the element upgrades. Reproduced 2026-10-12, identical before and after the #19 catalog change | open — narrow the check to a *foreign* constructor (e.g. only when `module.prototype instanceof HTMLElement`) |
 
 ## Fixed lately

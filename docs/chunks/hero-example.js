@@ -1,4 +1,4 @@
-import{n as e,t}from"./static-html.js";import{LitElement as n,css as r}from"lit";var i={"model-viewer":t`<model-viewer
+import{t as e}from"./utils.js";import{n as t,t as n}from"./static-html.js";import{LitElement as r,css as i}from"lit";var a={"model-viewer":t`<model-viewer
     on="eager"
     camera-controls
     touch-action="pan-y"
@@ -7,7 +7,7 @@ import{n as e,t}from"./static-html.js";import{LitElement as n,css as r}from"lit"
     alt="A 3D model of a shishkebab"
   ></model-viewer>`,"confetti-button":t`<confetti-button on="eager"
     ><div class="card" view-transition-name="confetti-button">🎉 Click me to throw confetti 🎉</div></confetti-button
-  >`,"gl-globe":t`<gl-globe on="eager" view-transition-name="gl-globe"></gl-globe>`,"fireworks-js":t`<fireworks-js on="eager"></fireworks-js>`},a=class extends n{static styles=r`
+  >`,"gl-globe":t`<gl-globe on="eager" view-transition-name="gl-globe"></gl-globe>`,"fireworks-js":t`<fireworks-js on="eager"></fireworks-js>`},o=class extends r{static styles=i`
     @layer components {
       hero-example {
         display: grid;
@@ -15,7 +15,6 @@ import{n as e,t}from"./static-html.js";import{LitElement as n,css as r}from"lit"
         grid-gap: 1rem;
         position: relative;
         align-items: stretch;
-        perspective: 1000px;
 
         .left {
           grid-column: 1 / 2;
@@ -34,9 +33,11 @@ import{n as e,t}from"./static-html.js";import{LitElement as n,css as r}from"lit"
 
         .preview {
           opacity: 1;
-          animation: 1300ms ease both fade-in;
-          animation-delay: var(--spring-duration);
+          // animation: 1300ms ease both fade-in;
+          // animation-delay: var(--spring-duration);
           position: relative;
+          max-width: 300px;
+          overflow: hidden;
         }
 
         nord-select:not(:defined) {
@@ -82,13 +83,13 @@ import{n as e,t}from"./static-html.js";import{LitElement as n,css as r}from"lit"
       }
     }
 
-    ::view-transition-group(model-viewer),
-    ::view-transition-group(gl-globe),
-    ::view-transition-group(fireworks-js),
-    ::view-transition-group(confetti-button) {
-      animation: var(--spring-duration) var(--spring-easing) both;
-    }
-  `;static properties={demo:{state:!0}};createRenderRoot(){return this}constructor(){super(),this.demo=`model-viewer`,this.constructor.styles.styleSheet&&!document.adoptedStyleSheets.includes(this.constructor.styles.styleSheet)&&document.adoptedStyleSheets.push(this.constructor.styles.styleSheet)}js_template(){return`&lt;script type="module">
+    // ::view-transition-group(model-viewer),
+    // ::view-transition-group(gl-globe),
+    // ::view-transition-group(fireworks-js),
+    // ::view-transition-group(confetti-button) {
+    //   animation: var(--spring-duration) var(--spring-easing) both;
+    // }
+  `;static properties={demo:{state:!0}};createRenderRoot(){return this}constructor(){super(),this.demo=`model-viewer`,e(this.getRootNode(),this.constructor.styles.styleSheet)}js_template(){return`&lt;script type="module">
 	import CERegistry from 'ce-autoloader';
 
 	/* A central registry for all our components 😘 */
@@ -106,7 +107,7 @@ import{n as e,t}from"./static-html.js";import{LitElement as n,css as r}from"lit"
 	&lt;/model-viewer>
 &lt;/body>`}html_template(){return`&lt;!-- Use it like any other HTML element--&gt;
 & lt; model - viewer camera - controls auto - rotate src = "https://modelviewer.dev/shared-assets/models/shishkebab.glb" >& lt;/model-viewer>
-	`}onClick(){this.mode=this.mode===`code`?`preview`:`code`}onDemoSelect(e){this.demo=e.target.value}render(){let n=i[this.demo];return t`<div class="left window flex-y no-wrap">
+	`}onClick(){this.mode=this.mode===`code`?`preview`:`code`}onDemoSelect(e){this.demo=e.target.value}render(){let e=a[this.demo];return t`<div class="left window flex-y no-wrap">
         <h4 class="flex-x">
           Demo
 
@@ -124,8 +125,8 @@ import{n as e,t}from"./static-html.js";import{LitElement as n,css as r}from"lit"
             <option value="confetti-button">confetti-button</option>
           </nord-select>
         </h4>
-        <pre><syntax-highlight language="js" view-transition-name="hero-demo-code">${e(this.js_template())}</syntax-highlight></pre>
+        <pre><syntax-highlight language="js" view-transition-name="hero-demo-code">${n(this.js_template())}</syntax-highlight></pre>
       </div>
 
-      <div class="right preview flex-y" mode=${this.mode}>${n}</div>`}};customElements.define(`hero-example`,a);export{a as default};
+      <div class="right preview flex-y" mode=${this.mode}>${e}</div>`}};customElements.define(`hero-example`,o);export{o as default};
 //# sourceMappingURL=hero-example.js.map

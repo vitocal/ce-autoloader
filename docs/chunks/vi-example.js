@@ -1,6 +1,6 @@
-import{n as e,t}from"./static-html.js";import{t as n}from"./slotted-element.js";import{css as r}from"lit";function i(e,t=`    `){let n=0;return e.split(`
+import{t as e}from"./utils.js";import{n as t,t as n}from"./static-html.js";import{t as r}from"./slotted-element.js";import{css as i}from"lit";function a(e,t=`    `){let n=0;return e.split(`
 `).map(e=>e.trim()).filter(Boolean).map(e=>{e.startsWith(`</`)&&n--;let r=t.repeat(Math.max(0,n))+e,i=e.startsWith(`<`)&&!e.startsWith(`</`),a=e.includes(`</`)||e.endsWith(`/>`);return i&&!a&&n++,r}).join(`
-`)}var a=class extends n{static properties={shadow:{type:String,default:`light`}};static styles=r`
+`)}var o=class extends r{static properties={shadow:{type:String,default:`light`}};static styles=i`
     @layer components {
       vi-example {
         display: grid;
@@ -44,12 +44,12 @@ import{n as e,t}from"./static-html.js";import{t as n}from"./slotted-element.js";
         }
       }
     }
-  `;constructor(){super(),this.constructor.styles.styleSheet&&this.shadowRoot===null&&!document.adoptedStyleSheets.includes(this.constructor.styles.styleSheet)&&document.adoptedStyleSheets.push(this.constructor.styles.styleSheet),this.example_slot=this.slottedChildren.filter(e=>e instanceof HTMLElement).find(e=>e.getAttribute(`slot`)===`example`).innerHTML.trim().replace(/<!--.*?-->/g,``).replace(/slot="(.*?)"/g,``).replace(/ce="(.*?)"/g,``),console.log(this.example_slot)}render(){let n=i(this.example_slot).replace(/</g,`&lt;`).replace(/>/g,`&gt;`);return console.log(`vi-example rerender`),t`
+  `;constructor(){super(),e(this.getRootNode(),this.constructor.styles.styleSheet),this.example_slot=this.slottedChildren.filter(e=>e instanceof HTMLElement).find(e=>e.getAttribute(`slot`)===`example`).innerHTML.trim().replace(/<!--.*?-->/g,``).replace(/slot="(.*?)"/g,``).replace(/ce="(.*?)"/g,``)}render(){let e=a(this.example_slot).replace(/</g,`&lt;`).replace(/>/g,`&gt;`);return t`
       <div class="left window flex-y">
-        <pre><syntax-highlight language="html">${e(n)}</syntax-highlight></pre>
+        <pre><syntax-highlight language="html">${n(e)}</syntax-highlight></pre>
       </div>
       <div class="preview right card flex-y">
         <slot name="example"></slot>
       </div>
-    `}};customElements.define(`vi-example`,a);export{a as ViExample};
+    `}};customElements.define(`vi-example`,o);export{o as ViExample,o as default};
 //# sourceMappingURL=vi-example.js.map

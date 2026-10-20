@@ -1,2 +1,2 @@
-import{n as e,t}from"./jsx-dev-runtime.js";var n=t(),r=`/Users/vitorcalejuri/Projects/ce-autoloader/pages/components/vi/react-example.tsx`,i=e(({name:e})=>(0,n.jsxDEV)(`span`,{children:[`Hello, `,e,`!`]},void 0,!0,{fileName:r,lineNumber:8,columnNumber:12},void 0),{props:{name:`string`}});export{i as default};
+import{n as e,t}from"./jsxRuntime.module.js";var n=e(({name:e})=>t(`span`,{children:[`Hello, `,e,`!`]}),{props:{name:`string`}});export{n as default};
 //# sourceMappingURL=react-example.js.map

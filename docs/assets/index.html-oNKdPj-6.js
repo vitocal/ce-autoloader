@@ -1,2 +1,0 @@
-import{n as e,t}from"../chunks/src.js";new t({catalog:{"category-filter":()=>e(()=>import(`../chunks/category-filter.js`),[]),"product-grid":()=>e(()=>import(`../chunks/product-grid.js`),[]),"total-summary":()=>e(()=>import(`../chunks/total-summary.js`),[])}});
-//# sourceMappingURL=index.html-oNKdPj-6.js.map

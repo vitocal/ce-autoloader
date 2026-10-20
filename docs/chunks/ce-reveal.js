@@ -1,0 +1,2 @@
+var e=class extends HTMLElement{connectedCallback(){if(this.dataset.mounted)return;this.dataset.mounted=`1`;let e=this.getAttribute(`label`)??`reveal`,t=this.getAttribute(`note`)??``,n=this.getAttribute(`body`)??``;this.innerHTML=`<span class="ce-reveal__inner"><strong>${e}</strong>${t?`<small>${t}</small>`:``}${n?`<p>${n}</p>`:``}</span>`}};customElements.get(`ce-reveal`)||customElements.define(`ce-reveal`,e);export{e as default};
+//# sourceMappingURL=ce-reveal.js.map
