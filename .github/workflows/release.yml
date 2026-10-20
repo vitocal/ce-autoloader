@@ -1,0 +1,88 @@
+name: Release
+
+# Version tags are the release trigger. The repo's older tags are bare (`0.0.5`),
+# `npm version` writes `v0.2.1`; the job accepts either and holds the tag against
+# package.json before anything is published.
+on:
+  push:
+    tags: ["*.*.*"]
+
+# Publishes through a trusted publisher (OIDC), not a token: npmjs.com → package
+# settings → Trusted publishing must name `vitocal/ce-autoloader`, the workflow
+# file `release.yml`, and no environment. npm checks the workflow asking to
+# publish and attaches provenance automatically. An unvalidated configuration
+# expires 48 h after creation; the first successful publish validates it.
+permissions:
+  contents: write # gh release create
+  id-token: write # the OIDC token npm exchanges for a publish token
+
+# Never cancel a publish halfway through.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Trusted publishing needs npm >= 11.5.1; Node 22 ships npm 10.x. No
+      # `registry-url` and no NODE_AUTH_TOKEN: npm exchanges the workflow's OIDC
+      # token for a short-lived registry token, using the trusted publisher
+      # configured on npmjs.com for this repository and this workflow filename.
+      - name: Upgrade npm
+        run: npm install -g npm@^11.5.1
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # The tag is the release's identity: a tag on a commit whose package.json
+      # says something else is a mistake, not a version to publish.
+      - name: Check the tag matches package.json
+        run: |
+          version=$(node -p "require('./package.json').version")
+          tag=${GITHUB_REF_NAME#v}
+          echo "tag ${GITHUB_REF_NAME} → package.json ${version}"
+          test "$tag" = "$version" || {
+            echo "::error::tag ${GITHUB_REF_NAME} does not match package.json ${version}"
+            exit 1
+          }
+
+      - name: Refuse to republish a version npm already has
+        run: |
+          name=$(node -p "require('./package.json').name")
+          version=$(node -p "require('./package.json').version")
+          if npm view "${name}@${version}" version >/dev/null 2>&1; then
+            echo "::error::${name}@${version} is already published"
+            exit 1
+          fi
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # `prepack` rebuilds the tarball from the tagged commit, so this is a gate
+      # on the packaging surface, not the artifact that gets uploaded.
+      - name: Build and check the package
+        run: |
+          npm run build
+          test -f dist/index.d.ts
+          npm pack --dry-run
+
+      # No token, and no `--provenance`: a trusted publisher authenticates through
+      # the workflow's OIDC identity, and provenance is generated automatically
+      # (opt out with NPM_CONFIG_PROVENANCE=false, which we do not want).
+      - name: Publish to npm
+        run: npm publish
+
+      - name: Create the GitHub release
+        run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "$GITHUB_REF_NAME"
+        env:
+          GH_TOKEN: ${{ github.token }}

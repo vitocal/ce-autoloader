@@ -1,7 +1,10 @@
 name: Tests
 
 on:
+  # Branches only: a version tag belongs to release.yml, and a second run on the
+  # tag ref would only warm a cache nothing else uses.
   push:
+    branches: ["**"]
   pull_request:
   workflow_dispatch:
 

@@ -332,6 +332,31 @@ The demos/docs site is deployed to GitHub Pages by `.github/workflows/pages.yml`
 `NODE_ENV=production npm run build:docs` and publishes `docs/` as a Pages artifact. `docs/` is build output — it is
 gitignored, so there is nothing to commit. Enable it once under **Settings → Pages → Source: GitHub Actions**.
 
+To release, bump the version and push the tag:
+
+```bash
+npm version patch      # or minor / major — bumps package.json, commits, tags v1.2.3
+git push --follow-tags
+```
+
+`.github/workflows/release.yml` publishes any tag shaped like `1.2.3` (or `v1.2.3`): it refuses a tag that disagrees with
+`package.json` or a version npm already has, then typechecks, builds, and publishes. There is no npm token anywhere —
+publishing goes through a **trusted publisher** (OIDC), so npm verifies which workflow is asking and attaches a
+provenance attestation automatically.
+
+Set that up once at **npmjs.com → ce-autoloader → Settings → Trusted publishing → GitHub Actions**:
+
+| Field | Value |
+| --- | --- |
+| Organization or user | `vitocal` |
+| Repository | `ce-autoloader` |
+| Workflow filename | `release.yml` |
+| Environment | *(leave empty — the job declares none)* |
+
+The first successful publish validates the configuration; an unvalidated one **expires after 48 hours**, so create it
+close to a release. The workflow upgrades npm to ≥ 11.5.1 first, since trusted publishing does not exist in Node 22's
+bundled npm 10.
+
 ## License
 
 `ce-autoloader` is released under the GNU v3. See the enclosed [`LICENSE`](./LICENSE) for more information.
