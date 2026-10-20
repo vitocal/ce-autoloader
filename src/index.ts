@@ -46,6 +46,48 @@ const measure = (type: string, name: string) => {
 
 
 /**
+ * The page's import maps, as a catalog of the entries that can be a custom element.
+ *
+ * Every `<script type="importmap">` is read, in document order, and merged the way
+ * the platform merges them: the first map to map a specifier keeps it, so a later
+ * map can add, never remap. Only names containing a `-` are read — `lit`, or a prefix
+ * mapping like `@nordhealth/components/`, is the platform's business, not a tag.
+ *
+ * A map that appears after the registry started is honoured on the next lookup, which
+ * is what the platform does for subsequent resolutions. That is why this reads the
+ * map *text* and not `import.meta.resolve()`: a resolve sees only the maps the
+ * *engine* accepted, and Firefox (157) ignores every map but the first — and every map
+ * added after module evaluation — so it would see less than the document does.
+ *
+ * `document.scripts` is a live collection the engine maintains, so this walk costs
+ * ~1 µs on a page with thousands of elements where `querySelectorAll` pays ~50 µs.
+ */
+function readImportMaps(): Catalog {
+  const catalog: Catalog = {};
+
+  for (const script of document.scripts) {
+    if (script.type !== "importmap") continue;
+
+    let map: ImportMap;
+    try {
+      map = JSON.parse(script.textContent || "{}");
+    } catch (error) {
+      // The platform fires an `error` event and ignores a malformed map; one bad
+      // map must not take the catalog down with it.
+      console.warn("CEAutoLoader: ignoring an import map that is not valid JSON", error);
+      continue;
+    }
+
+    for (const [name, target] of Object.entries(map?.imports || {})) {
+      if (name.includes("-") && !(name in catalog)) catalog[name] = target;
+    }
+  }
+
+  return catalog;
+}
+
+
+/**
  * "An element the registry has never painted."
  *
  * The per-*element* form of the question, and the only correct one. It used to be
@@ -84,25 +126,28 @@ const UNHANDLED = ":not([ce])";
  * ```
  *
  * - A catalog is an object of the format {"web-component-name": `https://url`}
- * - A ES Module CustomElement should be exported as default from the file. *
+ *
+ * - A ES Module CustomElement should be exported as default from the file.
  * @usage
  *
  * ```js
-* export default class hi-helloworld extends HTMLElement {
-  connectedCallback() {
-      this.render()
-  }
-
-  render() {
-      this.innerHTML = `Hi, <span>Hello</span>`;
-  }
-}
-  ```
+ * export default class hi-helloworld extends HTMLElement {
+ *  connectedCallback() {
+ *     this.render()
+ *  }
+ *
+ *  render() {
+ *     this.innerHTML = `Hi, <span>Hello</span>`;
+ *  }
+ * }
+ * ```
  *
  */
 class CEAutoLoader {
   options: Options;
-  catalog: Catalog;
+
+  /** Backing store of {@link catalog} — the entries the app owns. */
+  #catalog: Catalog = {};
 
   // Mutation and Interaction Observers
   #observers: Record<string, MutationObserver | IntersectionObserver> = {};
@@ -134,16 +179,7 @@ class CEAutoLoader {
       ...options,
     };
 
-    // Use the page's import map
-    const importMapScript = document.querySelector('script[type="importmap"]');
-    const map = JSON.parse(importMapScript?.textContent || '{}') as ImportMap;
-    const importMapCatalog = Object.fromEntries(
-      Object.entries(map?.imports || {}).filter(([name, _target]) => name.includes('-'))
-    ) as Catalog;
-
-    this.catalog = this.options.useImportMapsCatalog
-      ? { ...importMapCatalog, ...this.options.catalog }
-      : { ...this.options.catalog };
+    this.catalog = { ...this.options.catalog };
 
     if (this.options.deferDefine) {
       this.polyfill_defer_define();
@@ -154,6 +190,30 @@ class CEAutoLoader {
     }
 
     this.discover();
+  }
+
+  /**
+   * The component catalog: the explicit `catalog`, plus the page's import maps when
+   * `useImportMapsCatalog` is set — folded *under* it, so an explicit entry wins a
+   * collision.
+   *
+   * The import maps are re-read on every access instead of snapshotted once, so a map
+   * the page appends later is picked up (see {@link readImportMaps}). The getter hands
+   * back the backing object, not a copy: `registry.catalog["my-tag"] = url` still adds
+   * a component at runtime, and nothing an import map says overwrites it.
+   */
+  get catalog(): Catalog {
+    if (this.options.useImportMapsCatalog) {
+      for (const [name, target] of Object.entries(readImportMaps())) {
+        if (!(name in this.#catalog)) this.#catalog[name] = target;
+      }
+    }
+
+    return this.#catalog;
+  }
+
+  set catalog(next: Catalog) {
+    this.#catalog = next;
   }
 
   /**

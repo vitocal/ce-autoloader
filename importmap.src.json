@@ -19,5 +19,7 @@
   "web-vitals": "https://esm.sh/web-vitals@6.2.3",
 
   "my-component": "./pages/components/my-component.js",
-  "svelte-counter": "./pages/components/vi/frameworks/svelte-counter.svelte"
+  "svelte-counter": "./pages/components/vi/frameworks/svelte-counter.svelte",
+
+  "number-roll": "./pages/components/hairline/number-roll.tsx"
 }

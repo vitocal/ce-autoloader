@@ -16,7 +16,8 @@
     "htm": "https://esm.sh/htm@3.1.1",
     "web-vitals": "https://esm.sh/web-vitals@6.2.3",
     "my-component": "./pages/components/my-component.js",
-    "svelte-counter": "./pages/components/vi/frameworks/svelte-counter.svelte"
+    "svelte-counter": "./pages/components/vi/frameworks/svelte-counter.svelte",
+    "number-roll": "./pages/components/hairline/number-roll.tsx"
   },
   "integrity": {
     "https://cdn.jsdelivr.net/npm/zero-md@3.1.9?register": "sha384-MDUwwdSjbMjCuhlniVEz0sRWRqC6Moahroqu2tYFZiYy/tfpvBWcQj27E1ZGBqFS",

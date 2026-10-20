@@ -1,15 +1,15 @@
-# ce-autoloader - Autoloading
+# Loading from a CDN
 
 ce-autoloader is designed to be plug-and-play with good defaults.
 
-For most use-cases, simply import the script directly from CDN passing
+For most use-cases, simply add the script directly from CDN passing
 the `autoload` parameter.
 
 ```html
 <script type="module" src="//esm.sh/ce-autoloader?autoload"></script>
 ```
 
-To configure the component catalog, use the `importmap` script tag.
+To configure the component catalog, use a [importmap](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/script/type/importmap).
 
 ```html
 <script type="importmap">
@@ -31,8 +31,8 @@ Now you're ready to use the web components in your page, even nested components.
     <script type="text/markdown">
       # This is my [markdown](https://example.com)
 
-      It can run nested components, inlined like <my-component>this</my-component> or
-      block-level components:
+      It has nested web components, inlined like <my-component>this</my-component> or
+      block-level:
 
       <svelte-counter></svelte-counter>
 
@@ -44,8 +44,8 @@ Now you're ready to use the web components in your page, even nested components.
 
 # This is my [markdown](https://example.com)
 
-It can run nested components, inlined like <my-component>this</my-component> or
-block-level components:
+It has nested web components, inlined like <my-component>this</my-component> or
+block-level:
 
 <svelte-counter></svelte-counter>
 

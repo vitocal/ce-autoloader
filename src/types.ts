@@ -49,8 +49,14 @@ export type Options = {
     live?: boolean;
 
     /**
-     * Treat the page's `<script type="importmap">` as *the* catalog: its `-` named
-     * bare specifiers resolve as components. First-one always wins.
+     * Read the page's `<script type="importmap">` elements as a catalog source: an
+     * entry whose name contains a `-` (e.g. `"nord-qrcode": "https://…"`) is a
+     * component.
+     *
+     * Every map in the document is read, in document order, merged the way the
+     * platform merges them — the first map to map a specifier keeps it — and re-read
+     * on every lookup, so a map the page appends later is honoured too. An explicit
+     * `catalog` entry wins a collision.
      */
     useImportMapsCatalog?: boolean;
 

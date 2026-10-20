@@ -3,13 +3,16 @@ import AutoLoader from "../src/index.ts";
 
 /**
  * `useImportMapsCatalog` makes the registry read the page's
- * `<script type="importmap">` when it is constructed: every entry whose name
- * contains a `-` becomes a component, and an explicit `catalog` is merged on top.
+ * `<script type="importmap">` elements: every entry whose name contains a `-`
+ * becomes a component, an explicit `catalog` is merged on top, and the maps are
+ * read on every lookup — so a map installed after the registry started is read too.
  *
  * Two platform facts shape the fixtures below:
  *
- * - A document honours one import map, and the loader reads the *first* one
- *   (`document.querySelector`).
+ * - The engines disagree about multiple import maps: Chromium and WebKit merge
+ *   them, Firefox ignores every map after the first. So the loader reads the
+ *   script *text* instead of resolving through `import.meta.resolve()` — a map
+ *   Firefox refuses to merge is still a map the page wrote down.
  * - Firefox ignores an import map added after module evaluation *for resolution*,
  *   so the entries must point at absolute URLs. A fresh `blob:` URL per test keeps
  *   the fixture self-contained and engine-independent.
@@ -19,7 +22,10 @@ const createdUrls = [];
 
 /** A `blob:` ES module that defines `tag`, tagged with `source` for assertions. */
 function fixtureModule(tag, source) {
-  const url = URL.createObjectURL(new Blob([`
+  const url = URL.createObjectURL(
+    new Blob(
+      [
+        `
 class Fixture extends HTMLElement {
   connectedCallback() {
     this.setAttribute("data-upgraded", "true");
@@ -28,7 +34,11 @@ class Fixture extends HTMLElement {
 }
 customElements.define("${tag}", Fixture);
 export default Fixture;
-`], { type: "text/javascript" }));
+`,
+      ],
+      { type: "text/javascript" },
+    ),
+  );
 
   createdUrls.push(url);
   return url;
@@ -127,22 +137,22 @@ describe("Import map catalog", () => {
     expect(registry.getLoader("imap-own"), "the explicit catalog is kept").to.equal(own);
   });
 
-  it("should read only the first import map in the document", () => {
+  it("should read all import maps in the document", () => {
     installImportMap({ "imap-first": fixtureModule("imap-first", "importmap") });
     installImportMap({ "imap-second": fixtureModule("imap-second", "importmap") });
 
     registry = new AutoLoader({ useImportMapsCatalog: true, root: fixtures });
 
     expect(registry.catalog).to.have.property("imap-first");
-    expect(registry.catalog, "only the first <script type=importmap> is read").to.not.have.property("imap-second");
+    expect(registry.catalog).to.have.property("imap-second");
   });
 
-  it("should not read an import map added after the registry starts", () => {
+  it("should read an import map added after the registry starts", () => {
     registry = new AutoLoader({ useImportMapsCatalog: true, root: fixtures });
 
     installImportMap({ "imap-late": fixtureModule("imap-late", "importmap") });
 
-    expect(registry.getLoader("imap-late")).to.not.exist;
+    expect(registry.getLoader("imap-late")).to.exist;
   });
 
   it("should survive a page with no import map", () => {
@@ -155,4 +165,3 @@ describe("Import map catalog", () => {
     expect(registry.catalog).to.deep.equal({});
   });
 });
-

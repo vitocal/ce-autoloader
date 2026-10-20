@@ -77,7 +77,7 @@ Try the demos online at [ce-autoloader](https://vitocal.github.io/ce-autoloader/
 
 ## Documentation
 
-### `CEAutoLoader` (aliased as `CERegistry`)
+### `CEAutoLoader`
 
 The constructor accepts an `Options` object:
 
@@ -128,7 +128,10 @@ const registry = new CERegistry({
 });
 ```
 
-With `useImportMapsCatalog: true` the registry also reads the page's `<script type="importmap">`: any entry whose name contains a `-` (e.g. `"nord-qrcode": "https://…"`) is treated as a component. It is merged _under_ `catalog`, so an explicit entry wins a collision, and only the **first** import map in the document is read. This is what the `?autoload` canary does, so a page with no JavaScript at all can boot from an import map alone.
+With `useImportMapsCatalog: true` the registry also reads the page's `importmap`: any entry whose name contains a `-` (e.g. `"nord-qrcode": "https://…"`) is treated as a component. It is merged _under_ `catalog`, so an explicit entry wins a collision. **Every** import map in the document is read and merged.
+
+That's useful for loading ce-autoloader from a CDN, and configuring it's
+catalog from the page import-map.
 
 Two methods round out the registry: `registry.preload(["my-element"])` fetches and defines components before they appear in the DOM, and `registry.clean()` disconnects every observer.
 
@@ -138,12 +141,12 @@ Elements are decorated with a `ce` attribute reflecting their current state. You
 
 The attribute walks one state at a time:
 
-| `ce`        | meaning                                                    |
-| ----------- | ---------------------------------------------------------- |
-| `loading`   | the module is being fetched                                |
-| `loaded`    | the module is in memory, the element has not upgraded yet   |
-| `defined`   | `customElements.define()` ran — the element is upgraded     |
-| `error`     | loading or defining failed (terminal)                      |
+| `ce`      | meaning                                                   |
+| --------- | --------------------------------------------------------- |
+| `loading` | the module is being fetched                               |
+| `loaded`  | the module is in memory, the element has not upgraded yet |
+| `defined` | `customElements.define()` ran — the element is upgraded   |
+| `error`   | loading or defining failed (terminal)                     |
 
 ```css
 /* Placeholder state */
@@ -179,7 +182,7 @@ Each state change is a plain style change on the same element, so CSS `transitio
 
 `loading`, `loaded` and `defined` are set by the loader. `error` is painted for a catalog component that really failed — a loader that throws, a module that will not import, a `define()` that blows up. A tag that isn't in the catalog was never the loader's business: it keeps matching `:not(:defined)`, because a third party may define it later. Set `devErrors: true` to paint those unknown tags too, which is handy while debugging a typo'd tag name. Either way `hooks.error` is called, and when a `fallback` is configured it is **appended** inside the element with the message and stack on its `.error` / `.stack` — existing light DOM is left in place.
 
-**Why `defined` is the only success state.** The element is not replaced when it upgrades — `customElements.define()` swaps its prototype in place — so a stylesheet keeps matching it throughout, and `defined` is written *synchronously* in the frame the element upgraded. Nothing supersedes it, so a rule matching `[ce="defined"]` keeps matching and an entry animation declared on it plays out in full.
+**Why `defined` is the only success state.** The element is not replaced when it upgrades — `customElements.define()` swaps its prototype in place — so a stylesheet keeps matching it throughout, and `defined` is written _synchronously_ in the frame the element upgraded. Nothing supersedes it, so a rule matching `[ce="defined"]` keeps matching and an entry animation declared on it plays out in full.
 
 The one thing to avoid is anchoring on `:not(:defined)`, which stops matching the instant the element is defined — so a `transition` declared there has no "to" state to reach. Anchor on `[ce="defined"]` instead:
 
