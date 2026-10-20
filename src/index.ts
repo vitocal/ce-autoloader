@@ -73,10 +73,6 @@ const UNHANDLED = ":not([ce])";
  * | `defined`   | `customElements.define()` ran — the element is upgraded        |
  * | `error`     | loading or defining failed (terminal)                          |
  *
- * `defined` is written synchronously from the upgrade, in the frame the element
- * upgraded, and nothing supersedes it — so a rule matching `[ce="defined"]` keeps
- * matching, and an entry animation declared on it plays out in full.
- *
  * Once registered, the CustomElement generally style it's own DOM node.
  *
  * @usage
@@ -103,8 +99,6 @@ const UNHANDLED = ":not([ce])";
 }
   ```
  *
- * - But they're javascript code they can do whatever it's available to `document`
-
  */
 class CEAutoLoader {
   options: Options;
