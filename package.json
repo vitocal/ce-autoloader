@@ -1,6 +1,6 @@
 {
   "name": "ce-autoloader",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A web-component registry that loads async",
   "type": "module",
   "main": "./dist/ce-autoloader.js",
