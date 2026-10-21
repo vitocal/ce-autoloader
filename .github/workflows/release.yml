@@ -6,6 +6,14 @@ name: Release
 on:
   push:
     tags: ["*.*.*"]
+  # Re-publish an existing tag by hand: same guards, same trusted-publisher
+  # provenance. `workflow_dispatch` is also a permitted OIDC event for npm.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to publish, e.g. v0.2.2
+        required: true
+        type: string
 
 # Publishes through a trusted publisher (OIDC), not a token: npmjs.com → package
 # settings → Trusted publishing must name `vitocal/ce-autoloader`, the workflow
@@ -18,7 +26,7 @@ permissions:
 
 # Never cancel a publish halfway through.
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.tag || github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -26,8 +34,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
+    # A tag push carries the name in `github.ref_name`; a manual run carries it
+    # in the input, because `github.ref_name` is then the branch (`main`).
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
 
       - uses: actions/setup-node@v4
         with:
@@ -49,10 +64,10 @@ jobs:
       - name: Check the tag matches package.json
         run: |
           version=$(node -p "require('./package.json').version")
-          tag=${GITHUB_REF_NAME#v}
-          echo "tag ${GITHUB_REF_NAME} → package.json ${version}"
+          tag=${RELEASE_TAG#v}
+          echo "tag ${RELEASE_TAG} → package.json ${version}"
           test "$tag" = "$version" || {
-            echo "::error::tag ${GITHUB_REF_NAME} does not match package.json ${version}"
+            echo "::error::tag ${RELEASE_TAG} does not match package.json ${version}"
             exit 1
           }
 
@@ -83,6 +98,6 @@ jobs:
         run: npm publish
 
       - name: Create the GitHub release
-        run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "$GITHUB_REF_NAME"
+        run: gh release create "$RELEASE_TAG" --verify-tag --generate-notes --title "$RELEASE_TAG"
         env:
           GH_TOKEN: ${{ github.token }}

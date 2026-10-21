@@ -326,7 +326,7 @@ npm run test:edge     # Microsoft Edge (branded channel)
 npm run test:all      # every browser above
 ```
 
-`npx playwright install chromium webkit firefox` fetches the bundled engines. A browser that is not installed is reported as _skipped_, not failed; add `--strict` (or `TEST_STRICT=1`) to make a skip fail the run. Playwright only ships the _current_ build of each engine, so it cannot target a pinned older version — testing an older browser means pinning an older Playwright release.
+`npx playwright install chromium webkit firefox` fetches the bundled engines. A browser that is not installed is reported as _skipped_, not failed; add `--strict` (or `TEST_STRICT=1`) to make a skip fail the run.
 
 The demos/docs site is deployed to GitHub Pages by `.github/workflows/pages.yml`: every push to `main` runs
 `NODE_ENV=production npm run build:docs` and publishes `docs/` as a Pages artifact. `docs/` is build output — it is
@@ -344,18 +344,20 @@ git push --follow-tags
 publishing goes through a **trusted publisher** (OIDC), so npm verifies which workflow is asking and attaches a
 provenance attestation automatically.
 
-Set that up once at **npmjs.com → ce-autoloader → Settings → Trusted publishing → GitHub Actions**:
-
-| Field | Value |
-| --- | --- |
-| Organization or user | `vitocal` |
-| Repository | `ce-autoloader` |
-| Workflow filename | `release.yml` |
-| Environment | *(leave empty — the job declares none)* |
-
 The first successful publish validates the configuration; an unvalidated one **expires after 48 hours**, so create it
 close to a release. The workflow upgrades npm to ≥ 11.5.1 first, since trusted publishing does not exist in Node 22's
 bundled npm 10.
+
+To re-run a release by hand — a tag whose run failed before it reached the registry — drive the same workflow instead of
+publishing locally:
+
+```bash
+gh workflow run release.yml -f tag=v0.2.2      # or Actions → Release → Run workflow
+```
+
+The guards still apply, so a version that is already on npm fails at the duplicate check. A local `npm publish` also
+works, but it signs nothing: provenance is only generated inside CI with an OIDC identity, and both repo-side guards are
+skipped.
 
 ## License
 
